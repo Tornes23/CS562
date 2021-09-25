@@ -8,9 +8,9 @@ int main(char* argv[], int argc)
 {
 	//handle the console arguments if necesary
 
-	//InputManager.Initialize();
 	//RenderManager.Initialize();
 	Utils::InitSDL();
+	InputManager.Initialize();
 	Window.Create();
 	Editor.Initialize();
 	Utils::InitGL();
@@ -19,7 +19,7 @@ int main(char* argv[], int argc)
 	while (!Window.IsClosed())
 	{
 		Editor.StartFrame();
-		//InputManager.StartFrame();
+		InputManager.StartFrame();
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event))
@@ -31,7 +31,7 @@ int main(char* argv[], int argc)
 				break;
 			case SDL_KEYDOWN:
 			case SDL_KEYUP:
-				//InputManager.HandleEvent(event);
+				InputManager.HandleEvent(event);
 				break;
 			}
 		}
@@ -52,6 +52,5 @@ int main(char* argv[], int argc)
 	Editor.ShutDown();
 	SDL_Quit();
 
-	std::cerr << "Hello World\n";
 	return 0;
 }

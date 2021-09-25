@@ -25,9 +25,6 @@
     <Filter Include="Source Files\Camera">
       <UniqueIdentifier>{c76f4839-1c61-42c7-8c7e-f1d2e394ed1a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Light">
-      <UniqueIdentifier>{5367f4b6-c7f6-43b9-a5fc-0ce14d8a5fbd}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\GameObject">
       <UniqueIdentifier>{8f487f21-7195-4648-9d65-e3940d208870}</UniqueIdentifier>
     </Filter>
@@ -42,6 +39,9 @@
     </Filter>
     <Filter Include="Source Files\Utils">
       <UniqueIdentifier>{d1650f05-8624-4d3c-8bd0-3f00f0aa5456}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\InputManager">
+      <UniqueIdentifier>{0df98543-6736-4418-9011-dc36609cc07c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +80,9 @@
     </ClCompile>
     <ClCompile Include="src\imgui\imgui_widgets.cpp">
       <Filter>Source Files\Editor\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\InputManager.cpp">
+      <Filter>Source Files\InputManager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -124,6 +127,9 @@
     </ClInclude>
     <ClInclude Include="src\imgui\imgui_impl_opengl3_loader.h">
       <Filter>Source Files\Editor\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\InputManager.h">
+      <Filter>Source Files\InputManager</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

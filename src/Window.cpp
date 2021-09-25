@@ -1,6 +1,7 @@
 #include <iostream>
-#include "Window.h"
 #include "gl/glew.h"
+#include "Window.h"
+#include "InputManager.h"
 
 void WindowClass::Create(glm::ivec2 size, std::string title)
 {
@@ -33,7 +34,7 @@ void WindowClass::Create(glm::ivec2 size, std::string title)
 	}
 }
 
-void WindowClass::Update() { /*if input manager esc -> mClosed = true*/}
+void WindowClass::Update() { if (KeyDown(Key::Esc)) mClosed = true; }
 
 void WindowClass::Clear()
 {
