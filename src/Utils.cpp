@@ -56,3 +56,21 @@ void Utils::ParseShader(std::string& filename, std::string& code)
 	//closing the file
 	inFile.close();
 }
+
+void Utils::LoadScene(const std::string& filename)
+{
+
+}
+
+bool& operator>>(const nlohmann::json& j, bool& val) { val = j; return val; }
+short& operator>>(const nlohmann::json& j, short& val) { val = j; return val; }
+unsigned short& operator>>(const nlohmann::json& j, unsigned short& val) { val = j; return val; }
+int& operator>>(const nlohmann::json& j, int& val) { val = j; return val; }
+unsigned int& operator>>(const nlohmann::json& j, unsigned& val) { val = j; return val; }
+float& operator>>(const nlohmann::json& j, float& val) { val = j; return val; }
+double& operator>>(const nlohmann::json& j, double& val) { val = j; return val; }
+glm::vec2& operator>>(const nlohmann::json& j, glm::vec2& val) { j["x"] >> val.x; j["y"] >> val.y; return val; }
+glm::vec3& operator>>(const nlohmann::json& j, glm::vec3& val) { j["x"] >> val.x; j["y"] >> val.y; j["z"] >> val.z; return val; }
+glm::vec4& operator>>(const nlohmann::json& j, glm::vec4& val) { j["x"] >> val.x; j["y"] >> val.y; j["z"] >> val.z; j["w"] >> val.w; return val; }
+Color& operator>>(const nlohmann::json& j, Color& val) { val = { j["x"], j["y"], j["z"] }; return val; }
+std::string& operator>>(const nlohmann::json& j, std::string& val) { val = j.get<std::string>(); return val; }
