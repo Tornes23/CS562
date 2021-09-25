@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "sdl2/SDL.h"
 #include "gl/glew.h"
 #include "Utils.h"
@@ -34,4 +35,24 @@ void Utils::InitGL()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
+}
+
+void Utils::ParseShader(std::string& filename, std::string& code)
+{
+	//stream to read from the file
+	std::ifstream inFile(filename, std::ios::in);
+
+	//checking if it was opened
+	if (!inFile)
+		std::cerr << "ERROR WHILE TRYING TO OPEN " << filename << " FILE\n";
+
+	//reading the code from the file and adding it to the string
+	while (inFile.good())
+	{
+		int c = inFile.get();
+		if (!inFile.eof())
+			code.push_back((char)c);
+	}
+	//closing the file
+	inFile.close();
 }

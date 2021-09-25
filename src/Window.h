@@ -20,6 +20,7 @@ public:
 	void Update();
 	void Clear();
 	void ShutDown();
+	void SwapBuffers();
 	//setters
 	void CloseWindow();
 	//getters

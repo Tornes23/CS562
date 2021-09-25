@@ -54,6 +54,12 @@
     <ClCompile Include="src\Window.cpp">
       <Filter>Source Files\Window</Filter>
     </ClCompile>
+    <ClCompile Include="src\Shader.cpp">
+      <Filter>Source Files\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor.cpp">
+      <Filter>Source Files\Editor</Filter>
+    </ClCompile>
     <ClCompile Include="src\imgui\imgui.cpp">
       <Filter>Source Files\Editor\ImGui</Filter>
     </ClCompile>
@@ -61,6 +67,12 @@
       <Filter>Source Files\Editor\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\imgui\imgui_draw.cpp">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_impl_opengl3.cpp">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_impl_sdl.cpp">
       <Filter>Source Files\Editor\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="src\imgui\imgui_tables.cpp">
@@ -77,10 +89,25 @@
     <ClInclude Include="src\Window.h">
       <Filter>Source Files\Window</Filter>
     </ClInclude>
+    <ClInclude Include="src\Shader.h">
+      <Filter>Source Files\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor.h">
+      <Filter>Source Files\Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Framework.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="src\imgui\imconfig.h">
       <Filter>Source Files\Editor\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\imgui\imgui.h">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imgui_impl_opengl3.h">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imgui_impl_sdl.h">
       <Filter>Source Files\Editor\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\imgui\imgui_internal.h">
@@ -93,6 +120,9 @@
       <Filter>Source Files\Editor\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="src\imgui\imstb_truetype.h">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imgui_impl_opengl3_loader.h">
       <Filter>Source Files\Editor\ImGui</Filter>
     </ClInclude>
   </ItemGroup>

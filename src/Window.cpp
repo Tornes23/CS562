@@ -50,12 +50,18 @@ void WindowClass::ShutDown()
 	SDL_DestroyWindow(mWindow);
 }
 
+void WindowClass::SwapBuffers()
+{
+	//swapping the front and back buffers
+	SDL_GL_SwapWindow(mWindow);
+}
+
 void WindowClass::CloseWindow() { mClosed = true; }
 
 bool WindowClass::IsClosed() const { return mClosed; }
 
-SDL_Window* WindowClass::GetSDLWindow() const { return nullptr; }
+SDL_Window* WindowClass::GetSDLWindow() const { return mWindow; }
 
-SDL_GLContext WindowClass::GetSDLContext() const { return SDL_GLContext(); }
+SDL_GLContext WindowClass::GetSDLContext() const { return mContext; }
 
 glm::ivec2 WindowClass::GetViewport() const { return mSize; }

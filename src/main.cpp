@@ -1,7 +1,7 @@
 #include <iostream>
 #include "sdl2/SDL.h"
-#include "Utils.h"
-#include "Window.h"
+#include "imgui/imgui.h"
+#include "Framework.h"
 
 #undef main
 int main(char* argv[], int argc)
@@ -12,13 +12,13 @@ int main(char* argv[], int argc)
 	//RenderManager.Initialize();
 	Utils::InitSDL();
 	Window.Create();
+	Editor.Initialize();
 	Utils::InitGL();
-	//Editor.Initialize();
 	//GOManager.LoadLevel("");
-
+	bool test = true;
 	while (!Window.IsClosed())
 	{
-		//Editor.StartFrame();
+		Editor.StartFrame();
 		//InputManager.StartFrame();
 
 		SDL_Event event;
@@ -35,9 +35,21 @@ int main(char* argv[], int argc)
 				break;
 			}
 		}
+
+		Window.Update();
+		//update objs
+		//update cam
+
+		Window.Clear();
+		ImGui::ShowDemoWindow(&test);
+		//render objs
+		Editor.Render();
+		Window.SwapBuffers();
+
 	}
 
 	Window.ShutDown();
+	Editor.ShutDown();
 	SDL_Quit();
 
 	std::cerr << "Hello World\n";
