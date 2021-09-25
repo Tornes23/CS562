@@ -38,7 +38,7 @@ int main(char* argv[], int argc)
 
 		Window.Update();
 		GOManager.Update();
-		//update cam
+		Camera.Update();
 
 		Window.Clear();
 		ImGui::ShowDemoWindow(&test);

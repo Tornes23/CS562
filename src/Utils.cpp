@@ -5,6 +5,7 @@
 #include "Utils.h"
 #include "Window.h"
 #include "GameObjectManager.h"
+#include "Camera.h"
 
 namespace Utils
 {
@@ -71,10 +72,7 @@ namespace Utils
 			inFile >> j;
 			nlohmann::json& lights = *j.find("lights");
 			if (j.find("camera") != j.end())
-			{
-				//*j.find("camera");
-				//load camera
-			}
+				Camera.LoadCamera(*j.find("camera"));
 			if (j.find("objects") != j.end())
 				GOManager.LoadObjects(*j.find("objects"));
 
