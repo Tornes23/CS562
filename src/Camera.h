@@ -21,7 +21,7 @@ public:
 
 private:
 	glm::mat4x4 mPerspective;
-	glm::mat4x4 mCamera;
+	glm::mat4x4 mCameraMat;
 
 	float mNear;
 	float mFar;

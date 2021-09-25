@@ -1,5 +1,7 @@
-#include "Utils.h"
+#include "glm/gtc/matrix_transform.hpp"
 #include "InputManager.h"
+#include "Window.h"
+#include "Utils.h"
 #include "Camera.h"
 
 
@@ -52,7 +54,9 @@ void CameraClass::Move()
 void CameraClass::Update()
 {
 	Move();
-
 	//recomputing the matrices
+	glm::ivec2 view = Window.GetViewport();
+	mCameraMat = glm::lookAt(mPos, mView, {0,1,0});
+	mPerspective = glm::perspective(glm::radians(mFOV), static_cast<float>(view.x) / static_cast<float>(view.y), mNear, mFar);
 
 }
