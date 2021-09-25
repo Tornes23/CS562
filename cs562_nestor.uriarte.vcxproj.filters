@@ -16,10 +16,84 @@
     <Filter Include="Source Files\Shader">
       <UniqueIdentifier>{ca66cb1a-2cc7-4242-a241-b16442374181}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Window">
+      <UniqueIdentifier>{27b32949-38ae-485c-af75-c4c0053facc7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\RenderManager">
+      <UniqueIdentifier>{11c03625-7b2d-4807-9ed2-684f873f0d72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Camera">
+      <UniqueIdentifier>{c76f4839-1c61-42c7-8c7e-f1d2e394ed1a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Light">
+      <UniqueIdentifier>{5367f4b6-c7f6-43b9-a5fc-0ce14d8a5fbd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameObject">
+      <UniqueIdentifier>{8f487f21-7195-4648-9d65-e3940d208870}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GameObjectManager">
+      <UniqueIdentifier>{8ae85c67-4f8e-469d-9589-f3c6b97691ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Editor">
+      <UniqueIdentifier>{37b913fd-2548-4d5d-ae4d-d717dce71c23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Editor\ImGui">
+      <UniqueIdentifier>{a798900e-8890-49a5-95d6-893ff6a98072}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Utils">
+      <UniqueIdentifier>{d1650f05-8624-4d3c-8bd0-3f00f0aa5456}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Utils.cpp">
+      <Filter>Source Files\Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Window.cpp">
+      <Filter>Source Files\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui.cpp">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_demo.cpp">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_draw.cpp">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_tables.cpp">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\imgui_widgets.cpp">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Utils.h">
+      <Filter>Source Files\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Window.h">
+      <Filter>Source Files\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imconfig.h">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imgui.h">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imgui_internal.h">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imstb_rectpack.h">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imstb_textedit.h">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="src\imgui\imstb_truetype.h">
+      <Filter>Source Files\Editor\ImGui</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
