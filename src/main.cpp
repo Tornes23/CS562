@@ -8,13 +8,13 @@ int main(char* argv[], int argc)
 {
 	//handle the console arguments if necesary
 
+	Utils::LoadScene("./data/scenes/scene.json");
 	//RenderManager.Initialize();
 	Utils::InitSDL();
 	InputManager.Initialize();
 	Window.Create();
 	Editor.Initialize();
 	Utils::InitGL();
-	//GOManager.LoadLevel("");
 	bool test = true;
 	while (!Window.IsClosed())
 	{
@@ -37,7 +37,7 @@ int main(char* argv[], int argc)
 		}
 
 		Window.Update();
-		//update objs
+		GOManager.Update();
 		//update cam
 
 		Window.Clear();

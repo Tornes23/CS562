@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "json/json.hpp"
 #include "GameObject.h"
 
 class GameObjectManager
@@ -14,11 +15,11 @@ public:
 		return instance;
 	}
 	//member functions
-	void AddObject(const GameObject& obj);
-
+	void LoadObjects(const nlohmann::json& j);
+	void Update();
 
 private:
-	GameObjectManager();
+	GameObjectManager() { }
 	std::vector<GameObject> mObjects;
 };
 

@@ -1,14 +1,13 @@
 #pragma once
 #include <string>
 #include "glm/vec3.hpp"
+#include "glm/mat4x4.hpp"
 
-class GameObject
+struct GameObject
 {
-public:
-	GameObject(const std::string& mesh, const glm::vec3& pos, const glm::vec3& rot, const glm::vec3& sca);
+	void Update();
 
-private:
-
+	glm::mat4x4 mM2W;
 	std::string mMesh;
 	glm::vec3 mPos;
 	glm::vec3 mRotation;

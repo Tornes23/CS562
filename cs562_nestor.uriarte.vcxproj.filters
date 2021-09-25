@@ -93,6 +93,9 @@
     <ClCompile Include="src\Color.cpp">
       <Filter>Source Files\Color</Filter>
     </ClCompile>
+    <ClCompile Include="src\GameObject.cpp">
+      <Filter>Source Files\GameObject</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Utils.h">
