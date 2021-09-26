@@ -164,7 +164,9 @@
     <ClCompile Include="src\imgui\imgui_tables.cpp" />
     <ClCompile Include="src\imgui\imgui_widgets.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
+    <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\RenderManager.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Utils.cpp" />
     <ClCompile Include="src\Window.cpp" />
@@ -186,6 +188,8 @@
     <ClInclude Include="src\imgui\imstb_textedit.h" />
     <ClInclude Include="src\imgui\imstb_truetype.h" />
     <ClInclude Include="src\InputManager.h" />
+    <ClInclude Include="src\Light.h" />
+    <ClInclude Include="src\RenderManager.h" />
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\Utils.h" />
     <ClInclude Include="src\Window.h" />

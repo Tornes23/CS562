@@ -6,6 +6,7 @@
 #include "glm/vec4.hpp"
 #include "Color.h"
 #include "GameObject.h"
+#include "Light.h"
 
 namespace Utils
 {
@@ -28,3 +29,4 @@ glm::vec4& operator>>(const nlohmann::json& j, glm::vec4& val);
 Color& operator>>(const nlohmann::json& j, Color& val);
 std::string& operator>>(const nlohmann::json& j, std::string& val);
 GameObject& operator>>(const nlohmann::json& j, GameObject& val);
+Light& operator>>(const nlohmann::json& j, Light& val);

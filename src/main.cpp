@@ -9,7 +9,7 @@ int main(char* argv[], int argc)
 	//handle the console arguments if necesary
 
 	Utils::LoadScene("./data/scenes/scene.json");
-	//RenderManager.Initialize();
+	RenderManager.Initialize();
 	Utils::InitSDL();
 	InputManager.Initialize();
 	Window.Create();
@@ -29,7 +29,7 @@ int main(char* argv[], int argc)
 
 		Window.Clear();
 		ImGui::ShowDemoWindow(&test);
-		//render objs
+		RenderManager.Render();
 		Editor.Render();
 		Window.SwapBuffers();
 

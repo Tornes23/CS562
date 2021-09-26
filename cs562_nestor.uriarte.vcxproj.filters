@@ -46,6 +46,9 @@
     <Filter Include="Source Files\Color">
       <UniqueIdentifier>{ae238197-2c5d-4e75-930d-bd93b1a3f1d8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Light">
+      <UniqueIdentifier>{7d82a2c7-71d4-41bd-ae96-1495bd6e4d7b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -98,6 +101,12 @@
     </ClCompile>
     <ClCompile Include="src\Camera.cpp">
       <Filter>Source Files\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RenderManager.cpp">
+      <Filter>Source Files\RenderManager</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Light.cpp">
+      <Filter>Source Files\Light</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +166,12 @@
     </ClInclude>
     <ClInclude Include="src\Camera.h">
       <Filter>Source Files\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Light.h">
+      <Filter>Source Files\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RenderManager.h">
+      <Filter>Source Files\RenderManager</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

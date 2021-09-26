@@ -6,6 +6,7 @@
 #include "Window.h"
 #include "GameObjectManager.h"
 #include "Camera.h"
+#include "RenderManager.h"
 
 namespace Utils
 {
@@ -75,12 +76,8 @@ namespace Utils
 				Camera.LoadCamera(*j.find("camera"));
 			if (j.find("objects") != j.end())
 				GOManager.LoadObjects(*j.find("objects"));
-
 			if (j.find("lights") != j.end())
-			{
-				//j.find("lights")
-				//load lights
-			}
+				RenderManager.LoadLights(*j.find("lights"));
 		}
 
 
@@ -100,3 +97,4 @@ glm::vec4& operator>>(const nlohmann::json& j, glm::vec4& val) { j["x"] >> val.x
 Color& operator>>(const nlohmann::json& j, Color& val) { val = { j["x"], j["y"], j["z"] }; return val; }
 std::string& operator>>(const nlohmann::json& j, std::string& val) { val = j.get<std::string>(); return val; }
 GameObject& operator>>(const nlohmann::json& j, GameObject& val) { j["mesh"] >> val.mMesh; j["translate"] >> val.mPos; j["rotate"] >> val.mRotation; j["scale"] >> val.mScale; return val; }
+Light& operator>>(const nlohmann::json& j, Light& val) { j["position"] >> val.mPos; j["color"] >> val.mColor; j["radius"] >> val.mRadius; return val; }
