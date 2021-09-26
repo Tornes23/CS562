@@ -1,106 +1,192 @@
 #include "InputManager.h"
+#include "Camera.h"
+#include "Window.h"
 
 #pragma region // General Input Set Up //
 void InputHandler::Initialize()
 {
+	for (unsigned i = 0; i < MOUSE_KEY_AMOUNT; ++i)
+	{
+		mMouseCurrent[i] = 0;
+		mMousePrevious[i] = 0;
+	}
+
 	for (unsigned i = 0; i < KEYBOARD_KEY_AMOUNT; ++i)
 	{
 		mKeyCurrent[i] = 0;
 		mKeyPrevious[i] = 0;
 	}
-
-	mbCapsLocked = false;
 }
 void InputHandler::StartFrame()
 {
+	/* Reset the Current and Previous arrays */
+	for (unsigned i = 0; i < MOUSE_KEY_AMOUNT; ++i)
+		mMousePrevious[i] = mMouseCurrent[i];
+
 	for (unsigned i = 0; i < KEYBOARD_KEY_AMOUNT; ++i)
 		mKeyPrevious[i] = mKeyCurrent[i];
+
+	mWheelCurrent = false;
+	mWheelScroll = 0;
+}
+
+#pragma endregion
+
+void InputHandler::HandleEvents()
+{
+	GetRawMouse();
+
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
+	{
+#ifdef EDITOR
+		ImGui_ImplSDL2_ProcessEvent(&event);
+#endif
+
+		switch (event.type)
+		{
+		case SDL_QUIT:
+			Window.CloseWindow();
+			break;
+		case SDL_KEYDOWN:
+		case SDL_KEYUP:
+			InputManager.HandleKeyEvent(event);
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+		case SDL_MOUSEBUTTONUP:
+			InputManager.HandleMouseEvent(event);
+			break;
+		case SDL_MOUSEWHEEL:
+			InputManager.HandleMouseWheel(event);
+			break;
+		case SDL_MOUSEMOTION:
+			mRelMouse = glm::ivec2(event.motion.xrel, event.motion.yrel);
+			break;
+		}
+	}
+}
+
+#pragma region // MOUSE //
+
+void InputHandler::HandleMouseEvent(SDL_Event event)
+{
+	// Access the index with -1 beacuse they go:
+	// LEFT = 1, MIDDLE = 2, RIGHT = 3
+	mMouseCurrent[event.button.button - 1] = event.button.state ? true : false;
+}
+bool InputHandler::WheelTriggered()
+{
+	return mWheelCurrent;
+}
+bool InputHandler::MouseIsDown(MouseKey index)
+{
+	return mMouseCurrent[static_cast<unsigned>(index)];
+}
+bool InputHandler::MouseIsUp(MouseKey index)
+{
+	return !mMouseCurrent[static_cast<unsigned>(index)];
+}
+bool InputHandler::MouseIsTriggered(MouseKey index)
+{
+	if (mMouseCurrent[static_cast<unsigned>(index)] == true)
+	{
+		if (mMouseCurrent[static_cast<unsigned>(index)] != mMousePrevious[static_cast<unsigned>(index)])
+			return true;
+	}
+	return false;
+}
+bool InputHandler::MouseIsReleased(MouseKey index)
+{
+	if (mMouseCurrent[static_cast<unsigned>(index)] == false)
+	{
+		if (mMouseCurrent[static_cast<unsigned>(index)] != mMousePrevious[static_cast<unsigned>(index)])
+			return true;
+	}
+	return false;
+}
+
+int InputHandler::GetWheelScroll() const
+{
+	return mWheelScroll;
+}
+
+void InputHandler::HandleMouseWheel(SDL_Event event)
+{
+	mWheelCurrent = true;
+	mWheelScroll = event.wheel.y;
 }
 
 #pragma endregion
 
 #pragma region // KEYBOARD //
+#include "imgui/imgui.h"
 
-void InputHandler::HandleEvent(SDL_Event event)
+void InputHandler::HandleKeyEvent(SDL_Event event)
 {
-	SDL_Keycode ScanCode = event.key.keysym.sym;
+	SDL_Keycode ScanCode = event.key.keysym.scancode;
 
-	int masked_key = ScanCode & ~SDLK_SCANCODE_MASK;
-
-	/* Numeric Pad */
-	if (ScanCode >= SDLK_KP_1 && ScanCode <= SDLK_KP_9)
-	{
-		mKeyCurrent[ScanCode - SDLK_KP_1 + '1'] = event.key.state ? true : false;
-		return;
-	}
-	else if (ScanCode == SDLK_KP_0)
-	{
-		mKeyCurrent['0'] = event.key.state ? true : false;
-		return;
-	}
-	/* TAB */
-	else if (ScanCode == SDLK_TAB)
-	{
-		mKeyCurrent[SDLK_TAB] = event.key.state ? true : false;
-		return;
-	}
-	/* Special keys */
-	else if (ScanCode == 13) // Enter
-	{
-		mKeyCurrent[13] = event.key.state ? true : false;
-		return;
-	}
-	else if (ScanCode == SDLK_CAPSLOCK) // CapsLock
-	{
-		mKeyCurrent[2] = event.key.state ? true : false;
-		return;
-	}
-
-	mKeyCurrent[masked_key] = event.key.state ? true : false;
+	if (ScanCode > 0 && ScanCode < KEYBOARD_KEY_AMOUNT)
+		mKeyCurrent[ScanCode] = event.key.state ? true : false;
 }
 
 bool InputHandler::KeyIsDown(Key index)
 {
-	return mKeyCurrent[index];
+	if (ImGui::GetIO().WantCaptureKeyboard) return false;
+
+	return mKeyCurrent[static_cast<unsigned>(index)];
 }
 bool InputHandler::KeyIsUp(Key index)
 {
+	if (ImGui::GetIO().WantCaptureKeyboard) return false;
 	return !KeyIsDown(index);
 }
 bool InputHandler::KeyIsTriggered(Key index)
 {
-	if (mKeyCurrent[index] == true)
+	if (ImGui::GetIO().WantCaptureKeyboard) return false;
+
+	if (mKeyCurrent[static_cast<unsigned>(index)] == true)
 	{
-		if (mKeyCurrent[index] != mKeyPrevious[index])
+		if (mKeyCurrent[static_cast<unsigned>(index)] != mKeyPrevious[static_cast<unsigned>(index)])
 			return true;
 	}
 	return false;
 }
 bool InputHandler::KeyIsReleased(Key index)
 {
-	if (mKeyCurrent[index] == false)
+	if (ImGui::GetIO().WantCaptureKeyboard) return false;
+
+	if (mKeyCurrent[static_cast<unsigned>(index)] == false)
 	{
-		if (mKeyCurrent[index] != mKeyPrevious[index])
+		if (mKeyCurrent[static_cast<unsigned>(index)] != mKeyPrevious[static_cast<unsigned>(index)])
 			return true;
 	}
 	return false;
 }
+#pragma endregion
 
+#pragma region // MOUSE POSITIONS //
 
-bool InputHandler::KeyByUnsignedIsTriggered(unsigned index)
+const glm::ivec2& InputHandler::RawMousePos() const
 {
-	if (mKeyCurrent[index] == true)
-	{
-		if (mKeyCurrent[index] != mKeyPrevious[index])
-			return true;
-	}
-	return false;
+	return mRawMouse;
+}
+const glm::vec2& InputHandler::WindowMousePos() const
+{
+	return mWindowMouse;
 }
 
-bool InputHandler::KeyByUnsignedIsPressed(unsigned index)
+void InputHandler::SetMousePos(glm::vec2 pos)
 {
-	return mKeyCurrent[index];
+	mWindowMouse = pos;
+}
+
+void InputHandler::GetRawMouse()
+{
+	SDL_GetMouseState(&mRawMouse[0], &mRawMouse[1]);
+	mWindowMouse = mRawMouse - Window.GetViewport() / 2;
+	mWindowMouse.y *= -1;
 }
 
 #pragma endregion
+
 

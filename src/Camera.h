@@ -18,6 +18,8 @@ public:
 	void LoadCamera(const nlohmann::json& j);
 	void Move();
 	void Update();
+	void UpdateVectors(const glm::vec2& offset);
+	void Rotate();
 
 private:
 	glm::mat4x4 mPerspective;
@@ -29,9 +31,12 @@ private:
 	float mSpeed;
 
 	glm::vec3 mView;//view vector
+	glm::vec3 mUp;//up vector
 	glm::vec3 mRightVector;//right vector
 	glm::vec3 mPos;
 	glm::vec3 mRotation;
+
+	glm::vec2 mPrevMousePos;
 
 	CameraClass() { }
 };

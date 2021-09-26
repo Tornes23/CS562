@@ -21,21 +21,8 @@ int main(char* argv[], int argc)
 		Editor.StartFrame();
 		InputManager.StartFrame();
 
-		SDL_Event event;
-		while (SDL_PollEvent(&event))
-		{
-			switch (event.type)
-			{
-			case SDL_QUIT:
-				Window.CloseWindow();
-				break;
-			case SDL_KEYDOWN:
-			case SDL_KEYUP:
-				InputManager.HandleEvent(event);
-				break;
-			}
-		}
-
+		InputManager.HandleEvents();
+		
 		Window.Update();
 		GOManager.Update();
 		Camera.Update();

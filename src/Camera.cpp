@@ -1,4 +1,4 @@
-#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtx/transform.hpp"
 #include "InputManager.h"
 #include "Window.h"
 #include "Utils.h"
@@ -17,13 +17,16 @@ void CameraClass::LoadCamera(const nlohmann::json& j)
 	//set view vector
 	mView = { 1,0,0 };
 	//set right vector
-	mRightVector = glm::normalize(glm::cross({0,1,0}, mView));
+	mUp = {0,1,0};
+	mRightVector = glm::normalize(glm::cross(mUp, mView));
 	mSpeed = 2.0F;
 
 }
 
 void CameraClass::Move()
 {
+	Rotate();
+
 	//displacement
 	if (KeyDown(Key::W))
 		mPos += mSpeed * mView;
@@ -37,18 +40,6 @@ void CameraClass::Move()
 		mPos += mSpeed * glm::vec3(0,1,0);
 	if (KeyDown(Key::E))
 		mPos -= mSpeed * glm::vec3(0, 1, 0);
-
-	//pitch-rotate around right
-	if (KeyDown(Key::Up))
-		mRotation.x += 0.1F;
-	if (KeyDown(Key::Down))
-		mRotation.x += 0.1F;
-
-	//yaw rotation - rotate around (0,1,0)
-	if (KeyDown(Key::Left))
-		mRotation.x += 0.1F;
-	if (KeyDown(Key::Right))
-		mRotation.x += 0.1F;
 }
 
 void CameraClass::Update()
@@ -56,7 +47,30 @@ void CameraClass::Update()
 	Move();
 	//recomputing the matrices
 	glm::ivec2 view = Window.GetViewport();
-	mCameraMat = glm::lookAt(mPos, mView, {0,1,0});
+	mCameraMat = glm::lookAt(mPos, mPos + mView, mUp);
 	mPerspective = glm::perspective(glm::radians(mFOV), static_cast<float>(view.x) / static_cast<float>(view.y), mNear, mFar);
 
+}
+
+void CameraClass::UpdateVectors(const glm::vec2& offset)
+{
+	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * offset.y, mRightVector));
+	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * -offset.x, mUp));
+
+	mUp = glm::vec3(glm::vec4(mUp, 0) * glm::rotate(glm::radians(5.0f) * offset.y, mRightVector));
+	mRightVector = glm::normalize(glm::cross(mView, mUp));
+
+}
+
+void CameraClass::Rotate()
+{
+	if (MouseDown(MouseKey::RIGHT))
+	{
+		//computing the offset increment with the senitivity
+		glm::vec2 offset = mPrevMousePos - InputManager.WindowMousePos();
+		UpdateVectors(offset);
+
+		mPrevMousePos = InputManager.WindowMousePos();
+
+	}
 }
