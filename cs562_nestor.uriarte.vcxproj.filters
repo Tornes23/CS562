@@ -49,6 +49,9 @@
     <Filter Include="Source Files\Light">
       <UniqueIdentifier>{7d82a2c7-71d4-41bd-ae96-1495bd6e4d7b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ResourceManager">
+      <UniqueIdentifier>{fe216754-c7da-4be3-b4bc-59346fcf3331}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -107,6 +110,9 @@
     </ClCompile>
     <ClCompile Include="src\Light.cpp">
       <Filter>Source Files\Light</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ResourceManager.cpp">
+      <Filter>Source Files\ResourceManager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -172,6 +178,9 @@
     </ClInclude>
     <ClInclude Include="src\RenderManager.h">
       <Filter>Source Files\RenderManager</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ResourceManager.h">
+      <Filter>Source Files\ResourceManager</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

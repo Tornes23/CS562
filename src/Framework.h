@@ -6,3 +6,4 @@
 #include "GameObjectManager.h"
 #include "Camera.h"
 #include "RenderManager.h"
+#include "ResourceManager.h"

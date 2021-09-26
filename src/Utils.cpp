@@ -7,6 +7,7 @@
 #include "GameObjectManager.h"
 #include "Camera.h"
 #include "RenderManager.h"
+#include "ResourceManager.h"
 
 namespace Utils
 {
@@ -80,7 +81,13 @@ namespace Utils
 				RenderManager.LoadLights(*j.find("lights"));
 		}
 
-
+	}
+	void LoadResources(const std::string& filename)
+	{
+		//loading the model
+		ResourceManager.LoadModels();
+		//loading the level
+		LoadScene(filename);
 	}
 }
 

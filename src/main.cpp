@@ -7,8 +7,7 @@
 int main(char* argv[], int argc)
 {
 	//handle the console arguments if necesary
-
-	Utils::LoadScene("./data/scenes/scene.json");
+	Utils::LoadResources("./data/scenes/scene.json");
 	RenderManager.Initialize();
 	Utils::InitSDL();
 	InputManager.Initialize();

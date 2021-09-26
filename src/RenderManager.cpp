@@ -21,8 +21,10 @@ void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 
 void RenderManagerClass::LoadShaders()
 {
+
 }
 
 void RenderManagerClass::Render()
 {
+
 }

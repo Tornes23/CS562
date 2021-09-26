@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 #include "json/json.hpp"
 #include "Light.h"
 #include "Shader.h"
@@ -15,12 +16,14 @@ public:
 		static RenderManagerClass instance;
 		return instance;
 	}
+
 	void Initialize();
 	void LoadLights(const nlohmann::json& lights);
 	void LoadShaders();
 	void Render();
 
 private:
+	const std::string mShaderPath = "./data/shaders/";
 	std::vector<Light> mLights;
 	std::vector<ShaderProgram> mShaders;
 

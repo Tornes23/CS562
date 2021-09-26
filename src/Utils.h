@@ -14,6 +14,7 @@ namespace Utils
 	void InitGL();
 	void ParseShader(std::string& filename, std::string& code);
 	void LoadScene(const std::string& filename);
+	void LoadResources(const std::string& filename);
 }
 
 bool& operator>>(const nlohmann::json& j, bool& val);
