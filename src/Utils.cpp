@@ -85,7 +85,7 @@ namespace Utils
 	void LoadResources(const std::string& filename)
 	{
 		//loading the model
-		ResourceManager.LoadModels();
+		ResourceManager.Load();
 		//loading the level
 		LoadScene(filename);
 	}

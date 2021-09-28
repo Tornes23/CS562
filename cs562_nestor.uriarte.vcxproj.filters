@@ -52,6 +52,18 @@
     <Filter Include="Source Files\ResourceManager">
       <UniqueIdentifier>{fe216754-c7da-4be3-b4bc-59346fcf3331}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Texture">
+      <UniqueIdentifier>{71068490-a3b9-4aaf-bbaf-052c32ec69db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Mesh">
+      <UniqueIdentifier>{19a81091-2d32-4476-b09f-439dae332486}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Model">
+      <UniqueIdentifier>{f6c2d019-8e2a-4f54-89d9-956edfaf91bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ResourceManager\Resource">
+      <UniqueIdentifier>{34f0ba34-664e-4e6d-9406-4b4ff04d6e51}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -113,6 +125,12 @@
     </ClCompile>
     <ClCompile Include="src\ResourceManager.cpp">
       <Filter>Source Files\ResourceManager</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Texture.cpp">
+      <Filter>Source Files\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Resource.cpp">
+      <Filter>Source Files\ResourceManager\Resource</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -181,6 +199,18 @@
     </ClInclude>
     <ClInclude Include="src\ResourceManager.h">
       <Filter>Source Files\ResourceManager</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Texture.h">
+      <Filter>Source Files\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh.h">
+      <Filter>Source Files\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Model.h">
+      <Filter>Source Files\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Resource.h">
+      <Filter>Source Files\ResourceManager\Resource</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

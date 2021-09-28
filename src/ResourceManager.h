@@ -1,5 +1,11 @@
 #pragma once
 #include <filesystem>
+#include <map>
+#include "Resource.h"
+
+namespace tinygltf {
+	class Model;
+}
 
 class ResourceManagerClass
 {
@@ -20,10 +26,13 @@ public:
 	};
 
 	std::string GetExtension(const std::filesystem::path& path);
-	void LoadModels();
+	void Load();
 	void LoadFolder(const std::filesystem::path& path);
+	void LoadModel(const std::string& file);
+	void GetTextures(tinygltf::Model* model);
+
 private:
-	//std::map<RESOURCE_TYPE, std::vector<std::shared_ptr<Resource>>> mResources;
+	std::map<RESOURCE_TYPE, std::map<std::string, std::shared_ptr<Resource>>> mResources;
 	ResourceManagerClass() {}
 };
 
