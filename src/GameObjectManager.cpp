@@ -1,5 +1,6 @@
 #include "GameObjectManager.h"
 #include "Utils.h"
+#include "ResourceManager.h"
 
 void GameObjectManager::LoadObjects(const nlohmann::json& objs)
 {
@@ -9,6 +10,7 @@ void GameObjectManager::LoadObjects(const nlohmann::json& objs)
 		nlohmann::json object = *it;
 		//load obj
 		object >> go;
+		go.mModel = ResourceManager.GetResource<Model>(go.mMesh);
 		//load mesh
 		mObjects.push_back(go);
 	}

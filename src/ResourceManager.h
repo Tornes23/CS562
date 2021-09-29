@@ -19,11 +19,6 @@ public:
 		return instance;
 	}
 
-	enum class RESOURCE_TYPE
-	{
-		Texture,
-		Model
-	};
 
 	std::string GetExtension(const std::filesystem::path& path);
 	void Load();
@@ -31,9 +26,22 @@ public:
 	void LoadModel(const std::string& file);
 	void GetTextures(tinygltf::Model* model);
 
+	template<typename T>
+	T& GetResource(const std::string& name);
+
 private:
-	std::map<RESOURCE_TYPE, std::map<std::string, std::shared_ptr<Resource>>> mResources;
+	std::map<std::string, std::map<std::string, std::shared_ptr<Resource>>> mResources;
 	ResourceManagerClass() {}
 };
 
 #define ResourceManager (ResourceManagerClass::GetInstance())
+
+template<typename T>
+inline T& ResourceManagerClass::GetResource(const std::string& name)
+{
+	T temp;
+	auto map =  mResources.at(typeid(T).name());
+	TResource<T>* res = dynamic_cast<TResource<T>*>(map.at(name).get());
+	if (res) return *(res->get());
+	return temp;
+}

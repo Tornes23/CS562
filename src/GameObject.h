@@ -2,6 +2,7 @@
 #include <string>
 #include "glm/vec3.hpp"
 #include "glm/mat4x4.hpp"
+#include "Model.h"
 
 struct GameObject
 {
@@ -12,5 +13,7 @@ struct GameObject
 	glm::vec3 mPos;
 	glm::vec3 mRotation;
 	glm::vec3 mScale;
+
+	Model mModel;
 };
 
