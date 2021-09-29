@@ -25,7 +25,7 @@ void ResourceManagerClass::LoadFolder(const std::filesystem::path& path)
 	for (auto& it : std::filesystem::directory_iterator(path))
 	{
 		std::string ext = GetExtension(it.path());
-		if (ext.find("/") != ext.npos)
+		if (ext.find("/") != ext.npos || ext.find("\\") != ext.npos)
 		{
 			LoadFolder(it.path());
 		}
@@ -59,12 +59,16 @@ void ResourceManagerClass::LoadModel(const std::string& file)
 	if (!ret)
 		std::cerr << "Failed to parse glTF\n";
 
-	
+	std::string filename = file.substr(file.find_last_of("/") + 1, file.length());
+
+	if (filename.find("\\") != filename.npos)
+		filename = filename.substr(filename.find_last_of("\\") + 1, filename.length());
+
 	//create the resource and Tresource to add onto the map
 	std::shared_ptr<TResource<Model>> res = std::make_shared<TResource<Model>>();
 	res->SetResource(new Model(&model));
-	res->SetName(file);
-	mResources[typeid(Model).name()][file] = res; //put in the map
+	res->SetName(filename);
+	mResources[typeid(Model).name()][filename] = res; //put in the map
 
 }
 
@@ -76,7 +80,7 @@ void ResourceManagerClass::GetTextures(tinygltf::Model* model)
 		if (tex.source > -1) continue;
 
 		tinygltf::Image& img = model->images[tex.source];
-		std::string name = img.name;
+		std::string name = img.name.substr(img.name.find_last_of("/") + 1, img.name.length());
 		//create Tresource of texture and add to the map
 		std::shared_ptr<TResource<Texture>> res = std::make_shared<TResource<Texture>>();
 		res->SetResource(new Texture(img));

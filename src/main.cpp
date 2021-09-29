@@ -7,13 +7,14 @@
 int main(char* argv[], int argc)
 {
 	//handle the console arguments if necesary
-	Utils::LoadResources("./data/scenes/scene.json");
-	RenderManager.Initialize();
 	Utils::InitSDL();
-	InputManager.Initialize();
 	Window.Create();
-	Editor.Initialize();
 	Utils::InitGL();
+	InputManager.Initialize();
+	Editor.Initialize();
+	RenderManager.Initialize();
+	Utils::LoadResources("./data/scenes/scene.json");
+
 	bool test = true;
 	while (!Window.IsClosed())
 	{

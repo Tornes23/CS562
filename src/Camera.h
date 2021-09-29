@@ -20,6 +20,8 @@ public:
 	void Update();
 	void UpdateVectors(const glm::vec2& offset);
 	void Rotate();
+	glm::mat4x4 GetProjection() const;
+	glm::mat4x4 GetCameraMat() const;
 
 private:
 	glm::mat4x4 mPerspective;

@@ -4,6 +4,7 @@
 #include "glm/vec2.hpp"
 #include "glm/vec3.hpp"
 #include "glm/vec4.hpp"
+#include "gl/glew.h"
 #include "Color.h"
 #include "GameObject.h"
 #include "Light.h"
@@ -17,7 +18,12 @@ namespace Utils
 	void ParseShader(std::string& filename, std::string& code);
 	void LoadScene(const std::string& filename);
 	void LoadResources(const std::string& filename);
+	void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+		const GLchar* message, const void* userParam);
 }
+
+
+
 
 bool& operator>>(const nlohmann::json& j, bool& val);
 short& operator>>(const nlohmann::json& j, short& val);

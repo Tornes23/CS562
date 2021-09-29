@@ -1,6 +1,7 @@
 #include "RenderManager.h"
 #include "GameObjectManager.h"
 #include "Utils.h"
+#include "Camera.h"
 
 void RenderManagerClass::Initialize()
 {
@@ -22,7 +23,7 @@ void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 
 void RenderManagerClass::LoadShaders()
 {
-
+	mShaders.push_back(ShaderProgram("./data/shaders/regular.vert", "./data/shaders/regular.frag"));
 }
 
 void RenderManagerClass::Render()
@@ -31,7 +32,10 @@ void RenderManagerClass::Render()
 	for (auto& it : objs)
 	{
 		//get shader program
+		mShaders[0].Use();
 		//set uniforms in shader
+		glm::mat4x4 mvp = Camera.GetProjection()* Camera.GetCameraMat() * it.mM2W;
+		mShaders[0].SetMatUniform("MVP", &mvp[0][0]);
 
 		it.mModel->BindVAO();
 
