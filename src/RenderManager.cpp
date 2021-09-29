@@ -1,4 +1,5 @@
 #include "RenderManager.h"
+#include "GameObjectManager.h"
 #include "Utils.h"
 
 void RenderManagerClass::Initialize()
@@ -26,5 +27,42 @@ void RenderManagerClass::LoadShaders()
 
 void RenderManagerClass::Render()
 {
+	auto objs = GOManager.GetObjs();
+	for (auto& it : objs)
+	{
+		//get shader program
+		//set uniforms in shader
 
+		it.mModel->BindVAO();
+
+		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
+		for (size_t i = 0; i < scene.nodes.size(); ++i) 
+			RenderNode(it.mModel->GetGLTFModel(), it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+
+	}
+
+	//unbinding the VAOs
+	glBindVertexArray(0);
+	glUseProgram(0);
+}
+
+void RenderManagerClass::RenderNode(const tinygltf::Model& model, const tinygltf::Node& node)
+{
+	if((node.mesh >= 0) && (node.mesh < model.meshes.size())) 
+		RenderMesh(model, model.meshes[node.mesh]);
+
+	for (size_t i = 0; i < node.children.size(); i++) 
+		RenderNode(model, model.nodes[node.children[i]]);
+}
+
+void RenderManagerClass::RenderMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh)
+{
+	for (size_t i = 0; i < mesh.primitives.size(); ++i) {
+		tinygltf::Primitive primitive = mesh.primitives[i];
+		tinygltf::Accessor indexAccessor = model.accessors[primitive.indices];
+
+		glDrawElements(primitive.mode, indexAccessor.count,
+			indexAccessor.componentType,
+			BUFFER_OFFSET(indexAccessor.byteOffset));
+	}
 }

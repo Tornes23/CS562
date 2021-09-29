@@ -8,6 +8,8 @@
 #include "GameObject.h"
 #include "Light.h"
 
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
+
 namespace Utils
 {
 	void InitSDL();

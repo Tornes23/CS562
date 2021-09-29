@@ -1,9 +1,8 @@
 #include "Model.h"
 #include "ResourceManager.h"
+#include "Utils.h"
 
-#define BUFFER_OFFSET(i) ((char *)NULL + (i))
-
-Model::Model(tinygltf::Model* model)
+Model::Model(tinygltf::Model* model) : mGLTF_Model(*model)
 {
 	if (!model) return;
 
@@ -90,3 +89,7 @@ void Model::BindMeshes(tinygltf::Model* model, tinygltf::Mesh& mesh)
             ResourceManager.GetTextures(model);
     }
 }
+
+tinygltf::Model& Model::GetGLTFModel() { return mGLTF_Model; }
+
+void Model::BindVAO() { glBindVertexArray(mVAO); }

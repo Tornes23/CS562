@@ -55,9 +55,6 @@
     <Filter Include="Source Files\Texture">
       <UniqueIdentifier>{71068490-a3b9-4aaf-bbaf-052c32ec69db}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Mesh">
-      <UniqueIdentifier>{19a81091-2d32-4476-b09f-439dae332486}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Model">
       <UniqueIdentifier>{f6c2d019-8e2a-4f54-89d9-956edfaf91bb}</UniqueIdentifier>
     </Filter>
@@ -205,9 +202,6 @@
     </ClInclude>
     <ClInclude Include="src\Texture.h">
       <Filter>Source Files\Texture</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Mesh.h">
-      <Filter>Source Files\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="src\Model.h">
       <Filter>Source Files\Model</Filter>

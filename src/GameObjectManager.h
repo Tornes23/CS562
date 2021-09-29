@@ -17,7 +17,7 @@ public:
 	//member functions
 	void LoadObjects(const nlohmann::json& j);
 	void Update();
-
+	std::vector<GameObject>& GetObjs() { return mObjects; }
 private:
 	GameObjectManager() { }
 	std::vector<GameObject> mObjects;

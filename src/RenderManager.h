@@ -4,6 +4,7 @@
 #include "json/json.hpp"
 #include "Light.h"
 #include "Shader.h"
+#include "tinyglft/tiny_gltf.h"
 
 class RenderManagerClass
 {
@@ -21,6 +22,8 @@ public:
 	void LoadLights(const nlohmann::json& lights);
 	void LoadShaders();
 	void Render();
+	void RenderNode(const tinygltf::Model& model, const tinygltf::Node& node);
+	void RenderMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh);
 
 private:
 	const std::string mShaderPath = "./data/shaders/";

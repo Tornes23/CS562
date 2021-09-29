@@ -14,6 +14,6 @@ struct GameObject
 	glm::vec3 mRotation;
 	glm::vec3 mScale;
 
-	Model mModel;
+	Model* mModel;
 };
 

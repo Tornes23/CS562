@@ -27,7 +27,7 @@ public:
 	void GetTextures(tinygltf::Model* model);
 
 	template<typename T>
-	T& GetResource(const std::string& name);
+	T* GetResource(const std::string& name);
 
 private:
 	std::map<std::string, std::map<std::string, std::shared_ptr<Resource>>> mResources;
@@ -37,11 +37,10 @@ private:
 #define ResourceManager (ResourceManagerClass::GetInstance())
 
 template<typename T>
-inline T& ResourceManagerClass::GetResource(const std::string& name)
+inline T* ResourceManagerClass::GetResource(const std::string& name)
 {
-	T temp;
 	auto map =  mResources.at(typeid(T).name());
 	TResource<T>* res = dynamic_cast<TResource<T>*>(map.at(name).get());
-	if (res) return *(res->get());
-	return temp;
+	if (res) return (res->get());
+	return nullptr;
 }
