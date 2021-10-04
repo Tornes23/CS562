@@ -1,10 +1,11 @@
 #include <iostream>
 #include "ResourceManager.h"
 #include "Texture.h"
+
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#define STBI_MSC_SECURE_CRT
+#define STBI_MSC_SECURE_CRT 
 #include "Model.h"
 #include "InputManager.h"
 
@@ -91,9 +92,48 @@ void ResourceManagerClass::GetTextures(tinygltf::Model* model)
 		std::string name = img.name.substr(img.name.find_last_of("/") + 1, img.name.length());
 		//create Tresource of texture and add to the map
 		std::shared_ptr<TResource<Texture>> res = std::make_shared<TResource<Texture>>();
-		res->SetResource(new Texture(img));
+		res->SetResource(new Texture(&img));
 		res->SetName(name);
 		mResources[typeid(Texture).name()][name] = res; //put in the map
+	}
+
+}
+
+void ResourceManagerClass::GetMaterials(tinygltf::Model* model)
+{
+	for (size_t i = 0; i < model->materials.size(); i++)
+	{
+		tinygltf::Material& mat = model->materials[i];
+		if (mat.name.find("(null)") != mat.name.npos)
+			continue;
+
+		//create materials and save them on map
+		std::shared_ptr<TResource<Material>> res = std::make_shared<TResource<Material>>();
+		res->SetResource(new Material);
+		res->SetName(mat.name);
+		//setting the data of the material
+		res.get()->get()->SetDiffuseColor(mat.pbrMetallicRoughness.baseColorFactor);
+
+		//getting the texture name to retrieve it from the map
+		std::string name;
+		if(mat.pbrMetallicRoughness.baseColorTexture.index >= 0)
+			name = model->textures[mat.pbrMetallicRoughness.baseColorTexture.index].name;
+		name = name.substr(name.find_last_of("/") + 1, name.length());
+		res.get()->get()->SetDiffuseTex(mResources["Texture"].at(name));
+
+		//getting the texture name to retrieve it from the map
+		if(mat.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
+			name = model->textures[mat.pbrMetallicRoughness.metallicRoughnessTexture.index].name;
+		name = name.substr(name.find_last_of("/") + 1, name.length());
+		res.get()->get()->SetSpecularTex(mResources["Texture"].at(name));
+
+		//getting the texture name to retrieve it from the map
+		if(mat.normalTexture.index >= 0)
+			name = model->textures[mat.normalTexture.index].name;
+		name = name.substr(name.find_last_of("/") + 1, name.length());
+		res.get()->get()->SetNormalTex(mResources["Texture"][name]);
+
+		mResources[typeid(Material).name()][mat.name] = res; //put in the map
 	}
 
 }

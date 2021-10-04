@@ -190,7 +190,8 @@ namespace Utils
             break;
         }
 
-        std::cerr << id << ":" << _type << " of " << _severity << " severity, raised from " << _source << ": " << message << "\n";
+        if(severity != GL_DEBUG_SEVERITY_NOTIFICATION)
+            std::cerr << id << ":" << _type << " of " << _severity << " severity, raised from " << _source << ": " << message << "\n";
     }
 }
 

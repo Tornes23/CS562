@@ -135,6 +135,9 @@
     <ClCompile Include="src\Model.cpp">
       <Filter>Source Files\Model</Filter>
     </ClCompile>
+    <ClCompile Include="src\Material.cpp">
+      <Filter>Source Files\Material</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Utils.h">
@@ -211,6 +214,9 @@
     </ClInclude>
     <ClInclude Include="src\Resource.h">
       <Filter>Source Files\ResourceManager\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Material.h">
+      <Filter>Source Files\Material</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

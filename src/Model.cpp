@@ -24,6 +24,7 @@ Model::Model(tinygltf::Model* model) : mGLTF_Model(*model)
 Model::~Model()
 {
     glDeleteVertexArrays(1, &mVAO);
+    delete &mGLTF_Model;
 }
 
 void Model::BindSceneNodes(tinygltf::Model* model, tinygltf::Node& node)
@@ -87,9 +88,21 @@ void Model::BindMeshes(tinygltf::Model* model, tinygltf::Mesh& mesh)
         //Load textures if necessary
         if (model->textures.size() > 0)
             ResourceManager.GetTextures(model);
+
+        if(model->materials.size() > 0)
+            ResourceManager.GetMaterials(model);
+
     }
 }
 
 tinygltf::Model& Model::GetGLTFModel() { return mGLTF_Model; }
 
 void Model::BindVAO() { glBindVertexArray(mVAO); }
+
+void Model::SetMaterialActive(int index)
+{
+    if (index < 0 || index > mMaterials.size())
+        return;
+
+    //mMaterials[index].SetActive();
+}

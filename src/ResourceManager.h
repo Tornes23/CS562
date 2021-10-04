@@ -26,6 +26,7 @@ public:
 	void LoadFolder(const std::filesystem::path& path);
 	void LoadModel(const std::string& file);
 	void GetTextures(tinygltf::Model* model);
+	void GetMaterials(tinygltf::Model* model);
 
 	template<typename T>
 	T* GetResource(const std::string& name);

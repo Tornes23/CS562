@@ -5,6 +5,7 @@
 #include "Light.h"
 #include "Shader.h"
 #include "tinyglft/tiny_gltf.h"
+#include "Model.h"
 
 class RenderManagerClass
 {
@@ -24,8 +25,8 @@ public:
 	void LoadShaders(bool reload = false);
 	void FreeShaders();
 	void Render();
-	void RenderNode(const tinygltf::Model& model, const tinygltf::Node& node);
-	void RenderMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh);
+	void RenderNode(Model& model, const tinygltf::Node& node);
+	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
 
 private:
 	const std::string mShaderPath = "./data/shaders/";

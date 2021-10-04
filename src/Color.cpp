@@ -17,6 +17,24 @@ Color::Color(float r, float g, float b, float a)
 	mA = static_cast<unsigned char>(a * 255.99F);
 }
 
+Color::Color(const std::vector<double>& c)
+{
+	//setting the values
+	mR = static_cast<unsigned char>(c[0] * 255.99);
+	mG = static_cast<unsigned char>(c[1] * 255.99);
+	mB = static_cast<unsigned char>(c[2] * 255.99);
+	mA = static_cast<unsigned char>(c[3] * 255.99);
+}
+
+Color::Color(const std::vector<float>& c)
+{
+	//setting the values
+	mR = static_cast<unsigned char>(c[0] * 255.99F);
+	mG = static_cast<unsigned char>(c[1] * 255.99F);
+	mB = static_cast<unsigned char>(c[2] * 255.99F);
+	mA = static_cast<unsigned char>(c[3] * 255.99F);
+}
+
 Color::Color(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
 	//setting the values
@@ -32,6 +50,22 @@ void Color::SetColor(glm::vec3& color)
 	mG = static_cast<unsigned char>(color.g * 255);
 	mB = static_cast<unsigned char>(color.b * 255);
 	mA = 255;
+}
+
+void Color::SetColor(const std::vector<double>& c)
+{
+	mR = static_cast<unsigned char>(c[0] * 255.99);
+	mG = static_cast<unsigned char>(c[1] * 255.99);
+	mB = static_cast<unsigned char>(c[2] * 255.99);
+	mA = static_cast<unsigned char>(c[3] * 255.99);
+}
+
+void Color::SetColor(const std::vector<float>& c)
+{
+	mR = static_cast<unsigned char>(c[0] * 255.99F);
+	mG = static_cast<unsigned char>(c[1] * 255.99F);
+	mB = static_cast<unsigned char>(c[2] * 255.99F);
+	mA = static_cast<unsigned char>(c[3] * 255.99F);
 }
 
 glm::vec4 Color::GetColor()

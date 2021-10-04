@@ -1,6 +1,10 @@
 #pragma once
 #include "gl/glew.h"
-#include "tinyglft/tiny_gltf.h"
+
+namespace tinygltf
+{
+    struct Image;
+}
 
 struct Texture
 {
@@ -8,13 +12,12 @@ struct Texture
         None, Diffuse, Normal, Specular, Shadow
     };
 
-    Texture(const tinygltf::Image& tex);
+    Texture(const tinygltf::Image* tex);
     Texture();
     ~Texture();
 
     void Bind(TextureUnit _unit = TextureUnit::Diffuse) const;
 
     GLuint          mHandle;
-    //tinygltf::Image mTexture;
 };
 
