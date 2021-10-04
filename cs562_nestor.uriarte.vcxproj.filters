@@ -61,6 +61,9 @@
     <Filter Include="Source Files\ResourceManager\Resource">
       <UniqueIdentifier>{34f0ba34-664e-4e6d-9406-4b4ff04d6e51}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Material">
+      <UniqueIdentifier>{ca7323f7-55d8-4c98-bb53-c1968a62745a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

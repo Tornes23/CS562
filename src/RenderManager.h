@@ -19,8 +19,10 @@ public:
 	}
 
 	void Initialize();
+	void Update();
 	void LoadLights(const nlohmann::json& lights);
-	void LoadShaders();
+	void LoadShaders(bool reload = false);
+	void FreeShaders();
 	void Render();
 	void RenderNode(const tinygltf::Model& model, const tinygltf::Node& node);
 	void RenderMesh(const tinygltf::Model& model, const tinygltf::Mesh& mesh);

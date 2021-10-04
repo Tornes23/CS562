@@ -2,10 +2,18 @@
 #include "GameObjectManager.h"
 #include "Utils.h"
 #include "Camera.h"
+#include "InputManager.h"
 
 void RenderManagerClass::Initialize()
 {
 	LoadShaders();
+}
+
+void RenderManagerClass::Update()
+{
+	if (KeyDown(Key::F5))
+		LoadShaders();
+		
 }
 
 void RenderManagerClass::LoadLights(const nlohmann::json& lights)
@@ -21,9 +29,17 @@ void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 	}
 }
 
-void RenderManagerClass::LoadShaders()
+void RenderManagerClass::LoadShaders(bool reload)
 {
+	if (reload)
+		FreeShaders();
+
 	mShaders.push_back(ShaderProgram("./data/shaders/regular.vert", "./data/shaders/regular.frag"));
+}
+
+void RenderManagerClass::FreeShaders()
+{
+	//for each shader destroy
 }
 
 void RenderManagerClass::Render()
@@ -34,7 +50,7 @@ void RenderManagerClass::Render()
 		//get shader program
 		mShaders[0].Use();
 		//set uniforms in shader
-		glm::mat4x4 mvp = Camera.GetProjection()* Camera.GetCameraMat() * it.mM2W;
+		glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat() * it.mM2W;
 		mShaders[0].SetMatUniform("MVP", &mvp[0][0]);
 
 		it.mModel->BindVAO();

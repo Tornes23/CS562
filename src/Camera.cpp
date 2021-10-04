@@ -20,7 +20,7 @@ void CameraClass::LoadCamera(const nlohmann::json& j)
 	mUp = {0,1,0};
 	mRightVector = glm::normalize(glm::cross(mUp, mView));
 	mSpeed = 2.0F;
-
+	mSensitivity = 0.01F;
 }
 
 void CameraClass::Move()
@@ -54,10 +54,11 @@ void CameraClass::Update()
 
 void CameraClass::UpdateVectors(const glm::vec2& offset)
 {
-	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * offset.y, mRightVector));
-	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * -offset.x, mUp));
+	glm::vec2 movement = offset * mSensitivity;
+	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * movement.y, mRightVector));
+	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * -movement.x, mUp));
 
-	mUp = glm::vec3(glm::vec4(mUp, 0) * glm::rotate(glm::radians(5.0f) * offset.y, mRightVector));
+	mUp = glm::vec3(glm::vec4(mUp, 0) * glm::rotate(glm::radians(5.0f) * movement.y, mRightVector));
 	mRightVector = glm::normalize(glm::cross(mView, mUp));
 
 }
@@ -67,12 +68,11 @@ void CameraClass::Rotate()
 	if (MouseDown(MouseKey::RIGHT))
 	{
 		//computing the offset increment with the senitivity
-		glm::vec2 offset = mPrevMousePos - InputManager.WindowMousePos();
+		glm::vec2 offset = mPrevMousePos - InputManager.RawMousePos();
 		UpdateVectors(offset);
 
-		mPrevMousePos = InputManager.WindowMousePos();
-
 	}
+	mPrevMousePos = InputManager.RawMousePos();
 }
 
 glm::mat4x4 CameraClass::GetProjection() const { return mPerspective; }

@@ -23,13 +23,15 @@ int main(char* argv[], int argc)
 
 		InputManager.HandleEvents();
 		
+		ResourceManager.Update();
+		RenderManager.Update();
 		Window.Update();
 		GOManager.Update();
 		Camera.Update();
 
 		Window.Clear();
-		ImGui::ShowDemoWindow(&test);
 		RenderManager.Render();
+		ImGui::ShowDemoWindow(&test);
 		Editor.Render();
 		Window.SwapBuffers();
 

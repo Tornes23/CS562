@@ -6,6 +6,7 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STBI_MSC_SECURE_CRT
 #include "Model.h"
+#include "InputManager.h"
 
 std::string ResourceManagerClass::GetExtension(const std::filesystem::path& path)
 {
@@ -15,9 +16,16 @@ std::string ResourceManagerClass::GetExtension(const std::filesystem::path& path
 	return ext;
 }
 
-void ResourceManagerClass::Load()
+void ResourceManagerClass::Load(bool reload)
 {
-	LoadFolder("./data/gltf/");
+	if(!reload)
+		LoadFolder("./data/gltf/");
+}
+
+void ResourceManagerClass::Update()
+{
+	if (KeyDown(Key::Control) && KeyDown(Key::R))
+		Load(true);
 }
 
 void ResourceManagerClass::LoadFolder(const std::filesystem::path& path)
@@ -45,10 +53,10 @@ void ResourceManagerClass::LoadModel(const std::string& file)
 {
 	//load model
 	tinygltf::TinyGLTF loader;
-	tinygltf::Model model;
+	tinygltf::Model* model = new tinygltf::Model();
 	std::string error;
 	std::string warning;
-	bool ret = loader.LoadASCIIFromFile(&model, &error, &warning, file);
+	bool ret = loader.LoadASCIIFromFile(model, &error, &warning, file);
 
 	if (!warning.empty())
 		std::cerr << "Warn:" << warning.c_str() << "\n";
@@ -66,7 +74,7 @@ void ResourceManagerClass::LoadModel(const std::string& file)
 
 	//create the resource and Tresource to add onto the map
 	std::shared_ptr<TResource<Model>> res = std::make_shared<TResource<Model>>();
-	res->SetResource(new Model(&model));
+	res->SetResource(new Model(model));
 	res->SetName(filename);
 	mResources[typeid(Model).name()][filename] = res; //put in the map
 

@@ -31,6 +31,7 @@ private:
 	float mFar;
 	float mFOV;
 	float mSpeed;
+	float mSensitivity;
 
 	glm::vec3 mView;//view vector
 	glm::vec3 mUp;//up vector
@@ -38,7 +39,7 @@ private:
 	glm::vec3 mPos;
 	glm::vec3 mRotation;
 
-	glm::vec2 mPrevMousePos;
+	glm::ivec2 mPrevMousePos;
 
 	CameraClass() { }
 };

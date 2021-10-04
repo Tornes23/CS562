@@ -21,7 +21,8 @@ public:
 
 
 	std::string GetExtension(const std::filesystem::path& path);
-	void Load();
+	void Load(bool reload = false);
+	void Update();
 	void LoadFolder(const std::filesystem::path& path);
 	void LoadModel(const std::string& file);
 	void GetTextures(tinygltf::Model* model);
