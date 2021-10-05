@@ -13,7 +13,7 @@ int main(char* argv[], int argc)
 	InputManager.Initialize();
 	Editor.Initialize();
 	RenderManager.Initialize();
-	Utils::LoadResources("./data/scenes/sceneSphere.json");
+	ResourceManager.LoadScene("./data/scenes/sceneSphere.json");
 	//Utils::LoadResources("./data/scenes/scene.json");
 
 	bool test = true;

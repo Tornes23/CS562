@@ -1,5 +1,5 @@
 #include "GameObjectManager.h"
-#include "Utils.h"
+#include "JSON.h"
 #include "ResourceManager.h"
 
 void GameObjectManager::LoadObjects(const nlohmann::json& objs)

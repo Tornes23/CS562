@@ -22,6 +22,7 @@ public:
 
 	std::string GetExtension(const std::filesystem::path& path);
 	void Load(bool reload = false);
+	void LoadScene(const std::string& scene);
 	void Update();
 	void LoadFolder(const std::filesystem::path& path);
 	void LoadModel(const std::string& file);
@@ -34,6 +35,7 @@ public:
 private:
 	std::map<std::string, std::map<std::string, std::shared_ptr<Resource>>> mResources;
 	ResourceManagerClass() {}
+	std::string mSceneName;
 };
 
 #define ResourceManager (ResourceManagerClass::GetInstance())

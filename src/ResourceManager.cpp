@@ -8,6 +8,7 @@
 #define STBI_MSC_SECURE_CRT 
 #include "Model.h"
 #include "InputManager.h"
+#include "Utils.h"
 
 std::string ResourceManagerClass::GetExtension(const std::filesystem::path& path)
 {
@@ -23,10 +24,17 @@ void ResourceManagerClass::Load(bool reload)
 		LoadFolder("./data/gltf/");
 }
 
+void ResourceManagerClass::LoadScene(const std::string& scene)
+{
+	mSceneName = scene;
+	Load();
+	Utils::LoadScene(mSceneName);
+}
+
 void ResourceManagerClass::Update()
 {
 	if (KeyDown(Key::Control) && KeyDown(Key::R))
-		Load(true);
+		Utils::LoadScene(mSceneName);
 }
 
 void ResourceManagerClass::LoadFolder(const std::filesystem::path& path)

@@ -1,5 +1,6 @@
 #include "RenderManager.h"
 #include "GameObjectManager.h"
+#include "JSON.h"
 #include "Utils.h"
 #include "Camera.h"
 #include "InputManager.h"

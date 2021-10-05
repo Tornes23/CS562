@@ -67,6 +67,9 @@
     <Filter Include="Source Files\GFX\Texture">
       <UniqueIdentifier>{71068490-a3b9-4aaf-bbaf-052c32ec69db}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ResourceManager\JSON">
+      <UniqueIdentifier>{a07d753d-2161-4bc2-82df-5254c5877ec8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -140,6 +143,9 @@
     </ClCompile>
     <ClCompile Include="src\Material.cpp">
       <Filter>Source Files\GFX\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="src\JSON.cpp">
+      <Filter>Source Files\ResourceManager\JSON</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -220,6 +226,9 @@
     </ClInclude>
     <ClInclude Include="src\Material.h">
       <Filter>Source Files\GFX\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="src\JSON.h">
+      <Filter>Source Files\ResourceManager\JSON</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
