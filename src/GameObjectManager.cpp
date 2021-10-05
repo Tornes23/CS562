@@ -4,6 +4,7 @@
 
 void GameObjectManager::LoadObjects(const nlohmann::json& objs)
 {
+	mObjects.clear();
 	for (auto it = objs.begin(); it != objs.end(); it++)
 	{
 		GameObject go;

@@ -13,20 +13,11 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\Shader">
-      <UniqueIdentifier>{ca66cb1a-2cc7-4242-a241-b16442374181}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Window">
       <UniqueIdentifier>{27b32949-38ae-485c-af75-c4c0053facc7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\RenderManager">
-      <UniqueIdentifier>{11c03625-7b2d-4807-9ed2-684f873f0d72}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Camera">
       <UniqueIdentifier>{c76f4839-1c61-42c7-8c7e-f1d2e394ed1a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\GameObject">
-      <UniqueIdentifier>{8f487f21-7195-4648-9d65-e3940d208870}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\GameObjectManager">
       <UniqueIdentifier>{8ae85c67-4f8e-469d-9589-f3c6b97691ce}</UniqueIdentifier>
@@ -43,26 +34,38 @@
     <Filter Include="Source Files\InputManager">
       <UniqueIdentifier>{0df98543-6736-4418-9011-dc36609cc07c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Color">
-      <UniqueIdentifier>{ae238197-2c5d-4e75-930d-bd93b1a3f1d8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Light">
-      <UniqueIdentifier>{7d82a2c7-71d4-41bd-ae96-1495bd6e4d7b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\ResourceManager">
       <UniqueIdentifier>{fe216754-c7da-4be3-b4bc-59346fcf3331}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Texture">
-      <UniqueIdentifier>{71068490-a3b9-4aaf-bbaf-052c32ec69db}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Model">
-      <UniqueIdentifier>{f6c2d019-8e2a-4f54-89d9-956edfaf91bb}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\ResourceManager\Resource">
       <UniqueIdentifier>{34f0ba34-664e-4e6d-9406-4b4ff04d6e51}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Material">
+    <Filter Include="Source Files\GameObjectManager\GameObject">
+      <UniqueIdentifier>{8f487f21-7195-4648-9d65-e3940d208870}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GFX">
+      <UniqueIdentifier>{7948b88e-dbc2-42ae-b316-d04b6fcae817}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GFX\RenderManager">
+      <UniqueIdentifier>{11c03625-7b2d-4807-9ed2-684f873f0d72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GFX\Model">
+      <UniqueIdentifier>{f6c2d019-8e2a-4f54-89d9-956edfaf91bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GFX\Material">
       <UniqueIdentifier>{ca7323f7-55d8-4c98-bb53-c1968a62745a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GFX\Light">
+      <UniqueIdentifier>{7d82a2c7-71d4-41bd-ae96-1495bd6e4d7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GFX\Color">
+      <UniqueIdentifier>{ae238197-2c5d-4e75-930d-bd93b1a3f1d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GFX\Shader">
+      <UniqueIdentifier>{ca66cb1a-2cc7-4242-a241-b16442374181}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GFX\Texture">
+      <UniqueIdentifier>{71068490-a3b9-4aaf-bbaf-052c32ec69db}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -76,7 +79,7 @@
       <Filter>Source Files\Window</Filter>
     </ClCompile>
     <ClCompile Include="src\Shader.cpp">
-      <Filter>Source Files\Shader</Filter>
+      <Filter>Source Files\GFX\Shader</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor.cpp">
       <Filter>Source Files\Editor</Filter>
@@ -109,34 +112,34 @@
       <Filter>Source Files\GameObjectManager</Filter>
     </ClCompile>
     <ClCompile Include="src\Color.cpp">
-      <Filter>Source Files\Color</Filter>
+      <Filter>Source Files\GFX\Color</Filter>
     </ClCompile>
     <ClCompile Include="src\GameObject.cpp">
-      <Filter>Source Files\GameObject</Filter>
+      <Filter>Source Files\GameObjectManager\GameObject</Filter>
     </ClCompile>
     <ClCompile Include="src\Camera.cpp">
       <Filter>Source Files\Camera</Filter>
     </ClCompile>
     <ClCompile Include="src\RenderManager.cpp">
-      <Filter>Source Files\RenderManager</Filter>
+      <Filter>Source Files\GFX\RenderManager</Filter>
     </ClCompile>
     <ClCompile Include="src\Light.cpp">
-      <Filter>Source Files\Light</Filter>
+      <Filter>Source Files\GFX\Light</Filter>
     </ClCompile>
     <ClCompile Include="src\ResourceManager.cpp">
       <Filter>Source Files\ResourceManager</Filter>
     </ClCompile>
     <ClCompile Include="src\Texture.cpp">
-      <Filter>Source Files\Texture</Filter>
+      <Filter>Source Files\GFX\Texture</Filter>
     </ClCompile>
     <ClCompile Include="src\Resource.cpp">
       <Filter>Source Files\ResourceManager\Resource</Filter>
     </ClCompile>
     <ClCompile Include="src\Model.cpp">
-      <Filter>Source Files\Model</Filter>
+      <Filter>Source Files\GFX\Model</Filter>
     </ClCompile>
     <ClCompile Include="src\Material.cpp">
-      <Filter>Source Files\Material</Filter>
+      <Filter>Source Files\GFX\Material</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -147,7 +150,7 @@
       <Filter>Source Files\Window</Filter>
     </ClInclude>
     <ClInclude Include="src\Shader.h">
-      <Filter>Source Files\Shader</Filter>
+      <Filter>Source Files\GFX\Shader</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor.h">
       <Filter>Source Files\Editor</Filter>
@@ -189,34 +192,34 @@
       <Filter>Source Files\GameObjectManager</Filter>
     </ClInclude>
     <ClInclude Include="src\GameObject.h">
-      <Filter>Source Files\GameObject</Filter>
+      <Filter>Source Files\GameObjectManager\GameObject</Filter>
     </ClInclude>
     <ClInclude Include="src\Color.h">
-      <Filter>Source Files\Color</Filter>
+      <Filter>Source Files\GFX\Color</Filter>
     </ClInclude>
     <ClInclude Include="src\Camera.h">
       <Filter>Source Files\Camera</Filter>
     </ClInclude>
     <ClInclude Include="src\Light.h">
-      <Filter>Source Files\Light</Filter>
+      <Filter>Source Files\GFX\Light</Filter>
     </ClInclude>
     <ClInclude Include="src\RenderManager.h">
-      <Filter>Source Files\RenderManager</Filter>
+      <Filter>Source Files\GFX\RenderManager</Filter>
     </ClInclude>
     <ClInclude Include="src\ResourceManager.h">
       <Filter>Source Files\ResourceManager</Filter>
     </ClInclude>
     <ClInclude Include="src\Texture.h">
-      <Filter>Source Files\Texture</Filter>
+      <Filter>Source Files\GFX\Texture</Filter>
     </ClInclude>
     <ClInclude Include="src\Model.h">
-      <Filter>Source Files\Model</Filter>
+      <Filter>Source Files\GFX\Model</Filter>
     </ClInclude>
     <ClInclude Include="src\Resource.h">
       <Filter>Source Files\ResourceManager\Resource</Filter>
     </ClInclude>
     <ClInclude Include="src\Material.h">
-      <Filter>Source Files\Material</Filter>
+      <Filter>Source Files\GFX\Material</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

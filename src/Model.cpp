@@ -89,8 +89,8 @@ void Model::BindMeshes(tinygltf::Model* model, tinygltf::Mesh& mesh)
         if (model->textures.size() > 0)
             ResourceManager.GetTextures(model);
 
-        if(model->materials.size() > 0)
-            ResourceManager.GetMaterials(model);
+        //if(model->materials.size() > 0)
+        //    ResourceManager.GetMaterials(model);
 
     }
 }

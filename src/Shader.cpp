@@ -11,30 +11,35 @@ ShaderProgram::ShaderProgram(std::string vertex, std::string fragment, std::stri
 	if (geometry != "")
 		mbGeometry = true;
 
-	GLenum error = glGetError();
+	Create();
+}
+
+const GLuint ShaderProgram::GetHandle() const
+{
+	//returning the handle
+	return mHandle;
+}
+
+void ShaderProgram::Create()
+{
 	//creating a shader program
 	mHandle = glCreateProgram();
-	error = glGetError();
 
 	//attaching the fragment shader
 	glAttachShader(mHandle, mFragment.GetHandle());
-	error = glGetError();
 
 	//attaching the vertex shader
 	glAttachShader(mHandle, mVertex.GetHandle());
-	error = glGetError();
 
 	//if it has a geometry shader
 	if (mbGeometry)
 	{
 		//attaching the vertex shader
 		glAttachShader(mHandle, mGeometry.GetHandle());
-		error = glGetError();
 	}
 
 	//linking shaders
 	glLinkProgram(mHandle);
-	error = glGetError();
 
 	//checking if it linked succesfully
 	GLint status;
@@ -52,18 +57,25 @@ ShaderProgram::ShaderProgram(std::string vertex, std::string fragment, std::stri
 
 	//Detaching the fragment shader
 	glDetachShader(mHandle, mFragment.GetHandle());
-	error = glGetError();
 
 	//Detaching the vertex shader
 	glDetachShader(mHandle, mVertex.GetHandle());
-	error = glGetError();
+
+	//Detaching the geometry shader
+	if(mbGeometry)
+		glDetachShader(mHandle, mGeometry.GetHandle());
 
 }
 
-const GLuint ShaderProgram::GetHandle() const
+void ShaderProgram::Free()
 {
-	//returning the handle
-	return mHandle;
+	glDeleteShader(mVertex.GetHandle());
+	glDeleteShader(mFragment.GetHandle());
+	
+	if(mbGeometry)
+		glDeleteShader(mGeometry.GetHandle());
+	
+	glDeleteProgram(mHandle);
 }
 
 const GLuint ShaderProgram::GetUniformLoc(const std::string& name) const

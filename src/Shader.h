@@ -21,7 +21,8 @@ class ShaderProgram
 public:
 	ShaderProgram(std::string vertex, std::string fragment, std::string geometry = "");
 	const GLuint GetHandle() const;
-
+	void Create();
+	void Free();
 	const GLuint GetUniformLoc(const std::string& name) const;
 
 	void SetIntUniform(const std::string& name, int value);

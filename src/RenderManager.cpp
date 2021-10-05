@@ -12,12 +12,13 @@ void RenderManagerClass::Initialize()
 void RenderManagerClass::Update()
 {
 	if (KeyDown(Key::F5))
-		LoadShaders();
+		LoadShaders(true);
 		
 }
 
 void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 {
+	mLights.clear();
 	for (auto it = lights.begin(); it != lights.end(); it++)
 	{
 		Light light;
@@ -40,6 +41,8 @@ void RenderManagerClass::LoadShaders(bool reload)
 void RenderManagerClass::FreeShaders()
 {
 	//for each shader destroy
+	for (auto& it : mShaders)
+		it.Free();
 }
 
 void RenderManagerClass::Render()
@@ -87,7 +90,7 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
 		//set correct material active
 		model.SetMaterialActive(mesh.primitives[i].material);		
 
-			glDrawElements(primitive.mode, indexAccessor.count,
+		glDrawElements(primitive.mode, indexAccessor.count,
 			indexAccessor.componentType,
 			BUFFER_OFFSET(indexAccessor.byteOffset));
 	}
