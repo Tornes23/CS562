@@ -14,10 +14,11 @@ public:
 	tinygltf::Model& GetGLTFModel();
 	void BindVAO();
 	void SetMaterialActive(int index);
+	void GetMaterials();
 
 private:
 	GLuint mVAO;
 	std::map<int, GLuint> mVBOs;
 	tinygltf::Model& mGLTF_Model;
-	std::vector<Material> mMaterials;
+	std::vector<Material*> mMaterials;
 };

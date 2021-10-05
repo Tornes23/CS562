@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <map>
 #include "Resource.h"
+#include "Utils.h"
 
 namespace tinygltf {
 	class Model;
@@ -27,7 +28,7 @@ public:
 	void LoadFolder(const std::filesystem::path& path);
 	void LoadModel(const std::string& file);
 	void GetTextures(tinygltf::Model* model);
-	void GetMaterials(tinygltf::Model* model);
+	void LoadMaterials(tinygltf::Model* model);
 
 	template<typename T>
 	T* GetResource(const std::string& name);
@@ -43,7 +44,7 @@ private:
 template<typename T>
 inline T* ResourceManagerClass::GetResource(const std::string& name)
 {
-	auto map =  mResources.at(typeid(T).name());
+	auto map =  mResources.at(Utils::GetTypeName<T>());
 	TResource<T>* res = dynamic_cast<TResource<T>*>(map.at(name).get());
 	if (res) return (res->get());
 	return nullptr;

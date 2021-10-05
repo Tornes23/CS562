@@ -12,6 +12,7 @@ public:
 	void SetDiffuseTex(std::shared_ptr<Resource>& tex);
 	void SetSpecularTex(std::shared_ptr<Resource>& tex);
 	void SetNormalTex(std::shared_ptr<Resource>& tex);
+	void SetActive();
 private:
 	//diffuse color
 	Color mDiffuseColor;

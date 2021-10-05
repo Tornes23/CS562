@@ -85,7 +85,7 @@ void ResourceManagerClass::LoadModel(const std::string& file)
 	std::shared_ptr<TResource<Model>> res = std::make_shared<TResource<Model>>();
 	res->SetResource(new Model(model));
 	res->SetName(filename);
-	mResources[typeid(Model).name()][filename] = res; //put in the map
+	mResources[Utils::GetTypeName<Model>()][filename] = res; //put in the map
 
 }
 
@@ -94,7 +94,7 @@ void ResourceManagerClass::GetTextures(tinygltf::Model* model)
 	for (size_t i = 0; i < model->textures.size(); i++)
 	{
 		tinygltf::Texture& tex = model->textures[i];
-		if (tex.source > -1) continue;
+		if (tex.source == -1) continue;
 
 		tinygltf::Image& img = model->images[tex.source];
 		std::string name = img.name.substr(img.name.find_last_of("/") + 1, img.name.length());
@@ -102,12 +102,12 @@ void ResourceManagerClass::GetTextures(tinygltf::Model* model)
 		std::shared_ptr<TResource<Texture>> res = std::make_shared<TResource<Texture>>();
 		res->SetResource(new Texture(&img));
 		res->SetName(name);
-		mResources[typeid(Texture).name()][name] = res; //put in the map
+		mResources[Utils::GetTypeName<Texture>()][name] = res; //put in the map
 	}
 
 }
 
-void ResourceManagerClass::GetMaterials(tinygltf::Model* model)
+void ResourceManagerClass::LoadMaterials(tinygltf::Model* model)
 {
 	for (size_t i = 0; i < model->materials.size(); i++)
 	{
@@ -120,28 +120,25 @@ void ResourceManagerClass::GetMaterials(tinygltf::Model* model)
 		res->SetResource(new Material);
 		res->SetName(mat.name);
 		//setting the data of the material
-		res.get()->get()->SetDiffuseColor(mat.pbrMetallicRoughness.baseColorFactor);
+		res->get()->SetDiffuseColor(mat.pbrMetallicRoughness.baseColorFactor);
 
 		//getting the texture name to retrieve it from the map
 		std::string name;
 		if(mat.pbrMetallicRoughness.baseColorTexture.index >= 0)
-			name = model->textures[mat.pbrMetallicRoughness.baseColorTexture.index].name;
-		name = name.substr(name.find_last_of("/") + 1, name.length());
-		res.get()->get()->SetDiffuseTex(mResources["Texture"].at(name));
+			name = model->images[model->textures[mat.pbrMetallicRoughness.baseColorTexture.index].source].name;
+		res->get()->SetDiffuseTex(mResources["Texture"].at(name));
 
 		//getting the texture name to retrieve it from the map
 		if(mat.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
-			name = model->textures[mat.pbrMetallicRoughness.metallicRoughnessTexture.index].name;
-		name = name.substr(name.find_last_of("/") + 1, name.length());
-		res.get()->get()->SetSpecularTex(mResources["Texture"].at(name));
+			name = model->images[model->textures[mat.pbrMetallicRoughness.metallicRoughnessTexture.index].source].name;
+		res->get()->SetSpecularTex(mResources["Texture"].at(name));
 
 		//getting the texture name to retrieve it from the map
 		if(mat.normalTexture.index >= 0)
-			name = model->textures[mat.normalTexture.index].name;
-		name = name.substr(name.find_last_of("/") + 1, name.length());
-		res.get()->get()->SetNormalTex(mResources["Texture"][name]);
+			name = model->images[model->textures[mat.normalTexture.index].source].name;
+		res->get()->SetNormalTex(mResources["Texture"][name]);
 
-		mResources[typeid(Material).name()][mat.name] = res; //put in the map
+		mResources[Utils::GetTypeName<Material>()][mat.name] = res; //put in the map
 	}
 
 }

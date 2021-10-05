@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Material.h"
 
 void Material::SetDiffuseColor(std::vector<double>& c) { mDiffuseColor.SetColor(c); }
@@ -5,3 +6,9 @@ void Material::SetDiffuseColor(std::vector<double>& c) { mDiffuseColor.SetColor(
 void Material::SetDiffuseTex(std::shared_ptr<Resource>& tex) { if (tex != nullptr) mDiffuseTex = tex; }
 void Material::SetSpecularTex(std::shared_ptr<Resource>& tex) { if (tex != nullptr) mSpecularTex = tex; }
 void Material::SetNormalTex(std::shared_ptr<Resource>& tex) { if (tex != nullptr) mNormalTex = tex; }
+
+void Material::SetActive()
+{
+	//set the texture uniforms and stuff for rendering
+
+}

@@ -16,6 +16,8 @@ Model::Model(tinygltf::Model* model) : mGLTF_Model(*model)
 		BindSceneNodes(model, model->nodes[scene.nodes[i]]);
 	}
 
+    GetMaterials();
+
     glBindVertexArray(0);
     for (size_t i = 0; i < mVBOs.size(); i++) 
         glDeleteBuffers(1, &mVBOs[i]);
@@ -89,9 +91,8 @@ void Model::BindMeshes(tinygltf::Model* model, tinygltf::Mesh& mesh)
         if (model->textures.size() > 0)
             ResourceManager.GetTextures(model);
 
-        //if(model->materials.size() > 0)
-        //    ResourceManager.GetMaterials(model);
-
+        if(model->materials.size() > 0)
+            ResourceManager.LoadMaterials(model);
     }
 }
 
@@ -104,5 +105,17 @@ void Model::SetMaterialActive(int index)
     if (index < 0 || index > mMaterials.size())
         return;
 
-    //mMaterials[index].SetActive();
+    mMaterials[index]->SetActive();
+}
+
+void Model::GetMaterials()
+{
+    for (size_t i = 0; i < mGLTF_Model.materials.size(); i++)
+    {
+        tinygltf::Material& mat = mGLTF_Model.materials[i];
+        if (mat.name.find("(null)") != mat.name.npos)
+            continue;
+
+        mMaterials.push_back(ResourceManager.GetResource<Material>(mGLTF_Model.materials[i].name));
+    }
 }
