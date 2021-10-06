@@ -2,12 +2,29 @@
 
 layout (location = 0) in vec3 vPosition;
 layout (location = 1) in vec3 vNormal;
-layout (location = 2) in vec3 vUV;
-//output fragmet color
+layout (location = 2) in vec3 vTangent;
+layout (location = 3) in vec2 vTexCoord;
 
-uniform mat4 MVP;
+//out variables for the fragment shader
+out vec2 UV;
+out vec3 Normal;
+out vec3 PosInCamSpc;
+
+//uniform variables for the transformation
+uniform mat4 MV;
+uniform mat4 m2w_normal;
+uniform mat4 projection;
 
 void main()
 {
-	gl_Position =  MVP * vec4(vPosition, 1);
+	//computing the model to projection matrix 
+    mat4 MVP = projection * MV;
+    
+    //applying the transformation to the vertex pos
+    gl_Position = MVP * vec4(vPosition, 1.0);
+    
+    //setting the out variables
+    UV = vTexCoord;
+    PosInCamSpc = vec3(MV * vec4(vPosition, 1.0));
+    Normal = normalize(vec4(mat3(m2w_normal) * vNormal, 0.0)).xyz;
 }

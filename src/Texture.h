@@ -8,15 +8,17 @@ namespace tinygltf
 
 struct Texture
 {
-    enum class TextureUnit {
-        None, Diffuse, Normal, Specular, Shadow
+    enum class TextureIndex {
+        Diffuse, 
+        Normal, 
+        Specular, 
     };
 
     Texture(const tinygltf::Image* tex);
     Texture();
     ~Texture();
 
-    void Bind(TextureUnit _unit = TextureUnit::Diffuse) const;
+    void Bind(TextureIndex _unit = TextureIndex::Diffuse) const;
 
     GLuint          mHandle;
 };

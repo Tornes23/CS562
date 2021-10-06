@@ -3,6 +3,7 @@
 #include "gl/glew.h"
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
+#include "Color.h"
 
 class Shader
 {
@@ -31,6 +32,7 @@ public:
 	void SetMatUniform(const std::string& name, float* values);
 	void SetVec3Uniform(const std::string& name, glm::vec3 values);
 	void SetVec4Uniform(const std::string& name, glm::vec4 values);
+	void SetColorUniform(const std::string& name, Color c);
 
 	void Use();
 

@@ -46,6 +46,6 @@ inline T* ResourceManagerClass::GetResource(const std::string& name)
 {
 	auto map =  mResources.at(Utils::GetTypeName<T>());
 	TResource<T>* res = dynamic_cast<TResource<T>*>(map.at(name).get());
-	if (res) return (res->get());
+	if (res) return (res->Get());
 	return nullptr;
 }

@@ -19,6 +19,12 @@ public:
 		return instance;
 	}
 
+	enum RenderMode
+	{
+		Regular,
+		Lighting
+	};
+
 	void Initialize();
 	void Update();
 	void LoadLights(const nlohmann::json& lights);
@@ -27,11 +33,13 @@ public:
 	void Render();
 	void RenderNode(Model& model, const tinygltf::Node& node);
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
+	ShaderProgram& GetShader();
 
 private:
 	const std::string mShaderPath = "./data/shaders/";
 	std::vector<Light> mLights;
 	std::vector<ShaderProgram> mShaders;
+	RenderMode mMode;
 
 	RenderManagerClass() {}
 };

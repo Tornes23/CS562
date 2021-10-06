@@ -7,7 +7,7 @@ Model::Model(tinygltf::Model* model) : mGLTF_Model(*model)
 	if (!model) return;
 
 	glGenVertexArrays(1, &mVAO);
-	glBindVertexArray(mVAO);
+    BindVAO();
 
 	const tinygltf::Scene& scene = model->scenes[model->defaultScene];
 	for (size_t i = 0; i < scene.nodes.size(); ++i) 
@@ -116,6 +116,7 @@ void Model::GetMaterials()
         if (mat.name.find("(null)") != mat.name.npos)
             continue;
 
+        //might need to change this to shared ptr if i need to reload the model
         mMaterials.push_back(ResourceManager.GetResource<Material>(mGLTF_Model.materials[i].name));
     }
 }

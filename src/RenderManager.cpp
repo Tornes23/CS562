@@ -7,6 +7,7 @@
 
 void RenderManagerClass::Initialize()
 {
+	mMode = RenderMode::Regular;
 	LoadShaders();
 }
 
@@ -52,10 +53,14 @@ void RenderManagerClass::Render()
 	for (auto& it : objs)
 	{
 		//get shader program
-		mShaders[0].Use();
+		ShaderProgram& shader = mShaders[static_cast<size_t>(mMode)];
+		shader.Use();
 		//set uniforms in shader
-		glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat() * it.mM2W;
-		mShaders[0].SetMatUniform("MVP", &mvp[0][0]);
+		glm::mat4x4 mv = Camera.GetCameraMat() * it.mM2W;
+		glm::mat4x4 m2w_normal = glm::transpose(glm::inverse(Camera.GetCameraMat() * it.mM2W));
+		shader.SetMatUniform("MV", &mv[0][0]);
+		shader.SetMatUniform("projection", &Camera.GetCameraMat()[0][0]);
+		shader.SetMatUniform("m2w_normal", &m2w_normal[0][0]);
 
 		it.mModel->BindVAO();
 
@@ -96,3 +101,5 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
 			BUFFER_OFFSET(indexAccessor.byteOffset));
 	}
 }
+
+ShaderProgram& RenderManagerClass::GetShader() { return mShaders[static_cast<size_t>(mMode)]; }

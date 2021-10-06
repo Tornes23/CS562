@@ -183,6 +183,22 @@ void ShaderProgram::SetVec4Uniform(const std::string& name, glm::vec4 values)
 
 }
 
+void ShaderProgram::SetColorUniform(const std::string& name, Color c)
+{
+	//getting the location of the uniform
+	GLuint location = GetUniformLoc(name);
+
+	//if it was found
+	if (location < 0)
+	{
+		std::cerr << "Uniform: " << name << " not found" << std::endl;
+		return;
+	}
+
+	//setting the value
+	glUniform4f(location, c.mR, c.mG, c.mB, c.mA);
+}
+
 void ShaderProgram::Use()
 {
 	// Bind the shader program and this object's VAO

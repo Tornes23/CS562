@@ -3,10 +3,18 @@
 #include <memory>
 #include "Color.h"
 #include "Resource.h"
+#include "Texture.h"
 
 class Material
 {
 public:
+	enum TexIndex
+	{
+		Diffuse,
+		Normal,
+		Specular
+	};
+
 	Material() {};
 	void SetDiffuseColor(std::vector<double>& c);
 	void SetDiffuseTex(std::shared_ptr<Resource>& tex);
@@ -16,7 +24,7 @@ public:
 private:
 	//diffuse color
 	Color mDiffuseColor;
-	std::shared_ptr<Resource> mDiffuseTex;
-	std::shared_ptr<Resource> mSpecularTex;
-	std::shared_ptr<Resource> mNormalTex;
+	std::shared_ptr<TResource<Texture>> mDiffuseTex;
+	std::shared_ptr<TResource<Texture>> mSpecularTex;
+	std::shared_ptr<TResource<Texture>> mNormalTex;
 };
