@@ -1,9 +1,9 @@
 #version 400 core
 
 layout (location = 0) in vec3 vPosition;
-layout (location = 1) in vec3 vNormal;
-layout (location = 2) in vec3 vTangent;
-layout (location = 3) in vec2 vTexCoord;
+layout (location = 1) in vec2 vTexCoord;
+layout (location = 2) in vec3 vNormal;
+layout (location = 3) in vec3 vTangent;
 
 //out variables for the fragment shader
 out vec2 UV;
@@ -11,15 +11,12 @@ out vec3 Normal;
 out vec3 PosInCamSpc;
 
 //uniform variables for the transformation
+uniform mat4 MVP;
 uniform mat4 MV;
 uniform mat4 m2w_normal;
-uniform mat4 projection;
 
 void main()
 {
-	//computing the model to projection matrix 
-    mat4 MVP = projection * MV;
-    
     //applying the transformation to the vertex pos
     gl_Position = MVP * vec4(vPosition, 1.0);
     

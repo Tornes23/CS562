@@ -2,7 +2,7 @@
 
 //output fragmet color
 out vec4 FragColor;
-out vec4 DiffuseColor;
+vec4 DiffuseColor;
 //the used textures
 uniform sampler2D diffuseTex;
 uniform sampler2D normalMap;
@@ -79,6 +79,6 @@ in vec3 PosInCamSpc;
 void main()
 {
    //setting the output color to the texture sample
-   FragColor = texture(diffuseTex, vec2(UV.x, 1 - UV.y)).rgba;
+   FragColor = texture(diffuseTex, UV).rgba;
    //FragColor = vec4(1,1,1,1);
 }

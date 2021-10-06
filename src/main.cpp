@@ -13,8 +13,8 @@ int main(char* argv[], int argc)
 	InputManager.Initialize();
 	Editor.Initialize();
 	RenderManager.Initialize();
-	ResourceManager.LoadScene("./data/scenes/sceneSphere.json");
-	//ResourceManager.LoadScene("./data/scenes/scene.json");
+	//ResourceManager.LoadScene("./data/scenes/sceneSphere.json");
+	ResourceManager.LoadScene("./data/scenes/scene.json");
 
 	bool test = true;
 	while (!Window.IsClosed())
@@ -32,7 +32,7 @@ int main(char* argv[], int argc)
 
 		Window.Clear();
 		RenderManager.Render();
-		ImGui::ShowDemoWindow(&test);
+		//ImGui::ShowDemoWindow(&test);
 		Editor.Render();
 		Window.SwapBuffers();
 

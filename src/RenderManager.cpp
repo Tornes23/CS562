@@ -52,27 +52,29 @@ void RenderManagerClass::Render()
 	auto objs = GOManager.GetObjs();
 	for (auto& it : objs)
 	{
+
 		//get shader program
 		ShaderProgram& shader = mShaders[static_cast<size_t>(mMode)];
 		shader.Use();
+		it.mModel->BindVAO();
 		//set uniforms in shader
 		glm::mat4x4 mv = Camera.GetCameraMat() * it.mM2W;
-		glm::mat4x4 m2w_normal = glm::transpose(glm::inverse(Camera.GetCameraMat() * it.mM2W));
+		glm::mat4x4 mvp = Camera.GetProjection() * mv;
+		glm::mat4x4 m2w_normal = glm::transpose(glm::inverse(mv));
+		shader.SetMatUniform("MVP", &mvp[0][0]);
 		shader.SetMatUniform("MV", &mv[0][0]);
-		shader.SetMatUniform("projection", &Camera.GetCameraMat()[0][0]);
 		shader.SetMatUniform("m2w_normal", &m2w_normal[0][0]);
 
-		it.mModel->BindVAO();
-
 		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
-		for (size_t i = 0; i < scene.nodes.size(); ++i) 
+		for (size_t i = 0; i < scene.nodes.size(); i++) 
 			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+
+		glUseProgram(0);
 
 	}
 
 	//unbinding the VAOs
 	glBindVertexArray(0);
-	glUseProgram(0);
 }
 
 void RenderManagerClass::RenderNode(Model& model, const tinygltf::Node& node)
@@ -81,6 +83,7 @@ void RenderManagerClass::RenderNode(Model& model, const tinygltf::Node& node)
 
 	if((node.mesh >= 0) && (node.mesh < tiny_model.meshes.size()))
 		RenderMesh(model, tiny_model.meshes[node.mesh]);
+
 	for (size_t i = 0; i < node.children.size(); i++) 
 		RenderNode(model, tiny_model.nodes[node.children[i]]);
 }
@@ -89,7 +92,8 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
 {
 	const tinygltf::Model& tiny_model = model.GetGLTFModel();
 
-	for (size_t i = 0; i < mesh.primitives.size(); ++i) {
+	for (size_t i = 0; i < mesh.primitives.size(); i++) 
+	{
 		tinygltf::Primitive primitive = mesh.primitives[i];
 		tinygltf::Accessor indexAccessor = tiny_model.accessors[primitive.indices];
 

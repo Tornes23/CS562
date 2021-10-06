@@ -19,8 +19,8 @@ Model::Model(tinygltf::Model* model) : mGLTF_Model(*model)
     GetMaterials();
 
     glBindVertexArray(0);
-    for (size_t i = 0; i < mVBOs.size(); i++) 
-        glDeleteBuffers(1, &mVBOs[i]);
+    //for (size_t i = 0; i < mVBOs.size(); i++) 
+    //    glDeleteBuffers(1, &mVBOs[i]);
 }
 
 Model::~Model()
