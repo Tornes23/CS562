@@ -39,3 +39,9 @@ void Texture::Bind(TextureIndex unit) const
 	glActiveTexture(GL_TEXTURE0 + static_cast<unsigned int>(unit));
 	glBindTexture(GL_TEXTURE_2D, mHandle);
 }
+
+void Texture::Bind(unsigned index) const
+{
+    glActiveTexture(GL_TEXTURE0 + index);
+    glBindTexture(GL_TEXTURE_2D, mHandle);
+}

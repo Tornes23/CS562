@@ -14,9 +14,4 @@ void Material::SetActive()
 	mDiffuseTex->Get()->Bind(Texture::TextureIndex::Diffuse);
 	mNormalTex->Get()->Bind(Texture::TextureIndex::Normal);
 	mSpecularTex->Get()->Bind(Texture::TextureIndex::Specular);
-
-	ShaderProgram& shader = RenderManager.GetShader();
-	shader.SetColorUniform("diffuse", mDiffuseColor);
-
-	
 }

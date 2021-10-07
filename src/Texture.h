@@ -11,7 +11,7 @@ struct Texture
     enum class TextureIndex {
         Diffuse, 
         Normal, 
-        Specular, 
+        Specular
     };
 
     Texture(const tinygltf::Image* tex);
@@ -19,6 +19,7 @@ struct Texture
     ~Texture();
 
     void Bind(TextureIndex _unit = TextureIndex::Diffuse) const;
+    void Bind(unsigned index) const;
 
     GLuint          mHandle;
 };

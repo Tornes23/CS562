@@ -70,6 +70,9 @@
     <Filter Include="Source Files\ResourceManager\JSON">
       <UniqueIdentifier>{a07d753d-2161-4bc2-82df-5254c5877ec8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GFX\GBuffer">
+      <UniqueIdentifier>{8a2bf8a4-70a1-454c-8ebc-f04aa4674985}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -146,6 +149,9 @@
     </ClCompile>
     <ClCompile Include="src\JSON.cpp">
       <Filter>Source Files\ResourceManager\JSON</Filter>
+    </ClCompile>
+    <ClCompile Include="src\GBuffer.cpp">
+      <Filter>Source Files\GFX\GBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -229,6 +235,9 @@
     </ClInclude>
     <ClInclude Include="src\JSON.h">
       <Filter>Source Files\ResourceManager\JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="src\GBuffer.h">
+      <Filter>Source Files\GFX\GBuffer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

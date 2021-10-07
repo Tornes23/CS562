@@ -54,7 +54,6 @@ void Model::BindMeshes(tinygltf::Model* model, tinygltf::Mesh& mesh)
         glGenBuffers(1, &vbo);
         mVBOs[i] = vbo;
         glBindBuffer(bufferView.target, vbo);
-
         glBufferData(bufferView.target, bufferView.byteLength,
             &buffer.data.at(0) + bufferView.byteOffset, GL_STATIC_DRAW);
     }
