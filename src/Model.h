@@ -16,9 +16,9 @@ public:
 	void SetMaterialActive(int index);
 	void GetMaterials();
 
+	std::map<int, GLuint> mVBOs;
 private:
 	GLuint mVAO;
-	std::map<int, GLuint> mVBOs;
 	tinygltf::Model& mGLTF_Model;
 	std::vector<Material*> mMaterials;
 };

@@ -97,12 +97,37 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
 		tinygltf::Primitive primitive = mesh.primitives[i];
 		tinygltf::Accessor indexAccessor = tiny_model.accessors[primitive.indices];
 
+		for (auto& attrib : primitive.attributes)
+		{
+			tinygltf::Accessor accessor = tiny_model.accessors[attrib.second];
+			int byteStride =
+				accessor.ByteStride(tiny_model.bufferViews[accessor.bufferView]);
+			glBindBuffer(GL_ARRAY_BUFFER, model.mVBOs[accessor.bufferView]);
+
+			int size = 1;
+			if (accessor.type != TINYGLTF_TYPE_SCALAR) {
+				size = accessor.type;
+			}
+
+			int vaa = -1;
+			if (attrib.first.compare("POSITION") == 0) vaa = 0;
+			if (attrib.first.compare("NORMAL") == 0) vaa = 1;
+			if (attrib.first.compare("TEXCOORD_0") == 0) vaa = 2;
+			if (vaa > -1) {
+				glEnableVertexAttribArray(vaa);
+				glVertexAttribPointer(vaa, size, accessor.componentType,
+					accessor.normalized ? GL_TRUE : GL_FALSE,
+					byteStride, BUFFER_OFFSET(accessor.byteOffset));
+			}
+		}
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model.mVBOs[indexAccessor.bufferView]);
+
 		//set correct material active
 		model.SetMaterialActive(mesh.primitives[i].material);		
 
-		glDrawElements(primitive.mode, indexAccessor.count,
-			indexAccessor.componentType,
-			BUFFER_OFFSET(indexAccessor.byteOffset));
+		glDrawElements(primitive.mode, indexAccessor.count, indexAccessor.componentType,
+						BUFFER_OFFSET(indexAccessor.byteOffset));
 	}
 }
 
