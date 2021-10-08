@@ -8,21 +8,16 @@ layout (location = 4) in vec3 vTangent;
 
 //out variables for the fragment shader
 out vec2 UV;
-out vec3 Normal;
-out vec3 PosInCamSpc;
 
 //uniform variables for the transformation
 uniform mat4 MVP;
-uniform mat4 MV;
-uniform mat4 m2w_normal;
 
 void main()
 {
+    //setting the out variable
+    UV = vTexCoord;
+
     //applying the transformation to the vertex pos
     gl_Position = MVP * vec4(vPosition, 1.0);
     
-    //setting the out variables
-    UV = vTexCoord;
-    PosInCamSpc = vec3(MV * vec4(vPosition, 1.0));
-    Normal = normalize(vec4(mat3(m2w_normal) * vNormal, 0.0)).xyz;
 }

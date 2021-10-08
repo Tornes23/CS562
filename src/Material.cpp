@@ -11,7 +11,18 @@ void Material::SetNormalTex(std::shared_ptr<Resource>& tex) { if (tex != nullptr
 void Material::SetActive()
 {
 	//set the texture uniforms and stuff for rendering
-	mDiffuseTex->Get()->Bind(Texture::TextureIndex::Diffuse);
-	mNormalTex->Get()->Bind(Texture::TextureIndex::Normal);
-	mSpecularTex->Get()->Bind(Texture::TextureIndex::Specular);
+	if(mDiffuseTex != nullptr)
+		mDiffuseTex->Get()->Bind(Texture::TextureIndex::Diffuse);
+	if(mNormalTex != nullptr)
+		mNormalTex->Get()->Bind(Texture::TextureIndex::Normal);
+	if(mSpecularTex!= nullptr)
+		mSpecularTex->Get()->Bind(Texture::TextureIndex::Specular);
+
+	//setting the sampler uniforms
+	if (mDiffuseTex != nullptr)
+		glUniform1i(0, static_cast<int>(Texture::TextureIndex::Diffuse));
+	if (mNormalTex != nullptr)
+		glUniform1i(1, static_cast<int>(Texture::TextureIndex::Normal));
+	if (mSpecularTex != nullptr)
+		glUniform1i(2, static_cast<int>(Texture::TextureIndex::Diffuse));
 }

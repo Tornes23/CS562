@@ -1,3 +1,4 @@
+#include <glm/gtx/transform.hpp>
 #include "RenderManager.h"
 #include "GameObjectManager.h"
 #include "ResourceManager.h"
@@ -32,6 +33,8 @@ void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 		//load mesh
 		mLights.push_back(light);
 	}
+
+	mScreenTriangle = ResourceManager.GetResource<Model>("ScreenTriangle.gltf");
 }
 
 void RenderManagerClass::LoadShaders(bool reload)
@@ -76,17 +79,14 @@ void RenderManagerClass::GeometryStage()
 		//set uniforms in shader
 		glm::mat4x4 mv = Camera.GetCameraMat() * it.mM2W;
 		glm::mat4x4 mvp = Camera.GetProjection() * mv;
-		glm::mat4x4 m2w_normal = glm::transpose(glm::inverse(mv));
+		glm::mat4x4 m2v_normal = glm::transpose(glm::inverse(mv));
 		shader.SetMatUniform("MVP", &mvp[0][0]);
 		shader.SetMatUniform("MV", &mv[0][0]);
-		shader.SetMatUniform("m2w_normal", &m2w_normal[0][0]);
+		shader.SetMatUniform("m2v_normal", &m2v_normal[0][0]);
 
 		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
 		for (size_t i = 0; i < scene.nodes.size(); i++)
 			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
-		
-		//unbinding the VAO
-		glBindVertexArray(0);
 	}
 
 	glUseProgram(0);
@@ -95,58 +95,75 @@ void RenderManagerClass::GeometryStage()
 
 void RenderManagerClass::LightingStage()
 {
+	ClearBuffer();
 	//get shader program
 	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Lighting)];
 	shader.Use();
-	for (auto& it : mLights)
-	{
-		it.mModel->BindVAO();
-		//set uniforms in shader
-		glm::mat4x4 mv = Camera.GetCameraMat() * it.GetM2W();
-		glm::mat4x4 mvp = Camera.GetProjection() * mv;
-		glm::mat4x4 m2w_normal = glm::transpose(glm::inverse(mv));
-		shader.SetMatUniform("MVP", &mvp[0][0]);
-		shader.SetMatUniform("MV", &mv[0][0]);
-		shader.SetMatUniform("m2w_normal", &m2w_normal[0][0]);
+	BindLights(shader);
+
+	//binding the screen triangle
+	mScreenTriangle->BindVAO();
+	//set uniforms in shader
+	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
+	shader.SetMatUniform("MVP", &mvp[0][0]);
 	
-		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
-		for (size_t i = 0; i < scene.nodes.size(); i++)
-			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
-	}
+	//rendering the screen triangle
+	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
+	for (size_t i = 0; i < scene.nodes.size(); i++)
+		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 	
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
 }
 
+void RenderManagerClass::BindLights(ShaderProgram& shader)
+{
+	//setting the number of light sources
+	shader.SetIntUniform("LightNum", (int)mLights.size());
+
+	//for each light set the uniforms
+	for (int i = 0; i < mLights.size(); i++)
+		mLights[i].SetUniforms("mLights[" + std::to_string(i) + "]", &shader);
+
+	//binding the gbuffer textures as inputs
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDiffuseBuffer);
+	glUniform1i(0, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mGBuffer.mNormalBuffer);
+	glUniform1i(1, 1);
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, mGBuffer.mPositionBuffer);
+	glUniform1i(2, 2);
+
+}
+
 void RenderManagerClass::Display()
 {
-	//TEMPORALLY RENDER SCENE REGULAR WAY
-	auto objs = GOManager.GetObjs();
+	ClearBuffer();
 	//get shader program
 	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Regular)];
 	shader.Use();
-	for (auto& it : objs)
-	{
-		it.mModel->BindVAO();
-		//set uniforms in shader
-		glm::mat4x4 mv = Camera.GetCameraMat() * it.mM2W;
-		glm::mat4x4 mvp = Camera.GetProjection() * mv;
-		glm::mat4x4 m2w_normal = glm::transpose(glm::inverse(mv));
-		shader.SetMatUniform("MVP", &mvp[0][0]);
-		shader.SetMatUniform("MV", &mv[0][0]);
-		shader.SetMatUniform("m2w_normal", &m2w_normal[0][0]);
 
-		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
-		for (size_t i = 0; i < scene.nodes.size(); i++)
-			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
-	}
+	//binding the screen triangle
+	mScreenTriangle->BindVAO();
+	//set uniforms in shader
+	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
+	shader.SetMatUniform("MVP", &mvp[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDiffuseBuffer);
+	glUniform1i(0, 0);
+
+	//rendering the screen triangle
+	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
+	for (size_t i = 0; i < scene.nodes.size(); i++)
+		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
-
-	//render screentriangle
 }
 
 void RenderManagerClass::ClearBuffer()
@@ -209,7 +226,7 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
 	}
 }
 
-ShaderProgram& RenderManagerClass::GetShader() { return mShaders[static_cast<size_t>(mMode)]; }
+ShaderProgram& RenderManagerClass::GetShader(const RenderMode& mode) { return mShaders[static_cast<size_t>(mode)]; }
 
 GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precision)
 {

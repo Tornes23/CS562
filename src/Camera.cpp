@@ -18,7 +18,7 @@ void CameraClass::LoadCamera(const nlohmann::json& j)
 	mView = { 1,0,0 };
 	//set right vector
 	mUp = {0,1,0};
-	mRightVector = glm::normalize(glm::cross(mUp, mView));
+	mRightVector = glm::normalize(glm::cross(mView, mUp));
 	mSpeed = 2.0F;
 	mSensitivity = 0.01F;
 }

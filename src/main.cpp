@@ -14,7 +14,6 @@ int main(char* argv[], int argc)
 	Editor.Initialize();
 	RenderManager.Initialize();
 	//ResourceManager.LoadScene("./data/scenes/sceneSkull.json");
-	//ResourceManager.LoadScene("./data/scenes/sceneCube.json");
 	//ResourceManager.LoadScene("./data/scenes/sceneSphere.json");
 	ResourceManager.LoadScene("./data/scenes/scene.json");
 

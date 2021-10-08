@@ -2,13 +2,11 @@
 #include <glm/vec2.hpp>
 #include <glew.h>
 
-class GBuffer
+struct GBuffer
 {
-public:
 	void Create();
 	void Bind();
 
-private:
 	GLuint mHandle;
 	
 	GLuint mNormalBuffer;

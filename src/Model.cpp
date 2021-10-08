@@ -101,10 +101,11 @@ void Model::BindVAO() { glBindVertexArray(mVAO); }
 
 void Model::SetMaterialActive(int index)
 {
-    if (index < 0 || index > mMaterials.size())
+    if (index < 0 || index >= mMaterials.size())
         return;
 
-    mMaterials[index]->SetActive();
+    if(!mMaterials.empty())
+        mMaterials[index]->SetActive();
 }
 
 void Model::GetMaterials()

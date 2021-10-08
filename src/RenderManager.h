@@ -39,10 +39,11 @@ public:
 	void ClearBuffer();
 	void GeometryStage();
 	void LightingStage();
+	void BindLights(ShaderProgram& shader);
 	void RenderNode(Model& model, const tinygltf::Node& node);
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
 	
-	ShaderProgram& GetShader();
+	ShaderProgram& GetShader(const RenderMode& mode);
 	GLuint GenTexture(const glm::ivec2& size, bool high_precision);
 
 private:
@@ -51,6 +52,7 @@ private:
 	std::vector<ShaderProgram> mShaders;
 	RenderMode mMode;
 	GBuffer mGBuffer;
+	Model* mScreenTriangle;
 	
 	RenderManagerClass() {}
 };
