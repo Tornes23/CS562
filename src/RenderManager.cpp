@@ -29,6 +29,7 @@ void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 		nlohmann::json object = *it;
 		//load light
 		object >> light;
+		light.mAttenuation = glm::vec3(0.0F, 0.0F, 0.001F);
 		light.mModel = ResourceManager.GetResource<Model>("Sphere.gltf");
 		//load mesh
 		mLights.push_back(light);
@@ -153,7 +154,7 @@ void RenderManagerClass::Display()
 	shader.SetMatUniform("MVP", &mvp[0][0]);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDiffuseBuffer);
+	glBindTexture(GL_TEXTURE_2D, mGBuffer.mNormalBuffer);
 	glUniform1i(0, 0);
 
 	//rendering the screen triangle

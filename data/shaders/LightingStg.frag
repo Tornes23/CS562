@@ -13,55 +13,52 @@ struct Light
 };
 
 //the used textures
-layout(location = 0) uniform sampler2D g_posTex;
+layout(location = 0) uniform sampler2D g_diffuseTex;
 layout(location = 1) uniform sampler2D g_normalTex;
-layout(location = 2) uniform sampler2D g_specularTex;
+layout(location = 2) uniform sampler2D g_posTex;
 
 uniform int LightNum;
 uniform Light mLights[MAX_LIGHT_NUM];
 uniform vec4 DiffuseColor;
 in vec2 UV;
 
-vec3 PointLight(Light light, vec3 initialCol)
+vec3 PointLight(Light light)
 {   
     
-    //computing the required vectors
-    vec3 normal = texture(g_normalTex, UV).rgb; 
+    //computing the required vectors and required data
+    vec3 normal = normalize(texture(g_normalTex, UV).rgb); 
     vec3 position = texture(g_posTex, UV).rgb;
     vec3 lightDir = normalize(light.PosInCamSpc - position);
+    vec3 viewDir = normalize(-position);//since im cam space cam pos = origin
+    vec3 reflectDir = reflect(-lightDir, normal);  
 
-    //computing diffuse value and color
+    //getting the shininess and specular values
+    float specVal = texture(g_posTex, UV).a;
+    float shininess = texture(g_normalTex, UV).a;
+
+    //AMBIENT COLOR
+    vec3 ambientCol = (light.Color * DiffuseColor).xyz;
+
+    //DIFFUSE COLOR
     float diffuseVal = max(dot(normal, lightDir), 0.0);
-    vec3 diffuseCol = (diffuseVal * DiffuseColor.xyz) * light.Color.xyz;
+    vec3 diffuseCol = (diffuseVal * texture(g_diffuseTex, UV).rgb) * light.Color.xyz;
     
+    //SPECULAR COLOR
+    //computing specular color
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
     //computing the distance
     float dist = length(light.PosInCamSpc - position);
-
-    //adding it to the color
-    initialCol += diffuseCol;
-    
-    //computing specular color
-    vec3 viewDir = normalize(-position);//since im cam space cam pos = origin
-
-    //computing the reflection direction
-    vec3 reflectDir = reflect(-lightDir, normal);  
-    
-    //computing the speculat factor and color
-    float specVal = texture(g_specularTex, UV).b;
-    float shininess = texture(g_specularTex, UV).g;
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-    vec3 specular = vec3(1,1,1) * specVal;  
+    //specular color is always white
+    vec3 specularCol = vec3(1,1,1) * specVal;  
     
     //computing the attenuation
     float attenuation = min((1.0 / 
                         (light.Attenuation.x + (light.Attenuation.y * dist) 
                         + light.Attenuation.z * (dist * dist))), 1.0);
-                        
-    //applying the attenuation to the color     
-    specular *= attenuation;
-    
+     
+     vec3 finalCol = (ambientCol + (diffuseCol + specularCol)) * attenuation;
     //return the color after the lighting
-    return specular;
+    return finalCol;
 }
 
 vec3 ApplyLighting()
@@ -69,13 +66,13 @@ vec3 ApplyLighting()
     //variable to store the final color
     vec3  finalCol;
     
-    vec3 addedLight = vec3(1.0F, 1.0F, 1.0F);
+    vec3 addedLight = vec3(0.0F, 0.0F, 0.0F);
 
     for(int i = 0; i < LightNum; i++)
-        addedLight += PointLight(mLights[i], (mLights[i].Color * DiffuseColor).rgb); 
+        addedLight += PointLight(mLights[i]); 
 
     //get the texture color
-    vec3  textureCol = DiffuseColor.rgb;
+    vec3  textureCol = texture(g_diffuseTex, UV).rgb;
     
     //computing the final color
     finalCol += addedLight * textureCol;
@@ -86,6 +83,7 @@ vec3 ApplyLighting()
 
 void main()
 {
-   //setting the output color to the texture sample
-   FragColor = vec4(ApplyLighting(),1);
+    vec4 color = texture(g_diffuseTex, UV).rgba;
+    //setting the output color to the texture sample
+    FragColor = vec4(ApplyLighting(), color.a);
 }

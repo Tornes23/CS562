@@ -28,7 +28,7 @@ void main()
     vec3 normal = texture(normalMap, vertex.UV).rgb * 2.0F - 1.0F;
     vec3 specular = texture(specularMap, vertex.UV).rgb;
 
-    DiffuseOut = vec4(diffuse, specular.r);
-    NormalOut = vec4(vertex.TanMat * normal, 0);
-    PosOut = vec4(vertex.PosInCamSpc, 0);
+    DiffuseOut = vec4(diffuse, 0);
+    NormalOut = vec4(vertex.TanMat * normal, specular.g);
+    PosOut = vec4(vertex.PosInCamSpc, specular.b);
 }
