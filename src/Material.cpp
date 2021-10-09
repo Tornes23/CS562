@@ -24,5 +24,5 @@ void Material::SetActive()
 	if (mNormalTex != nullptr)
 		glUniform1i(1, static_cast<int>(Texture::TextureIndex::Normal));
 	if (mSpecularTex != nullptr)
-		glUniform1i(2, static_cast<int>(Texture::TextureIndex::Diffuse));
+		glUniform1i(2, static_cast<int>(Texture::TextureIndex::Specular));
 }

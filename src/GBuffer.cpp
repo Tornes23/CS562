@@ -11,16 +11,18 @@ void GBuffer::Create()
 	glBindFramebuffer(GL_FRAMEBUFFER, mHandle);
 
 	// Attach the different textures of the GBuffer
-	mPositionBuffer = RenderManager.GenTexture(mSize, true);
-	mNormalBuffer   = RenderManager.GenTexture(mSize, true);
-	mDiffuseBuffer  = RenderManager.GenTexture(mSize, false);
+	mPositionBuffer = RenderManager.GenTexture(mSize);
+	mNormalBuffer   = RenderManager.GenTexture(mSize);
+	mDiffuseBuffer  = RenderManager.GenTexture(mSize);
+	mSpecularBuffer  = RenderManager.GenTexture(mSize);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseBuffer, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalBuffer, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mPositionBuffer, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mSpecularBuffer, 0);
 
-	GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
-	glDrawBuffers(3, attachments);
+	GLuint attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
+	glDrawBuffers(4, attachments);
 
 	// Attach the depth buffer
 	glGenRenderbuffers(1, &mDepth);

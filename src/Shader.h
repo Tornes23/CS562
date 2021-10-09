@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include "Color.h"
+#include <glm/ext/vector_float2.hpp>
 
 class Shader
 {
@@ -30,6 +31,7 @@ public:
 	void SetBoolUniform(const std::string& name, bool value);
 	void SetFloatUniform(const std::string& name, float value);
 	void SetMatUniform(const std::string& name, float* values);
+	void SetVec2Uniform(const std::string& name, glm::vec2 values);
 	void SetVec3Uniform(const std::string& name, glm::vec3 values);
 	void SetVec4Uniform(const std::string& name, glm::vec4 values);
 	void SetColorUniform(const std::string& name, Color c);

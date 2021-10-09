@@ -149,6 +149,22 @@ void ShaderProgram::SetMatUniform(const std::string& name, float* values)
 
 }
 
+void ShaderProgram::SetVec2Uniform(const std::string& name, glm::vec2 values)
+{
+	//getting the location of the uniform
+	GLuint location = GetUniformLoc(name);
+
+	//if it was found
+	if (location < 0)
+	{
+		std::cerr << "Uniform: " << name << " not found" << std::endl;
+		return;
+	}
+
+	//setting the value
+	glUniform2f(location, values.x, values.y);
+}
+
 void ShaderProgram::SetVec3Uniform(const std::string& name, glm::vec3  values)
 {
 	//getting the location of the uniform

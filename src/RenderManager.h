@@ -24,6 +24,7 @@ public:
 	{
 		Geometry,
 		Lighting,
+		PostProcess,
 		Regular
 	};
 
@@ -44,7 +45,7 @@ public:
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
 	
 	ShaderProgram& GetShader(const RenderMode& mode);
-	GLuint GenTexture(const glm::ivec2& size, bool high_precision);
+	GLuint GenTexture(const glm::ivec2& size, bool high_precision = false);
 
 private:
 	const std::string mShaderPath = "./data/shaders/";

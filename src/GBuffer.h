@@ -12,6 +12,7 @@ struct GBuffer
 	GLuint mNormalBuffer;
 	GLuint mDiffuseBuffer;
 	GLuint mPositionBuffer;
+	GLuint mSpecularBuffer;
 	GLuint mDepth;
 
 	glm::ivec2 mSize;

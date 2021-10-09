@@ -16,6 +16,7 @@ struct Light
 layout(location = 0) uniform sampler2D g_diffuseTex;
 layout(location = 1) uniform sampler2D g_normalTex;
 layout(location = 2) uniform sampler2D g_posTex;
+layout(location = 3) uniform sampler2D g_SpecTex;
 
 uniform int LightNum;
 uniform Light mLights[MAX_LIGHT_NUM];
@@ -33,8 +34,8 @@ vec3 PointLight(Light light)
     vec3 reflectDir = reflect(-lightDir, normal);  
 
     //getting the shininess and specular values
-    float specVal = texture(g_posTex, UV).a;
-    float shininess = texture(g_normalTex, UV).a;
+    float specVal = texture(g_SpecTex, UV).g;
+    float shininess = texture(g_SpecTex, UV).b;
 
     //AMBIENT COLOR
     vec3 ambientCol = (light.Color * DiffuseColor).xyz;
