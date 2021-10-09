@@ -10,5 +10,5 @@ in vec2 UV;
 void main()
 {
    //setting the output color to the texture sample
-   FragColor = texture(textureData, UV).rgba;
+   FragColor = texture(textureData, UV).rgba * vec4(0.2F, 0.2F, 0.2F, 1.0F);
 }

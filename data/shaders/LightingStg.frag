@@ -21,7 +21,6 @@ layout(location = 3) uniform sampler2D g_SpecTex;
 
 uniform int LightNum;
 uniform Light mLights[MAX_LIGHT_NUM];
-uniform vec4 DiffuseColor;
 uniform vec2 Size;
 
 vec3 PointLight(Light light, vec2 UV)
@@ -64,9 +63,8 @@ vec3 ApplyLighting(vec2 UV)
 {
     //variable to store the final color
     vec3  finalCol;
-    
-    vec3 addedLight = vec3(0.2F, 0.2F, 0.2F);
-    vec3 position = texture(g_posTex, UV).rgb;
+    vec3 addedLight = vec3(1,1,1);
+    vec3 position = texture(g_posTex, UV).xyz;
     for(int i = 0; i < LightNum; i++)
     {
         float dist = distance(position, mLights[i].PosInCamSpc);

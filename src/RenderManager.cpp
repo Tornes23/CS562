@@ -105,8 +105,10 @@ void RenderManagerClass::LightingStage()
 	//Diabling the back face culling
 	glDisable(GL_CULL_FACE);
 	//SET BLENDING TO ADDITIVE
+	//glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
 
 	for (auto& it : mLights)
 	{
@@ -123,9 +125,8 @@ void RenderManagerClass::LightingStage()
 			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
 	}
 
-	glDepthFunc(GL_LESS);
+	//glDepthMask(GL_FALSE);
 	glEnable(GL_CULL_FACE);
-	glDisable(GL_BLEND);
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
@@ -166,7 +167,6 @@ void RenderManagerClass::Display()
 	glBlitFramebuffer(0, 0, size.x, size.y, 0, 0, size.x, size.y, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	ClearBuffer();
 	//get shader program
 	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Regular)];
 	shader.Use();
@@ -185,6 +185,8 @@ void RenderManagerClass::Display()
 	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
 	for (size_t i = 0; i < scene.nodes.size(); i++)
 		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
+
+	glDisable(GL_BLEND);
 
 	glUseProgram(0);
 	//unbinding the VAOs
