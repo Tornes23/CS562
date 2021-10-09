@@ -10,6 +10,7 @@ struct Light
     vec3 PosInCamSpc;
     vec4 Color;
     vec3 Attenuation;
+    float Radius;
 };
 
 //the used textures
@@ -21,9 +22,9 @@ layout(location = 3) uniform sampler2D g_SpecTex;
 uniform int LightNum;
 uniform Light mLights[MAX_LIGHT_NUM];
 uniform vec4 DiffuseColor;
-in vec2 UV;
+uniform vec2 Size;
 
-vec3 PointLight(Light light)
+vec3 PointLight(Light light, vec2 UV)
 {   
     
     //computing the required vectors and required data
@@ -36,9 +37,6 @@ vec3 PointLight(Light light)
     //getting the shininess and specular values
     float specVal = texture(g_SpecTex, UV).g;
     float shininess = texture(g_SpecTex, UV).b;
-
-    //AMBIENT COLOR
-    vec3 ambientCol = (light.Color * DiffuseColor).xyz;
 
     //DIFFUSE COLOR
     float diffuseVal = max(dot(normal, lightDir), 0.0);
@@ -57,20 +55,24 @@ vec3 PointLight(Light light)
                         (light.Attenuation.x + (light.Attenuation.y * dist) 
                         + light.Attenuation.z * (dist * dist))), 1.0);
      
-     vec3 finalCol = (ambientCol + (diffuseCol + specularCol)) * attenuation;
+     vec3 finalCol = (diffuseCol + specularCol) * attenuation;
     //return the color after the lighting
     return finalCol;
 }
 
-vec3 ApplyLighting()
+vec3 ApplyLighting(vec2 UV)
 {
     //variable to store the final color
     vec3  finalCol;
     
-    vec3 addedLight = vec3(0.0F, 0.0F, 0.0F);
-
+    vec3 addedLight = vec3(0.2F, 0.2F, 0.2F);
+    vec3 position = texture(g_posTex, UV).rgb;
     for(int i = 0; i < LightNum; i++)
-        addedLight += PointLight(mLights[i]); 
+    {
+        float dist = distance(position, mLights[i].PosInCamSpc);
+        if(dist <= (mLights[i].Radius * 1.1F))
+            addedLight += PointLight(mLights[i], UV); 
+    }
 
     //get the texture color
     vec3  textureCol = texture(g_diffuseTex, UV).rgb;
@@ -84,7 +86,8 @@ vec3 ApplyLighting()
 
 void main()
 {
-    vec4 color = texture(g_diffuseTex, UV).rgba;
+    vec2 uv = gl_FragCoord.xy / Size;
+    vec4 color = texture(g_diffuseTex, uv).rgba;
     //setting the output color to the texture sample
-    FragColor = vec4(ApplyLighting(), color.a);
+    FragColor = vec4(ApplyLighting(uv), color.a);
 }

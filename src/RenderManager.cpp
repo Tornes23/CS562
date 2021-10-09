@@ -98,7 +98,6 @@ void RenderManagerClass::GeometryStage()
 
 void RenderManagerClass::LightingStage()
 {
-	mGBuffer.Bind();
 	//get shader program
 	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Lighting)];
 	shader.Use();
@@ -108,7 +107,6 @@ void RenderManagerClass::LightingStage()
 	//SET BLENDING TO ADDITIVE
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
-	glDepthFunc(GL_GREATER);
 
 	for (auto& it : mLights)
 	{
