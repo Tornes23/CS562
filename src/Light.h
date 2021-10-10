@@ -14,6 +14,8 @@ struct  Light
 	Model* mModel;
 	glm::mat4x4 mM2W;
 	void SetUniforms(const std::string& name, ShaderProgram* shader);
+	bool mAnimated;
+	float mSin = 0.0F;
 
 };
 

@@ -42,6 +42,7 @@ public:
 
 	void Initialize();
 	void Update();
+	void Edit();
 	
 	void LoadLights(const nlohmann::json& lights);
 	void LoadShaders(bool reload = false);
@@ -70,6 +71,8 @@ private:
 	float mAmbient;
 	DisplayTex mDisplay;
 	FrameBuffer mFB;
+	bool mAnimateLights;
+	float mLightRad;
 	
 	RenderManagerClass() {}
 };

@@ -1,4 +1,5 @@
 #include <glm/gtx/transform.hpp>
+#include <imgui/imgui.h>
 #include "RenderManager.h"
 #include "GameObjectManager.h"
 #include "ResourceManager.h"
@@ -18,6 +19,8 @@ void RenderManagerClass::Initialize()
 
 void RenderManagerClass::Update()
 {
+	Edit();
+
 	if (KeyDown(Key::F5))
 		LoadShaders(true);
 
@@ -39,20 +42,88 @@ void RenderManagerClass::Update()
 		
 }
 
+void RenderManagerClass::Edit()
+{
+	//creating a window
+	if (!ImGui::Begin("Render Options"))
+	{
+		// Early out if the window is collapsed, as an optimization.
+		ImGui::End();
+		return;
+	}
+	
+	bool rad = ImGui::DragFloat("Light Radius", &mLightRad, 1.0F, 0.0F);
+	
+	if (mLightRad < 0.0F)
+		mLightRad = 0.0F;
+
+	bool anim = ImGui::Checkbox("Light Animation", &mAnimateLights);
+
+	if (rad || anim )
+	{
+		for (auto& it : mLights)
+		{
+			if(rad)
+				it.mRadius = mLightRad;
+			if (anim)
+				it.mAnimated = mAnimateLights;
+		}
+	}
+
+
+	if (ImGui::TreeNode("Render Properties"))
+	{
+		//code to change the light mode
+		int tex = static_cast<int>(mDisplay);
+
+		const char* options[5] = { "Standar", "Diffuse", "Normal", "Position", "Specular"};
+
+		if (ImGui::Combo("Display Texture", &tex, options, 5, 6))
+		{
+			switch (tex)
+			{
+			case 1:
+				mDisplay = DisplayTex::Diffuse;
+				break;
+			case 2:
+				mDisplay = DisplayTex::Normal;
+				break;
+			case 3:
+				mDisplay = DisplayTex::Position;
+				break;
+			case 4:
+				mDisplay = DisplayTex::Specular;
+				break;
+			//case 5:
+			//	mDisplay = DisplayTex::Diffuse;
+			//	break;
+			}
+		}
+
+		ImGui::TreePop();
+	}
+
+	ImGui::End();
+}
+
 void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 {
 	mLights.clear();
+	mAnimateLights = true;
 	for (auto it = lights.begin(); it != lights.end(); it++)
 	{
 		Light light;
 		nlohmann::json object = *it;
 		//load light
 		object >> light;
+		light.mAnimated = true;
 		light.mModel = ResourceManager.GetResource<Model>("Sphere.gltf");
+		mLightRad += light.mRadius;
 		//load mesh
 		mLights.push_back(light);
 	}
 
+	mLightRad /= mLights.size();
 	mScreenTriangle = ResourceManager.GetResource<Model>("ScreenTriangle.gltf");
 }
 

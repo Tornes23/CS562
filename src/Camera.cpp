@@ -65,13 +65,20 @@ void CameraClass::UpdateVectors(const glm::vec2& offset)
 
 void CameraClass::Rotate()
 {
-	if (MouseDown(MouseKey::RIGHT))
-	{
-		//computing the offset increment with the senitivity
-		glm::vec2 offset = mPrevMousePos - InputManager.RawMousePos();
-		UpdateVectors(offset);
+	glm::vec2 offset(0.0F, 0.0F);
+	if (KeyDown(Key::Down))
+		offset = glm::vec2(0.0F, 10.0F);
+	if (KeyDown(Key::Up))
+		offset = glm::vec2(0.0F, -10.0F);
+	if (KeyDown(Key::Left))
+		offset = glm::vec2(10.0F,0.0F);
+	if (KeyDown(Key::Right))
+		offset = glm::vec2(-10.0F, 0.0F);
 
-	}
+	if (MouseDown(MouseKey::RIGHT))
+		offset = mPrevMousePos - InputManager.RawMousePos();
+
+	UpdateVectors(offset);
 	mPrevMousePos = InputManager.RawMousePos();
 }
 
