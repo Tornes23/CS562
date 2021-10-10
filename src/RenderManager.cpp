@@ -13,8 +13,9 @@
 void RenderManagerClass::Initialize()
 {
 	mGBuffer.Create();
+	mFB.Create();
 	LoadShaders();
-	mAmbient = 0.02F;
+	mAmbient = Color(0.02F, 0.02F, 0.02F);
 	mDisplay = DisplayTex::Standar;
 }
 
@@ -35,8 +36,8 @@ void RenderManagerClass::Update()
 		mDisplay = DisplayTex::Position;
 	if (KeyDown(Key::Num5))
 		mDisplay = DisplayTex::Specular;
-	//if (KeyDown(Key::Num6))
-	//	mDisplay = DisplayTex::Depth;
+	if (KeyDown(Key::Num6))
+		mDisplay = DisplayTex::Depth;
 
 	for (auto& it : mLights)
 		it.Update();
@@ -88,9 +89,9 @@ void RenderManagerClass::Edit()
 		//code to change the light mode
 		int tex = static_cast<int>(mDisplay);
 
-		const char* options[5] = { "Standar", "Diffuse", "Normal", "Position", "Specular"};
+		const char* options[6] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth"};
 
-		if (ImGui::Combo("Display Texture", &tex, options, 5, 6))
+		if (ImGui::Combo("Display Texture", &tex, options, 6, 7))
 		{
 			switch (tex)
 			{
@@ -106,9 +107,9 @@ void RenderManagerClass::Edit()
 			case 4:
 				mDisplay = DisplayTex::Specular;
 				break;
-			//case 5:
-			//	mDisplay = DisplayTex::Diffuse;
-			//	break;
+			case 5:
+				mDisplay = DisplayTex::Depth;
+				break;
 			}
 		}
 
@@ -172,8 +173,8 @@ void RenderManagerClass::Render()
 	if(mDisplay == DisplayTex::Standar)
 	{
 		GeometryStage();
-		LightingStage();
 		AmbientStage();
+		LightingStage();
 		//Bloom(RenderMode::Bloom);
 	}
 
@@ -210,10 +211,6 @@ void RenderManagerClass::GeometryStage()
 
 void RenderManagerClass::LightingStage()
 {
-	mFB.UseRenderBuffer();
-	mFB.ClearColorBuffer();
-	mFB.ClearDepthBuffer();
-
 	glm::vec2 size = Window.GetViewport();
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBuffer.mHandle);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFB.GetRenderBuffer());
@@ -224,15 +221,16 @@ void RenderManagerClass::LightingStage()
 	//get shader program
 	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Lighting)];
 	shader.Use();
-	BindLights(shader);
+	BindGTextures();
 	//Diabling the back face culling
-	glDisable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
 	//SET BLENDING TO ADDITIVE
-	glDepthMask(GL_FALSE);
-	//glDepthFunc(GL_GREATER);
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
+	//disabling writing ono the depth buffer
+	glDepthFunc(GL_GREATER);
+	glDepthMask(GL_FALSE);
 
 	for (auto& it : mLights)
 	{
@@ -244,6 +242,7 @@ void RenderManagerClass::LightingStage()
 		shader.SetMatUniform("MV", &mv[0][0]);
 		shader.SetMatUniform("MVP", &mvp[0][0]);
 		shader.SetVec2Uniform("Size", Window.GetViewport());
+		it.SetUniforms("mLight", &shader);
 
 		//rendering the screen triangle
 		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
@@ -252,22 +251,16 @@ void RenderManagerClass::LightingStage()
 	}
 
 	glDepthMask(GL_TRUE);
-	//glDepthFunc(GL_LESS);
-	glEnable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glDepthFunc(GL_LESS);
+	glCullFace(GL_BACK);
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
 }
 
-void RenderManagerClass::BindLights(ShaderProgram& shader)
+void RenderManagerClass::BindGTextures()
 {
-	//setting the number of light sources
-	shader.SetIntUniform("LightNum", (int)mLights.size());
-
-	//for each light set the uniforms
-	for (int i = 0; i < mLights.size(); i++)
-		mLights[i].SetUniforms("mLights[" + std::to_string(i) + "]", &shader);
-
 	//binding the gbuffer textures as inputs
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDiffuseBuffer);
@@ -286,6 +279,9 @@ void RenderManagerClass::BindLights(ShaderProgram& shader)
 
 void RenderManagerClass::AmbientStage()
 {
+	mFB.UseRenderBuffer();
+	ClearBuffer();
+
 	//get shader program
 	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Ambient)];
 	shader.Use();
@@ -294,7 +290,7 @@ void RenderManagerClass::AmbientStage()
 	//set uniforms in shader
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
 	shader.SetMatUniform("MVP", &mvp[0][0]);
-	shader.SetFloatUniform("Ambient", mAmbient);
+	shader.SetColorUniform("Ambient", mAmbient);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDiffuseBuffer);
@@ -302,10 +298,9 @@ void RenderManagerClass::AmbientStage()
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size(); i++)
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
 		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
-	glDisable(GL_BLEND);
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
@@ -339,9 +334,9 @@ void RenderManagerClass::Display()
 	case DisplayTex::Specular:
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mSpecularBuffer);
 		break;
-	//case DisplayTex::Depth:
-	//	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
-	//	break;
+	case DisplayTex::Depth:
+		glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
+		break;
 	default:
 		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
 		break;
@@ -351,7 +346,7 @@ void RenderManagerClass::Display()
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size(); i++)
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
 		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);

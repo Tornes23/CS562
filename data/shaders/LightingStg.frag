@@ -1,7 +1,5 @@
 #version 430
 
-const int MAX_LIGHT_NUM = 20;
-
 //output fragmet color
 out vec4 FragColor;
 in vec4 PosInCamSpc;
@@ -18,8 +16,7 @@ layout(location = 1) uniform sampler2D g_normalTex;
 layout(location = 2) uniform sampler2D g_posTex;
 layout(location = 3) uniform sampler2D g_SpecTex;
 
-uniform int LightNum;
-uniform Light mLights[MAX_LIGHT_NUM];
+uniform Light mLight;
 uniform vec2 Size;
 
 vec3 PointLight(Light light, vec2 UV)
@@ -32,12 +29,12 @@ vec3 PointLight(Light light, vec2 UV)
     vec3 viewDir = normalize(-position);//since im cam space cam pos = origin
     vec3 reflectDir = reflect(-lightDir, normal);  
     //getting the shininess and specular values
-    float specVal = texture(g_SpecTex, UV).g;
-    float shininess = texture(g_SpecTex, UV).b;
+    float shininess = texture(g_SpecTex, UV).g;
+    float specVal = texture(g_SpecTex, UV).b;
 
     //DIFFUSE COLOR
     float diffuseVal = max(dot(normal, lightDir), 0.0);
-    vec3 diffuseCol = diffuseVal * texture(g_diffuseTex, UV).rgb * light.Color.xyz;
+    vec4 diffuseCol = diffuseVal * texture(g_diffuseTex, UV).rgba * light.Color;
     
     //SPECULAR COLOR
     //computing specular color
@@ -48,34 +45,17 @@ vec3 PointLight(Light light, vec2 UV)
     vec3 specularCol = vec3(1,1,1) * spec * specVal;  
     
     //computing the attenuation
-    float attenuation = min(1.0 / ((0 + 0 * dist) + (0.001 * (dist * dist))), 1.0);
+    float attenuation = 1 - min( dist / mLight.Radius, 1.0);
      
-     vec3 finalCol = (diffuseCol + specularCol) * attenuation;
+    vec3 finalCol = (diffuseCol.xyz + specularCol) * attenuation;
     //return the color after the lighting
     return finalCol;
-}
-
-vec3 ApplyLighting(vec2 UV)
-{
-    //variable to store the final color
-    vec3 addedLight = vec3(0, 0, 0);
-    vec3 position = texture(g_posTex, UV).xyz;
-    for(int i = 0; i < LightNum; i++)
-    {
-        //fix this bs
-        addedLight += PointLight(mLights[i], UV); 
-    }
-    
-    //returning the final color
-    return addedLight * texture(g_diffuseTex, UV).rgb;
 }
 
 void main()
 {
     vec2 uv = gl_FragCoord.xy / Size;
     vec4 color = texture(g_diffuseTex, uv).rgba;
-    //vec4 color = texture(g_posTex, uv).rgba;
     //setting the output color to the texture sample
-    FragColor = vec4(ApplyLighting(uv), color.a);
-    //FragColor = PosInCamSpc;
+    FragColor = vec4(PointLight(mLight, uv), color.a);
 }

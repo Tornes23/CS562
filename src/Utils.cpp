@@ -21,6 +21,7 @@ namespace Utils
             std::cerr << "Could not initialize SDL: " << SDL_GetError() << "\n";
             exit(1);
         }
+        SDL_GL_SetSwapInterval(0);
     }
 
     void InitGL()

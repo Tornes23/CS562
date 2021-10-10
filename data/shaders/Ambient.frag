@@ -6,10 +6,10 @@ out vec4 FragColor;
 layout(location = 0)uniform sampler2D textureData;
 
 in vec2 UV;
-uniform float Ambient;
+uniform vec4 Ambient;
 
 void main()
 {
    //setting the output color to the texture sample with ambient color
-   FragColor = texture(textureData, UV).rgba * Ambient;
+   FragColor = Ambient * texture(textureData, UV).rgba;
 }

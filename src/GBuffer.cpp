@@ -11,8 +11,8 @@ void GBuffer::Create()
 	glBindFramebuffer(GL_FRAMEBUFFER, mHandle);
 
 	// Attach the different textures of the GBuffer
-	mPositionBuffer = RenderManager.GenTexture(mSize);
-	mNormalBuffer   = RenderManager.GenTexture(mSize);
+	mPositionBuffer = RenderManager.GenTexture(mSize, true);
+	mNormalBuffer   = RenderManager.GenTexture(mSize, true);
 	mDiffuseBuffer  = RenderManager.GenTexture(mSize);
 	mSpecularBuffer  = RenderManager.GenTexture(mSize);
 

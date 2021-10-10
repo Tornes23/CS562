@@ -90,7 +90,7 @@ void FrameBuffer::GenDepthBuffer()
 
 const GLuint FrameBuffer::GetRenderBuffer() const {	return mRenderBuffer; }
 
-const GLuint FrameBuffer::GetRenderTexture() const {	return mRenderTexture; }
+const GLuint FrameBuffer::GetRenderTexture() const { return mRenderTexture; }
 
 const float FrameBuffer::GetContrast() const { return mContrast; }
 
@@ -102,10 +102,6 @@ void FrameBuffer::UseRenderBuffer()
 {
 	// Bind created FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, mRenderBuffer);
-
-	//clearing the buffer
-	ClearColorBuffer();
-	ClearDepthBuffer();
 }
 
 void FrameBuffer::UseDepthBuffer()

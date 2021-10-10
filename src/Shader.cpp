@@ -212,7 +212,7 @@ void ShaderProgram::SetColorUniform(const std::string& name, Color c)
 	}
 
 	//setting the value
-	glUniform4f(location, c.mR, c.mG, c.mB, c.mA);
+	glUniform4fv(location, 1, &c.GetColor()[0]);
 }
 
 void ShaderProgram::Use()

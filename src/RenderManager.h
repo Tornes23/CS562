@@ -36,8 +36,8 @@ public:
 		Diffuse,
 		Normal,
 		Position,
-		Specular
-		//Depth
+		Specular,
+		Depth
 	};
 
 	void Initialize();
@@ -55,7 +55,7 @@ public:
 	void GeometryStage();
 	void LightingStage();
 	void AmbientStage();
-	void BindLights(ShaderProgram& shader);
+	void BindGTextures();
 	void RenderNode(Model& model, const tinygltf::Node& node);
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
 	
@@ -72,7 +72,7 @@ private:
 	RenderMode mMode;
 	GBuffer mGBuffer;
 	Model* mScreenTriangle;
-	float mAmbient;
+	Color mAmbient;
 	DisplayTex mDisplay;
 	FrameBuffer mFB;
 	float mLightRad;
