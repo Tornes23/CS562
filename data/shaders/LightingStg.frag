@@ -48,7 +48,7 @@ vec3 PointLight(Light light, vec2 UV)
     vec3 specularCol = vec3(1,1,1) * spec * specVal;  
     
     //computing the attenuation
-    float attenuation = 1 - min(dist / light.Radius, 1);
+    float attenuation = min(1.0 / ((0 + 0 * dist) + (0.001 * (dist * dist))), 1.0);
      
      vec3 finalCol = (diffuseCol + specularCol) * attenuation;
     //return the color after the lighting
@@ -58,22 +58,18 @@ vec3 PointLight(Light light, vec2 UV)
 vec3 ApplyLighting(vec2 UV)
 {
     //variable to store the final color
-    //get the texture color and apply ambient lighting
-    vec3 finalCol = texture(g_diffuseTex, UV).rgb * 0.2;
-    vec3 addedLight = vec3(0, 0, 0);
+    vec3 addedLight = vec3(1, 1, 1);
     vec3 position = texture(g_posTex, UV).xyz;
     for(int i = 0; i < LightNum; i++)
     {
+        //fix this bs
         float dist = length(mLights[i].PosInCamSpc - position);
-        if(dist < (mLights[i].Radius * 1.0))
+        if(dist < (mLights[i].Radius * 1.1))
             addedLight += PointLight(mLights[i], UV); 
     }
     
-    //computing the final color
-    finalCol = addedLight + finalCol;
-    
     //returning the final color
-    return finalCol;
+    return addedLight * texture(g_diffuseTex, UV).rgb;
 }
 
 void main()

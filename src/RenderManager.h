@@ -24,7 +24,8 @@ public:
 	{
 		Geometry,
 		Lighting,
-		PostProcess,
+		Ambient,
+		Bloom,
 		Regular
 	};
 
@@ -40,6 +41,7 @@ public:
 	void ClearBuffer();
 	void GeometryStage();
 	void LightingStage();
+	void AmbientStage();
 	void BindLights(ShaderProgram& shader);
 	void RenderNode(Model& model, const tinygltf::Node& node);
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
@@ -54,6 +56,7 @@ private:
 	RenderMode mMode;
 	GBuffer mGBuffer;
 	Model* mScreenTriangle;
+	float mAmbient;
 	
 	RenderManagerClass() {}
 };

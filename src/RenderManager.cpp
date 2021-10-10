@@ -12,6 +12,7 @@ void RenderManagerClass::Initialize()
 {
 	mGBuffer.Create();
 	LoadShaders();
+	mAmbient = 0.2F;
 }
 
 void RenderManagerClass::Update()
@@ -45,7 +46,8 @@ void RenderManagerClass::LoadShaders(bool reload)
 
 	mShaders.push_back(ShaderProgram("./data/shaders/GeometryStg.vert", "./data/shaders/GeometryStg.frag"));
 	mShaders.push_back(ShaderProgram("./data/shaders/LightingStg.vert", "./data/shaders/LightingStg.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/Regular.vert", "./data/shaders/Regular.frag"));
+	mShaders.push_back(ShaderProgram("./data/shaders/Ambient.vert", "./data/shaders/Ambient.frag"));
+	mShaders.push_back(ShaderProgram("./data/shaders/Bloom.vert", "./data/shaders/Bloom.frag"));
 	mShaders.push_back(ShaderProgram("./data/shaders/Regular.vert", "./data/shaders/Regular.frag"));
 }
 
@@ -63,7 +65,9 @@ void RenderManagerClass::Render()
 
 	GeometryStage();
 	LightingStage();
-	Display();
+	AmbientStage();
+	//Display(RenderMode::Bloom);
+	//Display();
 }
 
 void RenderManagerClass::GeometryStage()
@@ -131,7 +135,6 @@ void RenderManagerClass::LightingStage()
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::BindLights(ShaderProgram& shader)
@@ -159,6 +162,33 @@ void RenderManagerClass::BindLights(ShaderProgram& shader)
 
 }
 
+void RenderManagerClass::AmbientStage()
+{
+	//get shader program
+	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Ambient)];
+	shader.Use();
+	//binding the screen triangle
+	mScreenTriangle->BindVAO();
+	//set uniforms in shader
+	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
+	shader.SetMatUniform("MVP", &mvp[0][0]);
+	shader.SetFloatUniform("Ambient", mAmbient);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDiffuseBuffer);
+	glUniform1i(0, 0);
+
+	//rendering the screen triangle
+	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
+	for (size_t i = 0; i < scene.nodes.size(); i++)
+		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
+
+	glDisable(GL_BLEND);
+	glUseProgram(0);
+	//unbinding the VAOs
+	glBindVertexArray(0);
+}
+
 void RenderManagerClass::Display()
 {
 	//Copying the depth buffer from the GBuffer to the default frame buffer
@@ -169,7 +199,7 @@ void RenderManagerClass::Display()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Regular)];
+	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Ambient)];
 	shader.Use();
 
 	//binding the screen triangle
@@ -186,8 +216,6 @@ void RenderManagerClass::Display()
 	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
 	for (size_t i = 0; i < scene.nodes.size(); i++)
 		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
-
-	glDisable(GL_BLEND);
 
 	glUseProgram(0);
 	//unbinding the VAOs
@@ -249,7 +277,7 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
 		//set correct material active
 		model.SetMaterialActive(mesh.primitives[i].material);		
 
-		glDrawElements(primitive.mode, indexAccessor.count, indexAccessor.componentType,
+		glDrawElements(primitive.mode, static_cast<GLsizei>(indexAccessor.count), indexAccessor.componentType,
 						BUFFER_OFFSET(indexAccessor.byteOffset));
 	}
 }
