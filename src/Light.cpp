@@ -7,12 +7,12 @@ void Light::Update()
 {
 	if (mAnimated)
 	{
-		mSin += 0.01F;
+		mSin += 2.5F;
 
 		if (mSin >= 360.0F)
 			mSin = 0.0F;
 
-		mPos.y = (sinf(mSin) * 20);
+		mPos.y += sinf(glm::radians(mSin));
 	}
 
 	glm::mat4x4 m2w(1.0);

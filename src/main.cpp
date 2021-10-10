@@ -4,17 +4,16 @@
 #include "Framework.h"
 
 #undef main
-int main(char* argv[], int argc)
+int main(int argc, char* argv[])
 {
 	//std::string to_load = "./data/scenes/sceneSkull.json";
 	//std::string to_load = "./data/scenes/sceneSphere.json";
 	std::string to_load = "./data/scenes/scene.json";
 	std::string output;
-	if (argc == 2)
+	if (argc == 3)
 	{
-		std::cerr << "2 outputs\n";
-		to_load = argv[0];
-		output = argv[1];
+		to_load = argv[1];
+		output = argv[2];
 	}
 
 	//handle the console arguments if necesary
@@ -44,7 +43,7 @@ int main(char* argv[], int argc)
 		Editor.Render();
 		Window.SwapBuffers();
 
-		if (argc == 2)
+		if (argc == 3)
 		{
 			//print output
 			Utils::SaveScreenshot(output);

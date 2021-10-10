@@ -208,7 +208,7 @@ void RenderManagerClass::LightingStage()
 	glDisable(GL_CULL_FACE);
 	//SET BLENDING TO ADDITIVE
 	glDepthMask(GL_FALSE);
-	glDepthFunc(GL_GREATER);
+	//glDepthFunc(GL_GREATER);
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -231,7 +231,7 @@ void RenderManagerClass::LightingStage()
 	}
 
 	glDepthMask(GL_TRUE);
-	glDepthFunc(GL_LESS);
+	//glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 	glUseProgram(0);
 	//unbinding the VAOs
@@ -408,6 +408,10 @@ GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precisio
 	glGenTextures(1, &handle);
 	glBindTexture(GL_TEXTURE_2D, handle);
 	glTexImage2D(GL_TEXTURE_2D, 0, precision, size.x, size.y, 0, GL_RGBA, high_precision ? GL_FLOAT : GL_UNSIGNED_BYTE, nullptr);
+	//setting the parameters for the texture to clamp to the maximum
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
