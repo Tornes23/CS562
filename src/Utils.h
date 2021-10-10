@@ -11,11 +11,13 @@ namespace Utils
 	void ParseShader(std::string& filename, std::string& code);
 	void LoadScene(const std::string& filename);
 	void LoadResources(const std::string& filename);
-	void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
-		const GLchar* message, const void* userParam);
-
+	void SaveScreenshot(const std::string& output) ;
+	
 	template <typename T>
 	std::string GetTypeName();
+
+	void GLAPIENTRY MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+		const GLchar* message, const void* userParam);
 }
 
 template <typename T>

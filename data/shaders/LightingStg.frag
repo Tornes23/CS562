@@ -4,7 +4,7 @@ const int MAX_LIGHT_NUM = 20;
 
 //output fragmet color
 out vec4 FragColor;
-
+in vec4 PosInCamSpc;
 struct Light
 {
     vec3 PosInCamSpc;
@@ -58,14 +58,12 @@ vec3 PointLight(Light light, vec2 UV)
 vec3 ApplyLighting(vec2 UV)
 {
     //variable to store the final color
-    vec3 addedLight = vec3(1, 1, 1);
+    vec3 addedLight = vec3(0, 0, 0);
     vec3 position = texture(g_posTex, UV).xyz;
     for(int i = 0; i < LightNum; i++)
     {
         //fix this bs
-        float dist = length(mLights[i].PosInCamSpc - position);
-        if(dist < (mLights[i].Radius * 1.1))
-            addedLight += PointLight(mLights[i], UV); 
+        addedLight += PointLight(mLights[i], UV); 
     }
     
     //returning the final color
@@ -76,6 +74,8 @@ void main()
 {
     vec2 uv = gl_FragCoord.xy / Size;
     vec4 color = texture(g_diffuseTex, uv).rgba;
+    //vec4 color = texture(g_posTex, uv).rgba;
     //setting the output color to the texture sample
     FragColor = vec4(ApplyLighting(uv), color.a);
+    //FragColor = PosInCamSpc;
 }

@@ -7,11 +7,12 @@ class ShaderProgram;
 
 struct  Light
 {
-	glm::mat4x4 GetM2W() const;
+	void Update();
 	glm::vec3 mPos;
 	Color mColor;
 	float mRadius;
 	Model* mModel;
+	glm::mat4x4 mM2W;
 	void SetUniforms(const std::string& name, ShaderProgram* shader);
 
 };

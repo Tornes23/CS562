@@ -73,6 +73,9 @@
     <Filter Include="Source Files\GFX\GBuffer">
       <UniqueIdentifier>{8a2bf8a4-70a1-454c-8ebc-f04aa4674985}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GFX\FrameBuffer">
+      <UniqueIdentifier>{035900e3-a70c-425e-a163-8efea8a1660d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -152,6 +155,9 @@
     </ClCompile>
     <ClCompile Include="src\GBuffer.cpp">
       <Filter>Source Files\GFX\GBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\FrameBuffer.cpp">
+      <Filter>Source Files\GFX\FrameBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -238,6 +244,9 @@
     </ClInclude>
     <ClInclude Include="src\GBuffer.h">
       <Filter>Source Files\GFX\GBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FrameBuffer.h">
+      <Filter>Source Files\GFX\FrameBuffer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

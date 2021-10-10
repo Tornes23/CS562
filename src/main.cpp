@@ -6,6 +6,17 @@
 #undef main
 int main(char* argv[], int argc)
 {
+	//std::string to_load = "./data/scenes/sceneSkull.json";
+	//std::string to_load = "./data/scenes/sceneSphere.json";
+	std::string to_load = "./data/scenes/scene.json";
+	std::string output;
+	if (argc == 2)
+	{
+		std::cerr << "2 outputs\n";
+		to_load = argv[0];
+		output = argv[1];
+	}
+
 	//handle the console arguments if necesary
 	Utils::InitSDL();
 	Window.Create();
@@ -13,11 +24,8 @@ int main(char* argv[], int argc)
 	InputManager.Initialize();
 	Editor.Initialize();
 	RenderManager.Initialize();
-	//ResourceManager.LoadScene("./data/scenes/sceneSkull.json");
-	//ResourceManager.LoadScene("./data/scenes/sceneSphere.json");
-	ResourceManager.LoadScene("./data/scenes/scene.json");
+	ResourceManager.LoadScene(to_load);
 
-	bool test = true;
 	while (!Window.IsClosed())
 	{
 		Editor.StartFrame();
@@ -33,9 +41,15 @@ int main(char* argv[], int argc)
 
 		Window.Clear();
 		RenderManager.Render();
-		//ImGui::ShowDemoWindow(&test);
 		Editor.Render();
 		Window.SwapBuffers();
+
+		if (argc == 2)
+		{
+			//print output
+			Utils::SaveScreenshot(output);
+			Window.CloseWindow();
+		}
 
 	}
 

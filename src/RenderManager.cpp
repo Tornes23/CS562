@@ -12,13 +12,30 @@ void RenderManagerClass::Initialize()
 {
 	mGBuffer.Create();
 	LoadShaders();
-	mAmbient = 0.2F;
+	mAmbient = 0.02F;
+	mDisplay = DisplayTex::Standar;
 }
 
 void RenderManagerClass::Update()
 {
 	if (KeyDown(Key::F5))
 		LoadShaders(true);
+
+	if (KeyDown(Key::Num1))
+		mDisplay = DisplayTex::Standar;
+	if (KeyDown(Key::Num2))
+		mDisplay = DisplayTex::Diffuse;
+	if (KeyDown(Key::Num3))
+		mDisplay = DisplayTex::Normal;
+	if (KeyDown(Key::Num4))
+		mDisplay = DisplayTex::Position;
+	if (KeyDown(Key::Num5))
+		mDisplay = DisplayTex::Specular;
+	//if (KeyDown(Key::Num6))
+	//	mDisplay = DisplayTex::Depth;
+
+	for (auto& it : mLights)
+		it.Update();
 		
 }
 
@@ -60,14 +77,15 @@ void RenderManagerClass::FreeShaders()
 
 void RenderManagerClass::Render()
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	ClearBuffer();
+	if(mDisplay == DisplayTex::Standar)
+	{
+		GeometryStage();
+		LightingStage();
+		AmbientStage();
+		//Bloom(RenderMode::Bloom);
+	}
 
-	GeometryStage();
-	LightingStage();
-	AmbientStage();
-	//Display(RenderMode::Bloom);
-	//Display();
+	Display();
 }
 
 void RenderManagerClass::GeometryStage()
@@ -96,11 +114,21 @@ void RenderManagerClass::GeometryStage()
 	}
 
 	glUseProgram(0);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::LightingStage()
 {
+	mFB.UseRenderBuffer();
+	mFB.ClearColorBuffer();
+	mFB.ClearDepthBuffer();
+
+	glm::vec2 size = Window.GetViewport();
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBuffer.mHandle);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFB.GetRenderBuffer());
+	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0, 
+					static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST );
+	glBindFramebuffer(GL_FRAMEBUFFER, mFB.GetRenderBuffer());
+
 	//get shader program
 	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Lighting)];
 	shader.Use();
@@ -109,7 +137,7 @@ void RenderManagerClass::LightingStage()
 	glDisable(GL_CULL_FACE);
 	//SET BLENDING TO ADDITIVE
 	glDepthMask(GL_FALSE);
-	//glDepthFunc(GL_GREATER);
+	glDepthFunc(GL_GREATER);
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -119,7 +147,9 @@ void RenderManagerClass::LightingStage()
 		//binding the screen triangle
 		it.mModel->BindVAO();
 		//set uniforms in shader
-		glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat() * it.GetM2W();
+		glm::mat4x4 mv = Camera.GetCameraMat() * it.mM2W;
+		glm::mat4x4 mvp = Camera.GetProjection() * mv;
+		shader.SetMatUniform("MV", &mv[0][0]);
 		shader.SetMatUniform("MVP", &mvp[0][0]);
 		shader.SetVec2Uniform("Size", Window.GetViewport());
 
@@ -130,7 +160,7 @@ void RenderManagerClass::LightingStage()
 	}
 
 	glDepthMask(GL_TRUE);
-	//glDepthFunc(GL_LESS);
+	glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 	glUseProgram(0);
 	//unbinding the VAOs
@@ -191,15 +221,9 @@ void RenderManagerClass::AmbientStage()
 
 void RenderManagerClass::Display()
 {
-	//Copying the depth buffer from the GBuffer to the default frame buffer
-	glm::ivec2 size = Window.GetViewport();
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBuffer.mHandle);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBlitFramebuffer(0, 0, size.x, size.y, 0, 0, size.x, size.y, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Ambient)];
+	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Regular)];
 	shader.Use();
 
 	//binding the screen triangle
@@ -209,7 +233,28 @@ void RenderManagerClass::Display()
 	shader.SetMatUniform("MVP", &mvp[0][0]);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDiffuseBuffer);
+	switch (mDisplay)
+	{
+	case DisplayTex::Diffuse:
+		glBindTexture(GL_TEXTURE_2D, mGBuffer.mDiffuseBuffer);
+		break;
+	case DisplayTex::Normal:
+		glBindTexture(GL_TEXTURE_2D, mGBuffer.mNormalBuffer);
+		break;
+	case DisplayTex::Position:
+		glBindTexture(GL_TEXTURE_2D, mGBuffer.mPositionBuffer);
+		break;
+	case DisplayTex::Specular:
+		glBindTexture(GL_TEXTURE_2D, mGBuffer.mSpecularBuffer);
+		break;
+	//case DisplayTex::Depth:
+	//	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
+	//	break;
+	default:
+		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
+		break;
+	}
+
 	glUniform1i(0, 0);
 
 	//rendering the screen triangle

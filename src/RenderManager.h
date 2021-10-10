@@ -7,6 +7,7 @@
 #include "tinyglft/tiny_gltf.h"
 #include "Model.h"
 #include "GBuffer.h"
+#include "FrameBuffer.h"
 
 class RenderManagerClass
 {
@@ -27,6 +28,16 @@ public:
 		Ambient,
 		Bloom,
 		Regular
+	};
+
+	enum DisplayTex
+	{
+		Standar,
+		Diffuse,
+		Normal,
+		Position,
+		Specular
+		//Depth
 	};
 
 	void Initialize();
@@ -57,6 +68,8 @@ private:
 	GBuffer mGBuffer;
 	Model* mScreenTriangle;
 	float mAmbient;
+	DisplayTex mDisplay;
+	FrameBuffer mFB;
 	
 	RenderManagerClass() {}
 };
