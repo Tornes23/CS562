@@ -9,7 +9,6 @@ struct  Light
 {
 	glm::mat4x4 GetM2W() const;
 	glm::vec3 mPos;
-	glm::vec3 mAttenuation;
 	Color mColor;
 	float mRadius;
 	Model* mModel;

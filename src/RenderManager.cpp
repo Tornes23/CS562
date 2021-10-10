@@ -30,7 +30,6 @@ void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 		nlohmann::json object = *it;
 		//load light
 		object >> light;
-		light.mAttenuation = glm::vec3(0.0F, 0.0F, 0.001F);
 		light.mModel = ResourceManager.GetResource<Model>("Sphere.gltf");
 		//load mesh
 		mLights.push_back(light);
@@ -83,8 +82,8 @@ void RenderManagerClass::GeometryStage()
 		glm::mat4x4 mv = Camera.GetCameraMat() * it.mM2W;
 		glm::mat4x4 mvp = Camera.GetProjection() * mv;
 		glm::mat4x4 m2v_normal = glm::transpose(glm::inverse(mv));
-		shader.SetMatUniform("MVP", &mvp[0][0]);
 		shader.SetMatUniform("MV", &mv[0][0]);
+		shader.SetMatUniform("MVP", &mvp[0][0]);
 		shader.SetMatUniform("m2v_normal", &m2v_normal[0][0]);
 
 		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
@@ -105,7 +104,8 @@ void RenderManagerClass::LightingStage()
 	//Diabling the back face culling
 	glDisable(GL_CULL_FACE);
 	//SET BLENDING TO ADDITIVE
-	//glDepthMask(GL_FALSE);
+	glDepthMask(GL_FALSE);
+	//glDepthFunc(GL_GREATER);
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
@@ -125,7 +125,8 @@ void RenderManagerClass::LightingStage()
 			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
 	}
 
-	//glDepthMask(GL_FALSE);
+	glDepthMask(GL_TRUE);
+	//glDepthFunc(GL_LESS);
 	glEnable(GL_CULL_FACE);
 	glUseProgram(0);
 	//unbinding the VAOs

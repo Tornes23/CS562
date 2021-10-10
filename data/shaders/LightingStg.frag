@@ -9,7 +9,6 @@ struct Light
 {
     vec3 PosInCamSpc;
     vec4 Color;
-    vec3 Attenuation;
     float Radius;
 };
 
@@ -32,14 +31,13 @@ vec3 PointLight(Light light, vec2 UV)
     vec3 lightDir = normalize(light.PosInCamSpc - position);
     vec3 viewDir = normalize(-position);//since im cam space cam pos = origin
     vec3 reflectDir = reflect(-lightDir, normal);  
-
     //getting the shininess and specular values
     float specVal = texture(g_SpecTex, UV).g;
     float shininess = texture(g_SpecTex, UV).b;
 
     //DIFFUSE COLOR
     float diffuseVal = max(dot(normal, lightDir), 0.0);
-    vec3 diffuseCol = (diffuseVal * texture(g_diffuseTex, UV).rgb) * light.Color.xyz;
+    vec3 diffuseCol = diffuseVal * texture(g_diffuseTex, UV).rgb * light.Color.xyz;
     
     //SPECULAR COLOR
     //computing specular color
@@ -47,12 +45,10 @@ vec3 PointLight(Light light, vec2 UV)
     //computing the distance
     float dist = length(light.PosInCamSpc - position);
     //specular color is always white
-    vec3 specularCol = vec3(1,1,1) * specVal;  
+    vec3 specularCol = vec3(1,1,1) * spec * specVal;  
     
     //computing the attenuation
-    float attenuation = min((1.0 / 
-                        (light.Attenuation.x + (light.Attenuation.y * dist) 
-                        + light.Attenuation.z * (dist * dist))), 1.0);
+    float attenuation = 1 - min(dist / light.Radius, 1);
      
      vec3 finalCol = (diffuseCol + specularCol) * attenuation;
     //return the color after the lighting
@@ -62,21 +58,19 @@ vec3 PointLight(Light light, vec2 UV)
 vec3 ApplyLighting(vec2 UV)
 {
     //variable to store the final color
-    vec3  finalCol;
-    vec3 addedLight = vec3(1,1,1);
+    //get the texture color and apply ambient lighting
+    vec3 finalCol = texture(g_diffuseTex, UV).rgb * 0.2;
+    vec3 addedLight = vec3(0, 0, 0);
     vec3 position = texture(g_posTex, UV).xyz;
     for(int i = 0; i < LightNum; i++)
     {
-        float dist = distance(position, mLights[i].PosInCamSpc);
-        if(dist <= (mLights[i].Radius * 1.1F))
+        float dist = length(mLights[i].PosInCamSpc - position);
+        if(dist < (mLights[i].Radius * 1.0))
             addedLight += PointLight(mLights[i], UV); 
     }
-
-    //get the texture color
-    vec3  textureCol = texture(g_diffuseTex, UV).rgb;
     
     //computing the final color
-    finalCol += addedLight * textureCol;
+    finalCol = addedLight + finalCol;
     
     //returning the final color
     return finalCol;

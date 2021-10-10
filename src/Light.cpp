@@ -15,7 +15,6 @@ void Light::SetUniforms(const std::string& name, ShaderProgram* shader)
 {
 	glm::vec3 posInCam = (Camera.GetCameraMat() * GetM2W()) * glm::vec4(mPos, 1.0F);
 	shader->SetVec3Uniform(name + ".PosInCamSpc", posInCam);
-	shader->SetVec3Uniform(name + ".Attenuation", mAttenuation);
 	shader->SetColorUniform(name + ".Color", mColor);
 	shader->SetFloatUniform(name + ".Radius", mRadius);
 }
