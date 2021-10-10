@@ -42,11 +42,12 @@ public:
 
 	void Initialize();
 	void Update();
-	void Edit();
 	
+	void Edit();
 	void LoadLights(const nlohmann::json& lights);
 	void LoadShaders(bool reload = false);
 	void FreeShaders();
+	void AddLight();
 	
 	void Render();
 	void Display();
@@ -60,9 +61,12 @@ public:
 	
 	ShaderProgram& GetShader(const RenderMode& mode);
 	GLuint GenTexture(const glm::ivec2& size, bool high_precision = false);
+	Color GenRandomCol();
+	glm::vec3 GenRandomPos();
 
 private:
 	const std::string mShaderPath = "./data/shaders/";
+	const int MAX_LIGHTS = 40;
 	std::vector<Light> mLights;
 	std::vector<ShaderProgram> mShaders;
 	RenderMode mMode;
@@ -71,7 +75,6 @@ private:
 	float mAmbient;
 	DisplayTex mDisplay;
 	FrameBuffer mFB;
-	bool mAnimateLights;
 	float mLightRad;
 	
 	RenderManagerClass() {}

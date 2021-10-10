@@ -1,4 +1,5 @@
 #include <glm/gtx/transform.hpp>
+#include <glm/gtc/random.hpp>
 #include <imgui/imgui.h>
 #include "RenderManager.h"
 #include "GameObjectManager.h"
@@ -51,23 +52,34 @@ void RenderManagerClass::Edit()
 		ImGui::End();
 		return;
 	}
-	
+
+	int lights = mLights.size();
+
+	ImGui::SliderInt("Light Numer", &lights, 0, MAX_LIGHTS);
+	if (lights < 0)
+		lights = 0;
+
+	if (lights > mLights.size())
+	{
+		while (mLights.size() < lights)
+			AddLight();
+	}
+	else
+	{
+		while (mLights.size() > lights)
+			mLights.pop_back();
+
+	}
+
 	bool rad = ImGui::DragFloat("Light Radius", &mLightRad, 1.0F, 0.0F);
 	
 	if (mLightRad < 0.0F)
 		mLightRad = 0.0F;
 
-	bool anim = ImGui::Checkbox("Light Animation", &mAnimateLights);
-
-	if (rad || anim )
+	if (rad)
 	{
 		for (auto& it : mLights)
-		{
-			if(rad)
 				it.mRadius = mLightRad;
-			if (anim)
-				it.mAnimated = mAnimateLights;
-		}
 	}
 
 
@@ -109,14 +121,12 @@ void RenderManagerClass::Edit()
 void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 {
 	mLights.clear();
-	mAnimateLights = true;
 	for (auto it = lights.begin(); it != lights.end(); it++)
 	{
 		Light light;
 		nlohmann::json object = *it;
 		//load light
 		object >> light;
-		light.mAnimated = true;
 		light.mModel = ResourceManager.GetResource<Model>("Sphere.gltf");
 		mLightRad += light.mRadius;
 		//load mesh
@@ -144,6 +154,17 @@ void RenderManagerClass::FreeShaders()
 	//for each shader destroy
 	for (auto& it : mShaders)
 		it.Free();
+}
+
+void RenderManagerClass::AddLight()
+{
+	Light temp;
+	temp.mPos = GenRandomPos();
+	temp.mColor = GenRandomCol();
+	temp.mRadius = mLightRad;
+	temp.mModel = ResourceManager.GetResource<Model>("Sphere.gltf");
+
+	mLights.push_back(temp);
 }
 
 void RenderManagerClass::Render()
@@ -417,3 +438,7 @@ GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precisio
 
 	return handle;
 }
+
+Color RenderManagerClass::GenRandomCol() { return Color(glm::linearRand(0.0F ,1.0F), glm::linearRand(0.0F, 1.0F), glm::linearRand(0.0F, 1.0F), 1.0F); }
+
+glm::vec3 RenderManagerClass::GenRandomPos() { return glm::vec3(glm::linearRand(-200.0F, 200.0F), glm::linearRand(-200.0F, 200.0F), glm::linearRand(-200.0F, 200.0F)); }

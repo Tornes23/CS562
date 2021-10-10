@@ -5,16 +5,6 @@
 
 void Light::Update()
 {
-	if (mAnimated)
-	{
-		mSin += 2.5F;
-
-		if (mSin >= 360.0F)
-			mSin = 0.0F;
-
-		mPos.y += sinf(glm::radians(mSin));
-	}
-
 	glm::mat4x4 m2w(1.0);
 	m2w = m2w * glm::translate(mPos);
 	m2w = m2w * glm::scale(glm::vec3(2.0F * mRadius));
