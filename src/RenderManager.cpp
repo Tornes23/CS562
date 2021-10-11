@@ -21,6 +21,7 @@ void RenderManagerClass::Initialize()
 	mBloom = true;
 	mLuminence = 1.0F;
 	mBlurSamples = 1;
+	mLightsAnimated = false;
 }
 
 void RenderManagerClass::Update()
@@ -40,8 +41,8 @@ void RenderManagerClass::Update()
 		mDisplay = DisplayTex::Position;
 	if (KeyDown(Key::Num5))
 		mDisplay = DisplayTex::Specular;
-	if (KeyDown(Key::Num6))
-		mDisplay = DisplayTex::Depth;
+	//if (KeyDown(Key::Num6))
+	//	mDisplay = DisplayTex::Depth;
 
 	for (auto& it : mLights)
 		it.Update();
@@ -67,9 +68,9 @@ void RenderManagerClass::Edit()
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 	
-	const char* options[6] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth"};
+	const char* options[5] = { "Standar", "Diffuse", "Normal", "Position", "Specular"/*, "Depth"*/};
 	
-	if (ImGui::Combo("Display Texture", &tex, options, 6, 7))
+	if (ImGui::Combo("Display Texture", &tex, options, 5, 6))
 	{
 		switch (tex)
 		{
@@ -88,14 +89,15 @@ void RenderManagerClass::Edit()
 		case 4:
 			mDisplay = DisplayTex::Specular;
 			break;
-		case 5:
-			mDisplay = DisplayTex::Depth;
-			break;
+		//case 5:
+		//	mDisplay = DisplayTex::Depth;
+		//	break;
 		}
 	}
 
 	if (ImGui::TreeNode("Light Data"))
 	{
+		ImGui::Checkbox("Animation", &mLightsAnimated);
 		int lights = static_cast<int>(mLights.size());
 		float ambient = mAmbient.GetColor()[0];
 		ImGui::SliderFloat("Ambient Intensity", &ambient, 0, 1.0F);
@@ -141,6 +143,7 @@ void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 		nlohmann::json object = *it;
 		//load light
 		object >> light;
+		light.mInitialY = light.mPos.y;
 		light.mModel = ResourceManager.GetResource<Model>("Sphere.gltf");
 		mLightRad += light.mRadius;
 		//load mesh
@@ -178,6 +181,7 @@ void RenderManagerClass::AddLight()
 	temp.mColor = GenRandomCol();
 	temp.mRadius = mLightRad;
 	temp.mModel = ResourceManager.GetResource<Model>("Sphere.gltf");
+	temp.mInitialY = temp.mPos.y;
 
 	mLights.push_back(temp);
 }
@@ -425,9 +429,9 @@ void RenderManagerClass::Display()
 	case DisplayTex::Specular:
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mSpecularBuffer);
 		break;
-	case DisplayTex::Depth:
-		glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
-		break;
+	//case DisplayTex::Depth:
+	//	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
+	//	break;
 	default:
 		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
 		break;
@@ -535,3 +539,5 @@ GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precisio
 Color RenderManagerClass::GenRandomCol() { return Color(glm::linearRand(0.0F ,1.0F), glm::linearRand(0.0F, 1.0F), glm::linearRand(0.0F, 1.0F), 1.0F); }
 
 glm::vec3 RenderManagerClass::GenRandomPos() { return glm::vec3(glm::linearRand(-200.0F, 200.0F), glm::linearRand(-200.0F, 200.0F), glm::linearRand(-200.0F, 200.0F)); }
+
+bool RenderManagerClass::LightsAnimated() const { return mLightsAnimated;}

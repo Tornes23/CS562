@@ -5,7 +5,6 @@
 void FrameBuffer::Create()
 {
 	mContrast = 1.0F;
-
 	GenRenderBuffer();
 }
 

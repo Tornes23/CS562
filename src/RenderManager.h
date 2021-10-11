@@ -37,8 +37,7 @@ public:
 		Diffuse,
 		Normal,
 		Position,
-		Specular,
-		Depth
+		Specular
 	};
 
 	void Initialize();
@@ -68,6 +67,7 @@ public:
 	GLuint GenTexture(const glm::ivec2& size, bool high_precision = false);
 	Color GenRandomCol();
 	glm::vec3 GenRandomPos();
+	bool LightsAnimated() const;
 
 private:
 	const std::string mShaderPath = "./data/shaders/";
