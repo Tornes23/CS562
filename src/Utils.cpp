@@ -225,9 +225,15 @@ namespace Utils
             ImGui::End();
             return;
         }
+        glm::vec2 viewport = Window.GetViewport();
+        std::string res = "Resolution: ";
+        res += std::to_string(viewport.x);
+        res += "x";
+        res += std::to_string(viewport.y);
+        ImGui::Text(res.data());
+
         auto frames = Window.GetFrames();
-        
-        std::string framerate = "Frame Rate ";
+        std::string framerate = "Frame Rate: ";
         if (!frames.empty())
         {
             framerate += std::to_string(frames.back());

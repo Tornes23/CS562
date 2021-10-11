@@ -7,7 +7,8 @@ class Color
 {
 public:
 
-	Color(float r = 1.0F, float g = 1.0F, float b = 1.0F, float a = 1.0F);
+	Color(float c = 1.0F);
+	Color(float r, float g, float b, float a = 1.0F);
 	Color(const std::vector<double>& c);
 	Color(const std::vector<float>& c);
 	Color(unsigned char r, unsigned char g, unsigned char b, unsigned char a);

@@ -17,6 +17,7 @@ void RenderManagerClass::Initialize()
 	LoadShaders();
 	mAmbient = Color(0.02F, 0.02F, 0.02F);
 	mDisplay = DisplayTex::Standar;
+	mBloom = true;
 }
 
 void RenderManagerClass::Update()
@@ -54,34 +55,9 @@ void RenderManagerClass::Edit()
 		return;
 	}
 
-	int lights = static_cast<int>(mLights.size());
+	ImGui::Checkbox("Bloom", &mBloom);
 
-	ImGui::SliderInt("Light Count", &lights, 0, MAX_LIGHTS);
-
-	if (lights > mLights.size())
-	{
-		while (mLights.size() < lights)
-			AddLight();
-	}
-	else
-	{
-		while (mLights.size() > lights)
-			mLights.pop_back();
-
-	}
-
-	bool rad = ImGui::DragFloat("Light Radius", &mLightRad, 1.0F, 0.0F);
-	
-	if (mLightRad < 0.0F)
-		mLightRad = 0.0F;
-
-	if (rad)
-	{
-		for (auto& it : mLights)
-				it.mRadius = mLightRad;
-	}
-
-	//code to change the light mode
+	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 	
 	const char* options[6] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth"};
@@ -90,6 +66,9 @@ void RenderManagerClass::Edit()
 	{
 		switch (tex)
 		{
+		case 0:
+			mDisplay = DisplayTex::Standar;
+			break;
 		case 1:
 			mDisplay = DisplayTex::Diffuse;
 			break;
@@ -108,6 +87,40 @@ void RenderManagerClass::Edit()
 		}
 	}
 
+	if (ImGui::TreeNode("Light Data"))
+	{
+		int lights = static_cast<int>(mLights.size());
+		float ambient = mAmbient.GetColor()[0];
+		ImGui::SliderFloat("Ambient Intensity", &ambient, 0, 1.0F);
+		mAmbient = Color(ambient);
+
+		ImGui::SliderInt("Light Count", &lights, 0, MAX_LIGHTS);
+
+		if (lights > mLights.size())
+		{
+			while (mLights.size() < lights)
+				AddLight();
+		}
+		else
+		{
+			while (mLights.size() > lights)
+				mLights.pop_back();
+
+		}
+
+		bool rad = ImGui::DragFloat("Light Radius", &mLightRad, 1.0F, 0.0F);
+
+		if (mLightRad < 0.0F)
+			mLightRad = 0.0F;
+
+		if (rad)
+		{
+			for (auto& it : mLights)
+				it.mRadius = mLightRad;
+		}
+
+		ImGui::TreePop();
+	}
 
 	ImGui::End();
 }
@@ -168,7 +181,8 @@ void RenderManagerClass::Render()
 		GeometryStage();
 		AmbientStage();
 		LightingStage();
-		//Bloom(RenderMode::Bloom);
+		if(mBloom)
+			PostProcessStage();
 	}
 
 	Display();
@@ -297,6 +311,12 @@ void RenderManagerClass::AmbientStage()
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
+}
+
+void RenderManagerClass::PostProcessStage()
+{
+	//luminance formula
+	//lum = 0.2126 * R + 0.7152 * G + 0.0722 * B;
 }
 
 void RenderManagerClass::Display()

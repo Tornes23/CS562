@@ -6,8 +6,6 @@
 #undef main
 int main(int argc, char* argv[])
 {
-	//std::string to_load = "./data/scenes/sceneSkull.json";
-	//std::string to_load = "./data/scenes/sceneSphere.json";
 	std::string to_load = "./data/scenes/scene.json";
 	std::string output;
 	if (argc == 3)

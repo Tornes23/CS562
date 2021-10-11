@@ -17,6 +17,14 @@ Color::Color(float r, float g, float b, float a)
 	mA = static_cast<unsigned char>(a * 255.99F);
 }
 
+Color::Color(float c)
+{
+	mR = static_cast<unsigned char>(c * 255.99F);
+	mG = static_cast<unsigned char>(c * 255.99F);
+	mB = static_cast<unsigned char>(c * 255.99F);
+	mA = static_cast <unsigned char>(255);
+}
+
 Color::Color(const std::vector<double>& c)
 {
 	//setting the values

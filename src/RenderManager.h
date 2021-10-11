@@ -55,6 +55,7 @@ public:
 	void GeometryStage();
 	void LightingStage();
 	void AmbientStage();
+	void PostProcessStage();
 	void BindGTextures();
 	void RenderNode(Model& model, const tinygltf::Node& node);
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
@@ -76,6 +77,8 @@ private:
 	DisplayTex mDisplay;
 	FrameBuffer mFB;
 	float mLightRad;
+	bool mBloom;
+	bool mLightsAnimated;
 	
 	RenderManagerClass() {}
 };
