@@ -152,12 +152,26 @@ void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 		light.mInitialY = light.mPos.y;
 		light.mModel = ResourceManager.GetResource<Model>("Sphere.gltf");
 		mLightRad += light.mRadius;
+		light.mType = Light::LightType::Point;
 		//load mesh
 		mLights.push_back(light);
 	}
 
-	mLightRad /= mLights.size();
+	if (!mLights.empty())
+		mLightRad /= mLights.size();
+	else
+		mLightRad = 30.0F;
+
 	mScreenTriangle = ResourceManager.GetResource<Model>("ScreenTriangle.gltf");
+}
+
+void RenderManagerClass::LoadDirectional(const nlohmann::json& directional)
+{
+	Light light;
+	//load light
+	directional >> light;
+	light.mType = Light::LightType::Directional;
+	mLights.push_back(light);
 }
 
 void RenderManagerClass::LoadShaders(bool reload)
@@ -239,52 +253,9 @@ void RenderManagerClass::GeometryStage()
 
 void RenderManagerClass::LightingStage()
 {
-	glm::vec2 size = Window.GetViewport();
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBuffer.mHandle);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFB.GetRenderBuffer());
-	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0, 
-					static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST );
-	glBindFramebuffer(GL_FRAMEBUFFER, mFB.GetRenderBuffer());
-
-	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Lighting)];
-	shader.Use();
-	BindGTextures();
-	//Diabling the back face culling
-	glCullFace(GL_FRONT);
-	//SET BLENDING TO ADDITIVE
-	glEnable(GL_BLEND);
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_ONE, GL_ONE);
-	//disabling writing ono the depth buffer
-	glDepthFunc(GL_GREATER);
-	glDepthMask(GL_FALSE);
-
-	for (auto& it : mLights)
-	{
-		//binding the screen triangle
-		it.mModel->BindVAO();
-		//set uniforms in shader
-		glm::mat4x4 mv = Camera.GetCameraMat() * it.mM2W;
-		glm::mat4x4 mvp = Camera.GetProjection() * mv;
-		shader.SetMatUniform("MV", &mv[0][0]);
-		shader.SetMatUniform("MVP", &mvp[0][0]);
-		shader.SetVec2Uniform("Size", Window.GetViewport());
-		it.SetUniforms("mLight", &shader);
-
-		//rendering the screen triangle
-		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
-		for (size_t i = 0; i < scene.nodes.size(); i++)
-			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
-	}
-
-	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
-	glDepthFunc(GL_LESS);
-	glCullFace(GL_BACK);
-	glUseProgram(0);
-	//unbinding the VAOs
-	glBindVertexArray(0);
+	AmbientPass();
+	ShadowPass();
+	LightingPass();
 }
 
 void RenderManagerClass::ExtractLuminence()
@@ -361,7 +332,7 @@ void RenderManagerClass::BindGTextures()
 
 }
 
-void RenderManagerClass::AmbientStage()
+void RenderManagerClass::AmbientPass()
 {
 	mFB.UseRenderBuffer();
 	ClearBuffer();
@@ -385,6 +356,62 @@ void RenderManagerClass::AmbientStage()
 	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
 		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
+	glUseProgram(0);
+	//unbinding the VAOs
+	glBindVertexArray(0);
+}
+
+void RenderManagerClass::ShadowPass()
+{
+	//render the shadow maps
+}
+
+void RenderManagerClass::LightingPass()
+{
+	glm::vec2 size = Window.GetViewport();
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBuffer.mHandle);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFB.GetRenderBuffer());
+	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
+		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	glBindFramebuffer(GL_FRAMEBUFFER, mFB.GetRenderBuffer());
+
+	//get shader program
+	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Lighting)];
+	shader.Use();
+	BindGTextures();
+	//Diabling the back face culling
+	glCullFace(GL_FRONT);
+	//SET BLENDING TO ADDITIVE
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+	//disabling writing ono the depth buffer
+	glDepthFunc(GL_GREATER);
+	glDepthMask(GL_FALSE);
+
+	for (auto& it : mLights)
+	{
+		//binding the screen triangle
+		if (it.mModel != nullptr)
+			it.mModel->BindVAO();
+		//set uniforms in shader
+		glm::mat4x4 mv = Camera.GetCameraMat() * it.mM2W;
+		glm::mat4x4 mvp = Camera.GetProjection() * mv;
+		shader.SetMatUniform("MV", &mv[0][0]);
+		shader.SetMatUniform("MVP", &mvp[0][0]);
+		shader.SetVec2Uniform("Size", Window.GetViewport());
+		it.SetUniforms("mLight", &shader);
+
+		//rendering the screen triangle
+		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
+		for (size_t i = 0; i < scene.nodes.size(); i++)
+			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+	}
+
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+	glDepthFunc(GL_LESS);
+	glCullFace(GL_BACK);
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);

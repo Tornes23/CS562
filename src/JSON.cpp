@@ -12,7 +12,18 @@ glm::vec3& operator>>(const nlohmann::json& j, glm::vec3& val) { j["x"] >> val.x
 glm::vec4& operator>>(const nlohmann::json& j, glm::vec4& val) { j["x"] >> val.x; j["y"] >> val.y; j["z"] >> val.z; j["w"] >> val.w; return val; }
 Color& operator>>(const nlohmann::json& j, Color& val) { val = { j["x"], j["y"], j["z"] }; return val; }
 std::string& operator>>(const nlohmann::json& j, std::string& val) { val = j.get<std::string>(); return val; }
-Light& operator>>(const nlohmann::json& j, Light& val) { j["position"] >> val.mPos; j["color"] >> val.mColor; j["radius"] >> val.mRadius; return val; }
+Light& operator>>(const nlohmann::json& j, Light& val) 
+{ 
+    if(j.find("position") != j.end())
+        j["position"] >> val.mPos;
+    if(j.find("color") != j.end())
+        j["color"] >> val.mColor; 
+    if(j.find("radius") != j.end())
+        j["radius"] >> val.mRadius; 
+    if (j.find("direction") != j.end())
+        j["direction"] >> val.mDirection;
+    return val; 
+}
 GameObject& operator>>(const nlohmann::json& j, GameObject& val)
 {
     j["mesh"] >> val.mMesh;

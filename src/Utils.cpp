@@ -84,6 +84,8 @@ namespace Utils
                 GOManager.LoadObjects(*j.find("objects"));
             if (j.find("lights") != j.end())
                 RenderManager.LoadLights(*j.find("lights"));
+            if (j.find("directional_light") != j.end())
+                RenderManager.LoadDirectional(*j.find("directional_light"));
         }
 
     }

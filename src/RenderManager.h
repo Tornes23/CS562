@@ -46,6 +46,7 @@ public:
 	
 	void Edit();
 	void LoadLights(const nlohmann::json& lights);
+	void LoadDirectional(const nlohmann::json& directional);
 	void LoadShaders(bool reload = false);
 	void FreeShaders();
 	void AddLight();
@@ -55,7 +56,9 @@ public:
 	void ClearBuffer();
 	void GeometryStage();
 	void LightingStage();
-	void AmbientStage();
+	void AmbientPass();
+	void ShadowPass();
+	void LightingPass();
 	void PostProcessStage();
 
 	void RenderNode(Model& model, const tinygltf::Node& node);
