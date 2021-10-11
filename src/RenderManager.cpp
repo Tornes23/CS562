@@ -54,11 +54,9 @@ void RenderManagerClass::Edit()
 		return;
 	}
 
-	int lights = mLights.size();
+	int lights = static_cast<int>(mLights.size());
 
-	ImGui::SliderInt("Light Numer", &lights, 0, MAX_LIGHTS);
-	if (lights < 0)
-		lights = 0;
+	ImGui::SliderInt("Light Count", &lights, 0, MAX_LIGHTS);
 
 	if (lights > mLights.size())
 	{
@@ -83,38 +81,33 @@ void RenderManagerClass::Edit()
 				it.mRadius = mLightRad;
 	}
 
-
-	if (ImGui::TreeNode("Render Properties"))
+	//code to change the light mode
+	int tex = static_cast<int>(mDisplay);
+	
+	const char* options[6] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth"};
+	
+	if (ImGui::Combo("Display Texture", &tex, options, 6, 7))
 	{
-		//code to change the light mode
-		int tex = static_cast<int>(mDisplay);
-
-		const char* options[6] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth"};
-
-		if (ImGui::Combo("Display Texture", &tex, options, 6, 7))
+		switch (tex)
 		{
-			switch (tex)
-			{
-			case 1:
-				mDisplay = DisplayTex::Diffuse;
-				break;
-			case 2:
-				mDisplay = DisplayTex::Normal;
-				break;
-			case 3:
-				mDisplay = DisplayTex::Position;
-				break;
-			case 4:
-				mDisplay = DisplayTex::Specular;
-				break;
-			case 5:
-				mDisplay = DisplayTex::Depth;
-				break;
-			}
+		case 1:
+			mDisplay = DisplayTex::Diffuse;
+			break;
+		case 2:
+			mDisplay = DisplayTex::Normal;
+			break;
+		case 3:
+			mDisplay = DisplayTex::Position;
+			break;
+		case 4:
+			mDisplay = DisplayTex::Specular;
+			break;
+		case 5:
+			mDisplay = DisplayTex::Depth;
+			break;
 		}
-
-		ImGui::TreePop();
 	}
+
 
 	ImGui::End();
 }

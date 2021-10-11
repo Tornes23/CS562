@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include <string>
 #include "glm/vec2.hpp"
 #include "sdl2/SDL.h"
@@ -21,6 +22,8 @@ public:
 	void Clear();
 	void ShutDown();
 	void SwapBuffers();
+	void StartFrame();
+	std::vector<float> GetFrames() const;
 	//setters
 	void CloseWindow();
 	//getters
@@ -35,6 +38,10 @@ private:
 	std::string mTitle;
 	glm::ivec2 mSize;
 	bool mClosed;
+	unsigned mStartTicks;
+	unsigned mEndTicks;
+	float mFrameRate;
+	std::vector<float> mFrames;
 	WindowClass() {}
 };
 

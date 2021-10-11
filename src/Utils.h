@@ -12,7 +12,8 @@ namespace Utils
 	void LoadScene(const std::string& filename);
 	void LoadResources(const std::string& filename);
 	void SaveScreenshot(const std::string& output) ;
-	
+	void PerformanceGUI();
+
 	template <typename T>
 	std::string GetTypeName();
 

@@ -1,14 +1,15 @@
 #include <iostream>
 #include <fstream>
-#include "sdl2/SDL.h"
-#include "gl/glew.h"
+#include <sdl2/SDL.h>
+#include <gl/glew.h>
+#include <tinyglft/stb_image_write.h>
+#include <imgui/imgui.h>
 #include "Utils.h"
 #include "Window.h"
 #include "GameObjectManager.h"
 #include "Camera.h"
 #include "RenderManager.h"
 #include "ResourceManager.h"
-#include "tinyglft/stb_image_write.h"
 
 namespace Utils
 {
@@ -21,7 +22,6 @@ namespace Utils
             std::cerr << "Could not initialize SDL: " << SDL_GetError() << "\n";
             exit(1);
         }
-        SDL_GL_SetSwapInterval(0);
     }
 
     void InitGL()
@@ -215,5 +215,26 @@ namespace Utils
         glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, imageData.data());
         stbi_flip_vertically_on_write(true);
         stbi_write_png(output.data(), width, height, 4, imageData.data(), 0);
+    }
+    void PerformanceGUI()
+    {
+        //creating a window
+        if (!ImGui::Begin("Performance"))
+        {
+            // Early out if the window is collapsed, as an optimization.
+            ImGui::End();
+            return;
+        }
+        auto frames = Window.GetFrames();
+        
+        std::string framerate = "Frame Rate ";
+        if (!frames.empty())
+        {
+            framerate += std::to_string(frames.back());
+            ImGui::Text(framerate.data());
+            ImGui::PlotLines("", &frames[0], static_cast<int>(frames.size()), 0, NULL, 0.0f, 100.0f, ImVec2(400, 100));
+        }
+        
+        ImGui::End();
     }
 }

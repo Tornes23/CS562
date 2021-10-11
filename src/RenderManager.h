@@ -66,7 +66,7 @@ public:
 
 private:
 	const std::string mShaderPath = "./data/shaders/";
-	const int MAX_LIGHTS = 40;
+	const int MAX_LIGHTS = 3000;
 	std::vector<Light> mLights;
 	std::vector<ShaderProgram> mShaders;
 	RenderMode mMode;

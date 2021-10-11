@@ -27,6 +27,7 @@ int main(int argc, char* argv[])
 
 	while (!Window.IsClosed())
 	{
+		Window.StartFrame();
 		Editor.StartFrame();
 		InputManager.StartFrame();
 
@@ -40,6 +41,7 @@ int main(int argc, char* argv[])
 
 		Window.Clear();
 		RenderManager.Render();
+		Utils::PerformanceGUI();
 		Editor.Render();
 		Window.SwapBuffers();
 
