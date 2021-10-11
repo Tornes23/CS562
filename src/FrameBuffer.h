@@ -12,9 +12,6 @@ public:
 	const GLuint GetRenderTexture() const;
 	const GLuint GetLuminenceTexture() const;
 	const GLuint GetTexture(bool first) const;
-	const float  GetContrast() const;
-
-	void  SetContrast(float val);
 
 	void UseRenderBuffer();
 
@@ -23,7 +20,6 @@ public:
 
 
 private:
-	float mContrast;
 
 	GLuint mRenderTexture;
 	GLuint mRenderBuffer;

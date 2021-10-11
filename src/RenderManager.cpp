@@ -22,6 +22,7 @@ void RenderManagerClass::Initialize()
 	mLuminence = 1.0F;
 	mBlurSamples = 1;
 	mLightsAnimated = false;
+	mContrast = 1.0F - 0.99784F;
 }
 
 void RenderManagerClass::Update()
@@ -41,8 +42,8 @@ void RenderManagerClass::Update()
 		mDisplay = DisplayTex::Position;
 	if (KeyDown(Key::Num5))
 		mDisplay = DisplayTex::Specular;
-	//if (KeyDown(Key::Num6))
-	//	mDisplay = DisplayTex::Depth;
+	if (KeyDown(Key::Num6))
+		mDisplay = DisplayTex::Depth;
 
 	for (auto& it : mLights)
 		it.Update();
@@ -63,14 +64,19 @@ void RenderManagerClass::Edit()
 	ImGui::DragInt("Bloom Smaples", &mBlurSamples);
 	if (mBlurSamples < 0)
 		mBlurSamples = 0;
-	ImGui::DragFloat("Luminence Threshold", &mLuminence, 0.05F);
+	ImGui::DragFloat("Luminence Threshold", &mLuminence, 0.005F);
+	ImGui::DragFloat("Contrast", &mContrast, 0.0001F, 0.0F, 1.0F);
+	if (mContrast < 0.0F)
+		mContrast = 0.0F;
+	if (mContrast > 1.0F)
+		mContrast = 1.0F;
 
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 	
-	const char* options[5] = { "Standar", "Diffuse", "Normal", "Position", "Specular"/*, "Depth"*/};
+	const char* options[6] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth"};
 	
-	if (ImGui::Combo("Display Texture", &tex, options, 5, 6))
+	if (ImGui::Combo("Display Texture", &tex, options, 6, 7))
 	{
 		switch (tex)
 		{
@@ -89,9 +95,9 @@ void RenderManagerClass::Edit()
 		case 4:
 			mDisplay = DisplayTex::Specular;
 			break;
-		//case 5:
-		//	mDisplay = DisplayTex::Depth;
-		//	break;
+		case 5:
+			mDisplay = DisplayTex::Depth;
+			break;
 		}
 	}
 
@@ -431,9 +437,9 @@ void RenderManagerClass::Display()
 	case DisplayTex::Specular:
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mSpecularBuffer);
 		break;
-	//case DisplayTex::Depth:
-	//	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
-	//	break;
+	case DisplayTex::Depth:
+		glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
+		break;
 	default:
 		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
 		break;
@@ -447,6 +453,11 @@ void RenderManagerClass::Display()
 		glUniform1i(1, 1);
 	}
 	shader.SetBoolUniform("Bloom", mBloom);
+	bool depth = mDisplay == DisplayTex::Depth ? true : false;
+	shader.SetBoolUniform("Depth", depth);
+	if(depth)
+		shader.SetFloatUniform("Contrast", mContrast);
+
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];

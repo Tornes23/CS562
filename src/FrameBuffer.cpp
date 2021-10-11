@@ -4,7 +4,6 @@
 
 void FrameBuffer::Create()
 {
-	mContrast = 1.0F;
 	GenRenderBuffer();
 }
 
@@ -46,10 +45,6 @@ const GLuint FrameBuffer::GetRenderTexture() const { return mRenderTexture; }
 const GLuint FrameBuffer::GetLuminenceTexture() const { return mLuminenceTexture; }
 
 const GLuint FrameBuffer::GetTexture(bool first) const { return first ? mRenderBuffer : mLuminenceTexture; }
-
-const float FrameBuffer::GetContrast() const { return mContrast; }
-
-void FrameBuffer::SetContrast(float val){ mContrast = val; }
 
 void FrameBuffer::UseRenderBuffer()
 {

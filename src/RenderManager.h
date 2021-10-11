@@ -37,7 +37,8 @@ public:
 		Diffuse,
 		Normal,
 		Position,
-		Specular
+		Specular,
+		Depth
 	};
 
 	void Initialize();
@@ -74,7 +75,6 @@ private:
 	const int MAX_LIGHTS = 3000;
 	std::vector<Light> mLights;
 	std::vector<ShaderProgram> mShaders;
-	RenderMode mMode;
 	GBuffer mGBuffer;
 	Model* mScreenTriangle;
 	Color mAmbient;
@@ -83,6 +83,7 @@ private:
 	FrameBuffer mBloomBuffer;
 	float mLightRad;
 	float mLuminence;
+	float mContrast;
 	bool mBloom;
 	bool mLightsAnimated;
 	int mBlurSamples;
