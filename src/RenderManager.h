@@ -26,7 +26,8 @@ public:
 		Geometry,
 		Lighting,
 		Ambient,
-		Bloom,
+		Luminence,
+		Blur,
 		Regular
 	};
 
@@ -77,6 +78,7 @@ private:
 	DisplayTex mDisplay;
 	FrameBuffer mFB;
 	float mLightRad;
+	float mLuminence;
 	bool mBloom;
 	bool mLightsAnimated;
 	

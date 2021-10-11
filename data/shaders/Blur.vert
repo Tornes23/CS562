@@ -12,7 +12,6 @@ void main()
 {
     //setting the out variable
     UV = vTexCoord;
-
     //applying the transformation to the vertex pos
     gl_Position = MVP * vec4(vPosition, 1.0);
     

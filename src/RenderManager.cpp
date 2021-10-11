@@ -18,6 +18,7 @@ void RenderManagerClass::Initialize()
 	mAmbient = Color(0.02F, 0.02F, 0.02F);
 	mDisplay = DisplayTex::Standar;
 	mBloom = true;
+	mLuminence = 1.0F;
 }
 
 void RenderManagerClass::Update()
@@ -56,6 +57,7 @@ void RenderManagerClass::Edit()
 	}
 
 	ImGui::Checkbox("Bloom", &mBloom);
+	ImGui::DragFloat("Luminence Threshold", &mLuminence, 0.05F);
 
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
@@ -152,7 +154,8 @@ void RenderManagerClass::LoadShaders(bool reload)
 	mShaders.push_back(ShaderProgram("./data/shaders/GeometryStg.vert", "./data/shaders/GeometryStg.frag"));
 	mShaders.push_back(ShaderProgram("./data/shaders/LightingStg.vert", "./data/shaders/LightingStg.frag"));
 	mShaders.push_back(ShaderProgram("./data/shaders/Ambient.vert", "./data/shaders/Ambient.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/Bloom.vert", "./data/shaders/Bloom.frag"));
+	mShaders.push_back(ShaderProgram("./data/shaders/Luminence.vert", "./data/shaders/Luminence.frag"));
+	mShaders.push_back(ShaderProgram("./data/shaders/Blur.vert", "./data/shaders/Blur.frag"));
 	mShaders.push_back(ShaderProgram("./data/shaders/Regular.vert", "./data/shaders/Regular.frag"));
 }
 
@@ -181,6 +184,7 @@ void RenderManagerClass::Render()
 		GeometryStage();
 		AmbientStage();
 		LightingStage();
+
 		if(mBloom)
 			PostProcessStage();
 	}
@@ -315,8 +319,28 @@ void RenderManagerClass::AmbientStage()
 
 void RenderManagerClass::PostProcessStage()
 {
-	//luminance formula
-	//lum = 0.2126 * R + 0.7152 * G + 0.0722 * B;
+	//get shader program
+	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Luminence)];
+	shader.Use();
+	//binding the screen triangle
+	mScreenTriangle->BindVAO();
+	//set uniforms in shader
+	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
+	shader.SetMatUniform("MVP", &mvp[0][0]);
+	shader.SetFloatUniform("LumThreshold", mLuminence);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
+	glUniform1i(0, 0);
+
+	//rendering the screen triangle
+	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
+
+	glUseProgram(0);
+	//unbinding the VAOs
+	glBindVertexArray(0);
 }
 
 void RenderManagerClass::Display()
@@ -352,6 +376,7 @@ void RenderManagerClass::Display()
 		break;
 	default:
 		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
+		//glBindTexture(GL_TEXTURE_2D, mFB.GetLuminenceTexture());
 		break;
 	}
 

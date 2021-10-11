@@ -225,7 +225,7 @@ namespace Utils
             ImGui::End();
             return;
         }
-        glm::vec2 viewport = Window.GetViewport();
+        glm::ivec2 viewport = Window.GetViewport();
         std::string res = "Resolution: ";
         res += std::to_string(viewport.x);
         res += "x";
