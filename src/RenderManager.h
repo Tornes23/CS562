@@ -57,10 +57,13 @@ public:
 	void LightingStage();
 	void AmbientStage();
 	void PostProcessStage();
-	void BindGTextures();
+
 	void RenderNode(Model& model, const tinygltf::Node& node);
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
 	
+	void ExtractLuminence();
+	void BlurTexture(bool horizontal = false, bool first_pass = false);
+	void BindGTextures();
 	ShaderProgram& GetShader(const RenderMode& mode);
 	GLuint GenTexture(const glm::ivec2& size, bool high_precision = false);
 	Color GenRandomCol();
@@ -77,11 +80,12 @@ private:
 	Color mAmbient;
 	DisplayTex mDisplay;
 	FrameBuffer mFB;
+	FrameBuffer mBloomBuffer;
 	float mLightRad;
 	float mLuminence;
 	bool mBloom;
 	bool mLightsAnimated;
-	
+	int mBlurSamples;
 	RenderManagerClass() {}
 };
 

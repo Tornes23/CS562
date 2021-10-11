@@ -14,11 +14,13 @@ void RenderManagerClass::Initialize()
 {
 	mGBuffer.Create();
 	mFB.Create();
+	mBloomBuffer.Create();
 	LoadShaders();
-	mAmbient = Color(0.02F, 0.02F, 0.02F);
+	mAmbient = Color(0.02F);
 	mDisplay = DisplayTex::Standar;
 	mBloom = true;
 	mLuminence = 1.0F;
+	mBlurSamples = 1;
 }
 
 void RenderManagerClass::Update()
@@ -57,6 +59,9 @@ void RenderManagerClass::Edit()
 	}
 
 	ImGui::Checkbox("Bloom", &mBloom);
+	ImGui::DragInt("Bloom Smaples", &mBlurSamples);
+	if (mBlurSamples < 0)
+		mBlurSamples = 0;
 	ImGui::DragFloat("Luminence Threshold", &mLuminence, 0.05F);
 
 	//code to change the output
@@ -270,6 +275,62 @@ void RenderManagerClass::LightingStage()
 	glBindVertexArray(0);
 }
 
+void RenderManagerClass::ExtractLuminence()
+{
+	//get shader program
+	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Luminence)];
+	shader.Use();
+	//binding the screen triangle
+	mScreenTriangle->BindVAO();
+	//set uniforms in shader
+	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
+	shader.SetMatUniform("MVP", &mvp[0][0]);
+	shader.SetFloatUniform("LumThreshold", mLuminence);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
+	glUniform1i(0, 0);
+
+	//rendering the screen triangle
+	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
+
+	glUseProgram(0);
+	//unbinding the VAOs
+	glBindVertexArray(0);
+}
+
+void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
+{
+	//get shader program
+	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Blur)];
+	shader.Use();
+	//binding the screen triangle
+	mScreenTriangle->BindVAO();
+	//set uniforms in shader
+	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
+	shader.SetMatUniform("MVP", &mvp[0][0]);
+	shader.SetBoolUniform("HorizontalPass", horizontal);
+
+	glActiveTexture(GL_TEXTURE0);
+	if(first_pass)
+		glBindTexture(GL_TEXTURE_2D, mFB.GetLuminenceTexture());
+	else
+		glBindTexture(GL_TEXTURE_2D, mBloomBuffer.GetTexture(horizontal));
+
+	glUniform1i(0, 0);
+
+	//rendering the screen triangle
+	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
+
+	glUseProgram(0);
+	//unbinding the VAOs
+	glBindVertexArray(0);
+}
+
 void RenderManagerClass::BindGTextures()
 {
 	//binding the gbuffer textures as inputs
@@ -319,33 +380,26 @@ void RenderManagerClass::AmbientStage()
 
 void RenderManagerClass::PostProcessStage()
 {
-	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Luminence)];
-	shader.Use();
-	//binding the screen triangle
-	mScreenTriangle->BindVAO();
-	//set uniforms in shader
-	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
-	shader.SetMatUniform("MVP", &mvp[0][0]);
-	shader.SetFloatUniform("LumThreshold", mLuminence);
+	ExtractLuminence();
+	mBloomBuffer.UseRenderBuffer();
+	ClearBuffer();
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
-	glUniform1i(0, 0);
+	bool horizontal = true;
+	for (int i = 0; i < mBlurSamples; i++)
+	{
+		if(i == 0)
+			BlurTexture(horizontal, true);
+		else
+			BlurTexture(horizontal);
 
-	//rendering the screen triangle
-	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
-		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
-
-	glUseProgram(0);
-	//unbinding the VAOs
-	glBindVertexArray(0);
+		horizontal = !horizontal;
+	}
 }
 
 void RenderManagerClass::Display()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	ClearBuffer();
 	//get shader program
 	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Regular)];
 	shader.Use();
@@ -376,11 +430,17 @@ void RenderManagerClass::Display()
 		break;
 	default:
 		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
-		//glBindTexture(GL_TEXTURE_2D, mFB.GetLuminenceTexture());
 		break;
 	}
-
 	glUniform1i(0, 0);
+
+	if (mBloom)
+	{
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, mBloomBuffer.GetRenderTexture());
+		glUniform1i(1, 1);
+	}
+	shader.SetBoolUniform("Bloom", mBloom);
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
