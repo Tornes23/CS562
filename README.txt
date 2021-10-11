@@ -12,4 +12,4 @@ o Left/right: rotate the camera around the yaw.
     GBuffer.h/cpp
     GeometryStage shaders
 
-3. Known issues and problems: when pressing f5 error from openg due to shader handles
+3. Known issues and problems: 

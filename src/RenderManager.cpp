@@ -172,6 +172,8 @@ void RenderManagerClass::FreeShaders()
 	//for each shader destroy
 	for (auto& it : mShaders)
 		it.Free();
+
+	mShaders.clear();
 }
 
 void RenderManagerClass::AddLight()
