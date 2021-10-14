@@ -213,7 +213,6 @@ void RenderManagerClass::Render()
 	if(mDisplay == DisplayTex::Standar)
 	{
 		GeometryStage();
-		AmbientStage();
 		LightingStage();
 
 		if(mBloom)
@@ -364,6 +363,7 @@ void RenderManagerClass::AmbientPass()
 void RenderManagerClass::ShadowPass()
 {
 	//render the shadow maps
+
 }
 
 void RenderManagerClass::LightingPass()

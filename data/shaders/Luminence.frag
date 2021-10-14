@@ -1,6 +1,7 @@
 #version 430
 
 //output fragmet color
+layout(location = 0)out vec4 FragColor;
 layout(location = 1)out vec4 Luminence;
 //the used textures
 layout(location = 0)uniform sampler2D textureData;
@@ -16,4 +17,6 @@ void main()
         Luminence = vec4(color, 1.0);
     else
         Luminence = vec4(0.0, 0.0, 0.0, 1.0);
+
+    FragColor = vec4(color, 1.0);
 }
