@@ -2,6 +2,7 @@
 #include "glm/mat4x4.hpp"
 #include "glm/vec3.hpp"
 #include "json/json.hpp"
+#include "Frustum.h"
 
 class CameraClass
 {
@@ -22,6 +23,12 @@ public:
 	void Rotate();
 	glm::mat4x4 GetProjection() const;
 	glm::mat4x4 GetCameraMat() const;
+	glm::vec3 GetPos() const;
+	glm::vec3 GetView() const;
+	float GetFOV() const;
+	float GetNear() const;
+	float GetFar() const;
+	Frustum GetFrustum() const;
 
 private:
 	glm::mat4x4 mPerspective;
@@ -40,7 +47,7 @@ private:
 	glm::vec3 mRotation;
 
 	glm::ivec2 mPrevMousePos;
-
+	Frustum mFrustum;
 	CameraClass() { }
 };
 

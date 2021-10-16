@@ -31,6 +31,7 @@ public:
 	SDL_Window* GetSDLWindow() const;
 	SDL_GLContext GetSDLContext() const;
 	glm::ivec2 GetViewport() const;
+	float GetAspectRatio();
 
 private:
 	SDL_Window* mWindow;

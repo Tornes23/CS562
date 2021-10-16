@@ -18,10 +18,10 @@ int main(int argc, char* argv[])
 	Utils::InitSDL();
 	Window.Create();
 	Utils::InitGL();
+	ResourceManager.LoadScene(to_load);
 	InputManager.Initialize();
 	Editor.Initialize();
 	RenderManager.Initialize();
-	ResourceManager.LoadScene(to_load);
 
 	while (!Window.IsClosed())
 	{
@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
 		Window.Clear();
 		RenderManager.Render();
 		Utils::PerformanceGUI();
+		Utils::DebugGUI();
 		Editor.Render();
 		Window.SwapBuffers();
 

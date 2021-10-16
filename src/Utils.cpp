@@ -245,4 +245,18 @@ namespace Utils
         
         ImGui::End();
     }
+    void DebugGUI()
+    {
+        //creating a window
+        if (!ImGui::Begin("Debug"))
+        {
+            // Early out if the window is collapsed, as an optimization.
+            ImGui::End();
+            return;
+        }
+        bool render = RenderManager.GetRenderFrustum();
+        ImGui::Checkbox("Render Frustum", &render);
+        RenderManager.SetRenderFrustum(render);
+        ImGui::End();
+    }
 }

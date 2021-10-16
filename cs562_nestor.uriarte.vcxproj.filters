@@ -76,6 +76,9 @@
     <Filter Include="Source Files\GFX\FrameBuffer">
       <UniqueIdentifier>{035900e3-a70c-425e-a163-8efea8a1660d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Frustum">
+      <UniqueIdentifier>{eb7684e2-22ab-4e37-9db7-73b2157423d0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -158,6 +161,9 @@
     </ClCompile>
     <ClCompile Include="src\FrameBuffer.cpp">
       <Filter>Source Files\GFX\FrameBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Frustum.cpp">
+      <Filter>Source Files\Frustum</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -247,6 +253,9 @@
     </ClInclude>
     <ClInclude Include="src\FrameBuffer.h">
       <Filter>Source Files\GFX\FrameBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Frustum.h">
+      <Filter>Source Files\Frustum</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

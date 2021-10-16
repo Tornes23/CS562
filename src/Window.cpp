@@ -86,3 +86,8 @@ SDL_Window* WindowClass::GetSDLWindow() const { return mWindow; }
 SDL_GLContext WindowClass::GetSDLContext() const { return mContext; }
 
 glm::ivec2 WindowClass::GetViewport() const { return mSize; }
+
+float WindowClass::GetAspectRatio()
+{
+	return static_cast<float>(mSize.x) / mSize.y;
+}

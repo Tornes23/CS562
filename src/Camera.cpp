@@ -21,6 +21,10 @@ void CameraClass::LoadCamera(const nlohmann::json& j)
 	mRightVector = glm::normalize(glm::cross(mView, mUp));
 	mSpeed = 2.0F;
 	mSensitivity = 0.01F;
+	//create frustum
+	mFrustum.mbFrusta = false;
+	mFrustum.ComputeFrustum(mFOV, mNear, mFar, mPos, mView, Window.GetAspectRatio());
+	mFrustum.CreateModel();
 }
 
 void CameraClass::Move()
@@ -56,9 +60,8 @@ void CameraClass::UpdateVectors(const glm::vec2& offset)
 {
 	glm::vec2 movement = offset * mSensitivity;
 	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * movement.y, mRightVector));
-	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * -movement.x, mUp));
+	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * -movement.x, glm::vec3(0,1,0)));
 
-	mUp = glm::vec3(glm::vec4(mUp, 0) * glm::rotate(glm::radians(5.0f) * movement.y, mRightVector));
 	mRightVector = glm::normalize(glm::cross(mView, mUp));
 
 }
@@ -85,3 +88,10 @@ void CameraClass::Rotate()
 glm::mat4x4 CameraClass::GetProjection() const { return mPerspective; }
 
 glm::mat4x4 CameraClass::GetCameraMat() const { return mCameraMat;}
+
+float CameraClass::GetFOV() const { return mFOV; }
+float CameraClass::GetNear() const { return mNear; }
+float CameraClass::GetFar() const { return mFar; }
+glm::vec3 CameraClass::GetPos() const { return mPos; }
+glm::vec3 CameraClass::GetView() const { return mView; }
+Frustum CameraClass::GetFrustum() const { return mFrustum; }
