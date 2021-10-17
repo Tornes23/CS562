@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <vector>
 #include <string>
 #include "json/json.hpp"
@@ -8,6 +9,7 @@
 #include "Model.h"
 #include "GBuffer.h"
 #include "FrameBuffer.h"
+#include "Frustum.h"
 
 class RenderManagerClass
 {
@@ -53,6 +55,7 @@ public:
 	
 	void Render();
 	void Display();
+	void DisplayShadowMaps();
 	void ClearBuffer();
 	void GeometryStage();
 	void LightingStage();
@@ -60,6 +63,7 @@ public:
 	void ShadowPass();
 	void LightingPass();
 	void PostProcessStage();
+	void CreateFrusta();
 
 	void RenderNode(Model& model, const tinygltf::Node& node);
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
@@ -75,21 +79,32 @@ public:
 
 private:
 	const std::string mShaderPath = "./data/shaders/";
-	const int MAX_LIGHTS = 3000;
-	std::vector<Light> mLights;
 	std::vector<ShaderProgram> mShaders;
 	GBuffer mGBuffer;
 	Model* mScreenTriangle;
-	Color mAmbient;
 	DisplayTex mDisplay;
 	FrameBuffer mFB;
-	FrameBuffer mBloomBuffer;
+	float mContrast;
+
+	const int MAX_LIGHTS = 3000;
+	bool mLightsAnimated;
 	float mLightRad;
 	float mLuminence;
-	float mContrast;
+	Color mAmbient;
+	std::map<Light::LightType, std::vector<Light>> mLights;
+
 	bool mBloom;
-	bool mLightsAnimated;
 	int mBlurSamples;
+	FrameBuffer mBloomBuffer;
+
+	int mFrustaCount;
+	int mPCFSamples;
+	float mLambda;
+	float mBlendDist;
+	float mShadowBias;
+	float mOccluderDist;
+	std::vector<Frustum> mFrusta;
+
 	RenderManagerClass() {}
 };
 

@@ -34,3 +34,9 @@ void Light::SetUniforms(const std::string& name, ShaderProgram* shader)
 	shader->SetColorUniform(name + ".Color", mColor);
 	shader->SetFloatUniform(name + ".Radius", mRadius);
 }
+
+glm::mat4x4 Light::GetLightMatrix()
+{
+	glm::vec3 up = glm::cross(glm::cross(glm::vec3(0,1,0), mDirection), mDirection);
+	return glm::lookAt(glm::vec3(0.0F), mDirection, up);
+}

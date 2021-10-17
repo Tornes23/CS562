@@ -23,6 +23,15 @@ void RenderManagerClass::Initialize()
 	mBlurSamples = 1;
 	mLightsAnimated = false;
 	mContrast = 1.0F - 0.99784F;
+
+	mFrustaCount = 3;
+	mPCFSamples = 5;
+	mLambda = 0.5F;
+	mBlendDist = 10.0F;
+	mShadowBias = 0.5F;
+	mOccluderDist = 0.5F;
+
+	CreateFrusta();
 }
 
 void RenderManagerClass::Update()
@@ -45,7 +54,7 @@ void RenderManagerClass::Update()
 	if (KeyDown(Key::Num6))
 		mDisplay = DisplayTex::Depth;
 
-	for (auto& it : mLights)
+	for (auto& it : mLights[Light::LightType::Point])
 		it.Update();
 		
 }
@@ -111,15 +120,15 @@ void RenderManagerClass::Edit()
 
 		ImGui::SliderInt("Light Count", &lights, 0, MAX_LIGHTS);
 
-		if (lights > mLights.size())
+		if (lights > mLights[Light::LightType::Point].size())
 		{
-			while (mLights.size() < lights)
+			while (mLights[Light::LightType::Point].size() < lights)
 				AddLight();
 		}
 		else
 		{
-			while (mLights.size() > lights)
-				mLights.pop_back();
+			while (mLights[Light::LightType::Point].size() > lights)
+				mLights[Light::LightType::Point].pop_back();
 
 		}
 
@@ -130,7 +139,7 @@ void RenderManagerClass::Edit()
 
 		if (rad)
 		{
-			for (auto& it : mLights)
+			for (auto& it : mLights[Light::LightType::Point])
 				it.mRadius = mLightRad;
 		}
 
@@ -154,7 +163,7 @@ void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 		mLightRad += light.mRadius;
 		light.mType = Light::LightType::Point;
 		//load mesh
-		mLights.push_back(light);
+		mLights[light.mType].push_back(light);
 	}
 
 	if (!mLights.empty())
@@ -171,7 +180,7 @@ void RenderManagerClass::LoadDirectional(const nlohmann::json& directional)
 	//load light
 	directional >> light;
 	light.mType = Light::LightType::Directional;
-	mLights.push_back(light);
+	mLights[light.mType].push_back(light);
 }
 
 void RenderManagerClass::LoadShaders(bool reload)
@@ -203,9 +212,10 @@ void RenderManagerClass::AddLight()
 	temp.mColor = GenRandomCol();
 	temp.mRadius = mLightRad;
 	temp.mModel = ResourceManager.GetResource<Model>("Sphere.gltf");
+	temp.mType = Light::LightType::Point;
 	temp.mInitialY = temp.mPos.y;
 
-	mLights.push_back(temp);
+	mLights[temp.mType].push_back(temp);
 }
 
 void RenderManagerClass::Render()
@@ -362,7 +372,36 @@ void RenderManagerClass::AmbientPass()
 
 void RenderManagerClass::ShadowPass()
 {
-	//render the shadow maps
+	//if more than one directional light loop here i guess
+	for (auto& it : mLights[Light::LightType::Directional])
+	{
+		//render the shadow maps
+		for (int i = 0; i < mFrustaCount; i++)
+		{
+			//bind the respective depth buffer
+			//the light view matrix
+			auto mat = it.GetLightMatrix();
+			//get the AABB from the fruta points in light space
+			std::vector<glm::vec4> aabb = mFrusta[i].GetAABB(mat);
+			//get the near and far
+			float near_val = 0.0F - mOccluderDist;
+			float far_val = 0.0F;
+			//crate the projection matrix using the aabb
+			auto proj = glm::ortho(aabb[0].x, aabb[1].x, aabb[0].y, aabb[3].y, near_val, far_val);
+			 
+			//bind the shader program
+
+			//actual render of the scene
+			for (auto& it2 : GOManager.GetObjs())
+			{
+				auto mvp = proj * mat * it.mM2W;
+				//set MVP mat
+
+
+
+			}
+		}
+	}
 
 }
 
@@ -389,7 +428,7 @@ void RenderManagerClass::LightingPass()
 	glDepthFunc(GL_GREATER);
 	glDepthMask(GL_FALSE);
 
-	for (auto& it : mLights)
+	for (auto& it : mLights[Light::LightType::Point])
 	{
 		//binding the screen triangle
 		if (it.mModel != nullptr)
@@ -432,6 +471,29 @@ void RenderManagerClass::PostProcessStage()
 			BlurTexture(horizontal);
 
 		horizontal = !horizontal;
+	}
+}
+
+void RenderManagerClass::CreateFrusta()
+{
+	float ratio = Window.GetAspectRatio();
+	float fov = Camera.GetFOV();
+	float near = Camera.GetNear();
+	float far = Camera.GetFar();
+	glm::vec3 cam_pos = Camera.GetPos();
+	glm::vec3 view = Camera.GetView();
+	Frustum frusta;
+	float displacement = 0.0F;
+	for (int i = 0; i < mFrustaCount; i++)
+	{
+		float new_z = mLambda * (near * glm::pow((far / near), (i / mFrustaCount))) + 
+					  (1.0F - mLambda) * (near + (i / mFrustaCount) * (far - near));
+
+		frusta.mbFrusta = true;
+		frusta.ComputeFrustum(fov, near + displacement, new_z, cam_pos, view, ratio);
+		//maybe create the vao to render the subdivisions
+		mFrusta.push_back(frusta);
+		displacement = new_z;
 	}
 }
 
@@ -494,6 +556,11 @@ void RenderManagerClass::Display()
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
+}
+
+void RenderManagerClass::DisplayShadowMaps()
+{
+
 }
 
 void RenderManagerClass::ClearBuffer()

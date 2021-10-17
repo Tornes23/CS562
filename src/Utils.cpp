@@ -254,9 +254,9 @@ namespace Utils
             ImGui::End();
             return;
         }
-        bool render = RenderManager.GetRenderFrustum();
-        ImGui::Checkbox("Render Frustum", &render);
-        RenderManager.SetRenderFrustum(render);
+        //bool render = RenderManager.GetRenderFrustum();
+        //ImGui::Checkbox("Render Frustum", &render);
+        //RenderManager.SetRenderFrustum(render);
         ImGui::End();
     }
 }
