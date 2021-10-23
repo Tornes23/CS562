@@ -15,7 +15,6 @@ void GameObjectManager::LoadObjects(const nlohmann::json& objs)
 		//load mesh
 		mObjects.push_back(go);
 	}
-
 }
 
 void GameObjectManager::Update()

@@ -1,5 +1,7 @@
 #include <glm/gtx/transform.hpp>
+#include "RenderManager.h"
 #include "Frustum.h"
+
 void Frustum::ComputeFrustum(float fov, float near, float far, const glm::vec3& pos, const glm::vec3& view, float ratio)
 {
 	glm::vec3 centre_near = pos + (glm::normalize(view) * near);
@@ -23,7 +25,21 @@ void Frustum::ComputeFrustum(float fov, float near, float far, const glm::vec3& 
 	mPoints[6] = {far_width,   far_height, 1};
 	mPoints[7] = {-far_width,  far_height, 1};
 
-	
+}
+
+void Frustum::GenShadowMap(const glm::vec2& size)
+{
+	mShadowMap.Create(true, size);
+}
+
+void Frustum::BindShadowBuffer()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, mShadowMap.GetDepthBuffer());
+	//clearing the buffer
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	//front face removal
+	glCullFace(GL_FRONT);
 }
 
 std::vector<glm::vec4> Frustum::GetAABB(const glm::mat4x4& light)

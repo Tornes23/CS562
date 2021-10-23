@@ -36,18 +36,6 @@ void GBuffer::Create()
 	GLuint attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_NONE };
 	glDrawBuffers(5, attachments);
 
-	//// Attach the depth buffer
-	//glGenRenderbuffers(1, &mDepth);
-	//glBindRenderbuffer(GL_RENDERBUFFER, mDepth);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mSize.x, mSize.y);
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepth);
-	//
-	//// sanity check that everything went fine
-	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-	//	std::cerr << "Unable to generate framebuffer" << std::endl;
-	//	return;
-	//}
-
 	// unbind 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

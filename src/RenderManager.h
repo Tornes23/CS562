@@ -30,7 +30,8 @@ public:
 		Ambient,
 		Luminence,
 		Blur,
-		Regular
+		Regular,
+		DepthPass
 	};
 
 	enum DisplayTex
@@ -72,7 +73,8 @@ public:
 	void BlurTexture(bool horizontal = false, bool first_pass = false);
 	void BindGTextures();
 	ShaderProgram& GetShader(const RenderMode& mode);
-	GLuint GenTexture(const glm::ivec2& size, bool high_precision = false);
+	GLuint GenTexture(const glm::ivec2& size, bool high_precision = false, bool depth = false);
+	GLuint GenDepthTexture(const glm::ivec2& size);
 	Color GenRandomCol();
 	glm::vec3 GenRandomPos();
 	bool LightsAnimated() const;
@@ -97,6 +99,7 @@ private:
 	int mBlurSamples;
 	FrameBuffer mBloomBuffer;
 
+	glm::ivec2 mShadowResolution;
 	int mFrustaCount;
 	int mPCFSamples;
 	float mLambda;

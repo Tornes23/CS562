@@ -24,7 +24,6 @@ void CameraClass::LoadCamera(const nlohmann::json& j)
 	//create frustum
 	mFrustum.mbFrusta = false;
 	mFrustum.ComputeFrustum(mFOV, mNear, mFar, mPos, mView, Window.GetAspectRatio());
-	mFrustum.CreateModel();
 }
 
 void CameraClass::Move()

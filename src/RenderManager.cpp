@@ -13,8 +13,8 @@
 void RenderManagerClass::Initialize()
 {
 	mGBuffer.Create();
-	mFB.Create();
-	mBloomBuffer.Create();
+	mFB.Create(false, Window.GetViewport());
+	mBloomBuffer.Create(false, Window.GetViewport());
 	LoadShaders();
 	mAmbient = Color(0.02F);
 	mDisplay = DisplayTex::Standar;
@@ -24,6 +24,7 @@ void RenderManagerClass::Initialize()
 	mLightsAnimated = false;
 	mContrast = 1.0F - 0.99784F;
 
+	mShadowResolution = glm::ivec2(2048, 2048);
 	mFrustaCount = 3;
 	mPCFSamples = 5;
 	mLambda = 0.5F;
@@ -194,6 +195,7 @@ void RenderManagerClass::LoadShaders(bool reload)
 	mShaders.push_back(ShaderProgram("./data/shaders/Luminence.vert", "./data/shaders/Luminence.frag"));
 	mShaders.push_back(ShaderProgram("./data/shaders/Blur.vert", "./data/shaders/Blur.frag"));
 	mShaders.push_back(ShaderProgram("./data/shaders/Regular.vert", "./data/shaders/Regular.frag"));
+	mShaders.push_back(ShaderProgram("./data/shaders/Depth.vert", "./data/shaders/Depth.frag"));
 }
 
 void RenderManagerClass::FreeShaders()
@@ -368,19 +370,25 @@ void RenderManagerClass::AmbientPass()
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::ShadowPass()
 {
+	//bind the shader program
+	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::DepthPass)];
+	shader.Use();
+
 	//if more than one directional light loop here i guess
-	for (auto& it : mLights[Light::LightType::Directional])
+	for (auto& light : mLights[Light::LightType::Directional])
 	{
 		//render the shadow maps
 		for (int i = 0; i < mFrustaCount; i++)
 		{
 			//bind the respective depth buffer
+			mFrusta[i].BindShadowBuffer();
 			//the light view matrix
-			auto mat = it.GetLightMatrix();
+			auto mat = light.GetLightMatrix();
 			//get the AABB from the fruta points in light space
 			std::vector<glm::vec4> aabb = mFrusta[i].GetAABB(mat);
 			//get the near and far
@@ -388,21 +396,26 @@ void RenderManagerClass::ShadowPass()
 			float far_val = 0.0F;
 			//crate the projection matrix using the aabb
 			auto proj = glm::ortho(aabb[0].x, aabb[1].x, aabb[0].y, aabb[3].y, near_val, far_val);
-			 
-			//bind the shader program
 
 			//actual render of the scene
-			for (auto& it2 : GOManager.GetObjs())
+			for (auto& obj : GOManager.GetObjs())
 			{
-				auto mvp = proj * mat * it.mM2W;
+				obj.mModel->BindVAO();
+				auto mvp = proj * mat * light.mM2W;
 				//set MVP mat
+ 				shader.SetMatUniform("MVP", &mat[0][0]);
 
-
-
+				const tinygltf::Scene& scene = obj.mModel->GetGLTFModel().scenes[obj.mModel->GetGLTFModel().defaultScene];
+				for (size_t i = 0; i < scene.nodes.size(); i++)
+					RenderNode(*obj.mModel, obj.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
 			}
 		}
 	}
 
+	//back face removal
+	glCullFace(GL_BACK);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glUseProgram(0);
 }
 
 void RenderManagerClass::LightingPass()
@@ -488,9 +501,10 @@ void RenderManagerClass::CreateFrusta()
 	{
 		float new_z = mLambda * (near * glm::pow((far / near), (i / mFrustaCount))) + 
 					  (1.0F - mLambda) * (near + (i / mFrustaCount) * (far - near));
-
 		frusta.mbFrusta = true;
 		frusta.ComputeFrustum(fov, near + displacement, new_z, cam_pos, view, ratio);
+		int div = 1 << i;
+		frusta.GenShadowMap(mShadowResolution / div);
 		//maybe create the vao to render the subdivisions
 		mFrusta.push_back(frusta);
 		displacement = new_z;
@@ -625,8 +639,10 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
 
 ShaderProgram& RenderManagerClass::GetShader(const RenderMode& mode) { return mShaders[static_cast<size_t>(mode)]; }
 
-GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precision)
+GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precision, bool depth)
 {
+	if (depth) return GenDepthTexture(size);
+
 	auto precision = high_precision ? GL_RGBA16F : GL_RGBA;
 
 	GLuint handle;
@@ -639,6 +655,26 @@ GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precisio
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	return handle;
+}
+
+GLuint RenderManagerClass::GenDepthTexture(const glm::ivec2& size)
+{
+	GLuint handle;
+	// Create to render texture (use shadowmap resolution)
+	glGenTextures(1, &handle);
+	glBindTexture(GL_TEXTURE_2D, handle);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, size.x, size.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+
+	// Filtering 
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	// Expansion
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 	return handle;
 }
