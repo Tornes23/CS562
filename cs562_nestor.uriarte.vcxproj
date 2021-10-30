@@ -188,6 +188,7 @@
   <ItemGroup>
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Color.h" />
+    <ClInclude Include="src\Decal.h" />
     <ClInclude Include="src\Editor.h" />
     <ClInclude Include="src\FrameBuffer.h" />
     <ClInclude Include="src\Framework.h" />

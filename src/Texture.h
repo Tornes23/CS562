@@ -15,6 +15,7 @@ struct Texture
     };
 
     Texture(const tinygltf::Image* tex);
+    Texture(const std::string& file);
     Texture();
     ~Texture();
 

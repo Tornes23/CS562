@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <map>
+#include "tinyglft/stb_image.h"
 #include "Resource.h"
 #include "Utils.h"
 
@@ -27,8 +28,11 @@ public:
 	void Update();
 	void LoadFolder(const std::filesystem::path& path);
 	void LoadModel(const std::string& file);
+	void LoadTexture(const std::string& file);
 	void GetTextures(tinygltf::Model* model);
 	void LoadMaterials(tinygltf::Model* model);
+	#undef LoadImage
+	stbi_uc* LoadImage(const std::string& file, int* width, int* height, int* channels, int desired_channels);
 
 	template<typename T>
 	T* GetResource(const std::string& name);

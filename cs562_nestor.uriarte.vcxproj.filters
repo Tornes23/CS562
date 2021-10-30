@@ -76,6 +76,9 @@
     <Filter Include="Source Files\GFX\FrameBuffer">
       <UniqueIdentifier>{035900e3-a70c-425e-a163-8efea8a1660d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GFX\Decal">
+      <UniqueIdentifier>{e67b728d-4e88-4e77-ae10-16ce7cc6bd51}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -247,6 +250,9 @@
     </ClInclude>
     <ClInclude Include="src\FrameBuffer.h">
       <Filter>Source Files\GFX\FrameBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Decal.h">
+      <Filter>Source Files\GFX\Decal</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

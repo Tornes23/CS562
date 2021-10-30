@@ -20,8 +20,18 @@ std::string ResourceManagerClass::GetExtension(const std::filesystem::path& path
 
 void ResourceManagerClass::Load(bool reload)
 {
-	if(!reload)
+	if (!reload)
+	{
 		LoadFolder("./data/gltf/");
+		LoadFolder("./data/decals/");
+	}
+	//else
+	//{
+	//	//free existing resources
+	//	//load them again
+	//
+	//}
+
 }
 
 void ResourceManagerClass::LoadScene(const std::string& scene)
@@ -53,6 +63,9 @@ void ResourceManagerClass::LoadFolder(const std::filesystem::path& path)
 
 			if (ext == "GLTF")
 				LoadModel(it.path().string());
+
+			if (ext == "PNG")
+				LoadTexture(it.path().string());
 
 		}
 	}
@@ -87,6 +100,32 @@ void ResourceManagerClass::LoadModel(const std::string& file)
 	res->SetName(filename);
 	mResources[Utils::GetTypeName<Model>()][filename] = res; //put in the map
 
+}
+
+void ResourceManagerClass::LoadTexture(const std::string& file)
+{
+	std::string filename = file.substr(file.find_last_of("/") + 1, file.length());
+
+	if (filename.find("\\") != filename.npos)
+		filename = filename.substr(filename.find_last_of("\\") + 1, filename.length());
+
+	std::shared_ptr<TResource<Texture>> res = std::make_shared<TResource<Texture>>();
+	res->SetResource(new Texture(file));
+	res->SetName(filename);
+	mResources[Utils::GetTypeName<Texture>()][filename] = res; //put in the map
+}
+
+#undef LoadImage
+stbi_uc* ResourceManagerClass::LoadImage(const std::string& file, int* width, int* height, int* channels, int desired_channels)
+{
+	stbi_uc* pixels = stbi_load(file.data(), width, height, channels, desired_channels);
+
+	if (pixels == nullptr) {
+		std::cerr << "Unable to load Texture : " << file << "\n";
+		return nullptr;
+	}
+
+	return pixels;
 }
 
 void ResourceManagerClass::GetTextures(tinygltf::Model* model)
