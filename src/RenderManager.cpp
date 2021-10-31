@@ -246,6 +246,9 @@ void RenderManagerClass::GeometryStage()
 		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
 		for (size_t i = 0; i < scene.nodes.size(); i++)
 			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+
+		//unbinding the VAOs
+		glBindVertexArray(0);
 	}
 
 	glUseProgram(0);
@@ -253,12 +256,54 @@ void RenderManagerClass::GeometryStage()
 
 void RenderManagerClass::DecalStage()
 {
+	glm::vec2 size = Window.GetViewport();
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBuffer.mHandle);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFB.GetRenderBuffer());
+	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
+		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	glBindFramebuffer(GL_FRAMEBUFFER, mFB.GetRenderBuffer());
+
+	//get shader program
+	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Lighting)];
+	shader.Use();
+	BindGTextures();
+	//Diabling the back face culling
+	glCullFace(GL_FRONT);
+	//SET BLENDING TO ADDITIVE
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+	//disabling writing ono the depth buffer
+	glDepthFunc(GL_GREATER);
+	glDepthMask(GL_FALSE);
+
 	//get the gbuffer diffuse texture as input
 	//similar to light, render decal volumes
 	for (auto& decal : mDecals)
 	{
+		//binding the screen triangle
+		decal.mModel->BindVAO();
+		//set uniforms in shader
+		glm::mat4x4 mv = Camera.GetCameraMat() * decal.GenM2W();
+		glm::mat4x4 mvp = Camera.GetProjection() * mv;
+		shader.SetMatUniform("MV", &mv[0][0]);
+		shader.SetMatUniform("MVP", &mvp[0][0]);
+		shader.SetVec2Uniform("Size", Window.GetViewport());
 
+		//rendering the screen triangle
+		const tinygltf::Scene& scene = decal.mModel->GetGLTFModel().scenes[decal.mModel->GetGLTFModel().defaultScene];
+		for (size_t i = 0; i < scene.nodes.size(); i++)
+			RenderNode(*decal.mModel, decal.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+
+		//unbinding the VAOs
+		glBindVertexArray(0);
 	}
+
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+	glDepthFunc(GL_LESS);
+	glCullFace(GL_BACK);
+	glUseProgram(0);
 }
 
 void RenderManagerClass::LightingStage()
