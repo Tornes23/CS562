@@ -31,11 +31,15 @@ Texture::Texture(const tinygltf::Image* tex)
 
     glTexImage2D(GL_TEXTURE_2D, 0, format, tex->width, tex->height, 0,
         format, type, &tex->image.at(0));
+
+    mName = tex->name;
 }
 
 #undef LoadImage
 Texture::Texture(const std::string& file)
 {
+    glGenTextures(1, &mHandle);
+
     int width;
     int height;
     int channels;
@@ -51,6 +55,9 @@ Texture::Texture(const std::string& file)
 
         stbi_image_free(pixels);
     }
+
+    std::string filename = file.substr(file.find_last_of("/") + 1, file.length());
+    mName = filename;
 }
 Texture::Texture() {}
 Texture::~Texture() { glDeleteTextures(1, &mHandle); }

@@ -8,6 +8,7 @@
 #include "Model.h"
 #include "GBuffer.h"
 #include "FrameBuffer.h"
+#include "Decal.h"
 
 class RenderManagerClass
 {
@@ -46,6 +47,7 @@ public:
 	
 	void Edit();
 	void LoadLights(const nlohmann::json& lights);
+	void LoadDecals(const nlohmann::json& decals);
 	void LoadShaders(bool reload = false);
 	void FreeShaders();
 	void AddLight();
@@ -54,6 +56,7 @@ public:
 	void Display();
 	void ClearBuffer();
 	void GeometryStage();
+	void DecalStage();
 	void LightingStage();
 	void AmbientStage();
 	void PostProcessStage();
@@ -74,6 +77,7 @@ private:
 	const std::string mShaderPath = "./data/shaders/";
 	const int MAX_LIGHTS = 3000;
 	std::vector<Light> mLights;
+	std::vector<Decal> mDecals;
 	std::vector<ShaderProgram> mShaders;
 	GBuffer mGBuffer;
 	Model* mScreenTriangle;

@@ -23,5 +23,6 @@ struct Texture
     void Bind(unsigned index) const;
 
     GLuint          mHandle;
+    std::string mName;
 };
 

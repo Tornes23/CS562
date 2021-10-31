@@ -157,7 +157,23 @@ void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 	}
 
 	mLightRad /= mLights.size();
+
+
 	mScreenTriangle = ResourceManager.GetResource<Model>("ScreenTriangle.gltf");
+}
+
+void RenderManagerClass::LoadDecals(const nlohmann::json& decals)
+{
+	mDecals.clear();
+	for (auto it = decals.begin(); it != decals.end(); it++)
+	{
+		Decal decal;
+		nlohmann::json object = *it;
+		//load decal
+		object >> decal;
+		//load mesh
+		mDecals.push_back(decal);
+	}
 }
 
 void RenderManagerClass::LoadShaders(bool reload)
@@ -196,15 +212,13 @@ void RenderManagerClass::AddLight()
 
 void RenderManagerClass::Render()
 {
-	if(mDisplay == DisplayTex::Standar)
-	{
-		GeometryStage();
-		AmbientStage();
-		LightingStage();
+	GeometryStage();
+	DecalStage();
+	AmbientStage();
+	LightingStage();
 
-		if(mBloom)
-			PostProcessStage();
-	}
+	if(mBloom)
+		PostProcessStage();
 
 	Display();
 }
@@ -235,6 +249,16 @@ void RenderManagerClass::GeometryStage()
 	}
 
 	glUseProgram(0);
+}
+
+void RenderManagerClass::DecalStage()
+{
+	//get the gbuffer diffuse texture as input
+	//similar to light, render decal volumes
+	for (auto& decal : mDecals)
+	{
+
+	}
 }
 
 void RenderManagerClass::LightingStage()

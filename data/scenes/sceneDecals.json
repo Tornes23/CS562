@@ -249,8 +249,7 @@
                 "y": 10,
                 "z": 5
             }
-        }
-		,
+        },
         {
             "diffuse": "data/decals/decal_skull_d.png",
             "normal": "data/decals/decal_skull_n.png",
