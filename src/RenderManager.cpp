@@ -305,14 +305,11 @@ void RenderManagerClass::DecalStage()
 	ShaderProgram& shader = mShaders[RenderMode::Decals];
 	shader.Use();
 	mGBuffer.BindDiffuseTexture();
-	//Diabling the back face culling
-	glCullFace(GL_FRONT);
 	//SET BLENDING TO ADDITIVE
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
-	//disabling writing ono the depth buffer
-	glDepthFunc(GL_GREATER);
+
 	glDepthMask(GL_FALSE);
 
 	for (auto& decal : mDecals)
@@ -320,10 +317,10 @@ void RenderManagerClass::DecalStage()
 		//binding the screen triangle
 		decal.mModel->BindVAO();
 		//set uniforms in shader
-		glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat();
+		glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat() * decal.mM2W;
 		shader.SetMatUniform("MVP", &mvp[0][0]);
 		shader.SetVec2Uniform("Size", Window.GetViewport());
-
+		decal.SetUniforms();
 		//rendering the screen triangle
 		const tinygltf::Scene& scene = decal.mModel->GetGLTFModel().scenes[decal.mModel->GetGLTFModel().defaultScene];
 		for (size_t i = 0; i < scene.nodes.size(); i++)
@@ -335,8 +332,6 @@ void RenderManagerClass::DecalStage()
 
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
-	glDepthFunc(GL_LESS);
-	glCullFace(GL_BACK);
 	glUseProgram(0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

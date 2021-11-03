@@ -163,7 +163,7 @@
       <Filter>Source Files\GFX\FrameBuffer</Filter>
     </ClCompile>
     <ClCompile Include="src\Decal.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\GFX\Decal</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
