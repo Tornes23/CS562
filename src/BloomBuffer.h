@@ -1,7 +1,7 @@
 #pragma once
 #include "gl/glew.h"
 
-class FrameBuffer
+class BloomBuffer
 {
 public:
 
@@ -9,7 +9,7 @@ public:
 	void GenRenderBuffer();
 
 	const GLuint GetRenderBuffer() const;
-	const GLuint GetRenderTexture() const;
+	const GLuint GetLuminenceTexture(bool first = true) const;
 
 	void UseRenderBuffer();
 	void BindDrawBuffer();
@@ -17,6 +17,7 @@ public:
 
 private:
 
-	GLuint mRenderTexture;
 	GLuint mRenderBuffer;
+	GLuint mLuminenceTextures[2];
+
 };

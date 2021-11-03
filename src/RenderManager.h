@@ -8,6 +8,8 @@
 #include "Model.h"
 #include "GBuffer.h"
 #include "FrameBuffer.h"
+#include "BloomBuffer.h"
+#include "DecalBuffer.h"
 #include "Decal.h"
 
 class RenderManagerClass
@@ -41,7 +43,8 @@ public:
 		Position,
 		Specular,
 		Depth,
-		LuminenceMap
+		LuminenceMap,
+		Blurred
 	};
 
 	enum DecalMode
@@ -69,6 +72,7 @@ public:
 	void LightingStage();
 	void AmbientStage();
 	void PostProcessStage();
+	//void BlendTextures();
 
 	void RenderNode(Model& model, const tinygltf::Node& node);
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
@@ -92,9 +96,12 @@ private:
 	Color mAmbient;
 	DisplayTex mDisplay;
 	DecalMode mDecalMode;
+
 	FrameBuffer mFB;//Frame Buffer	
-	FrameBuffer mDB;//Decal Buffer
-	FrameBuffer mBB;//Bloom buffer
+	FrameBuffer mDisplayBuffer;//Frame Buffer	
+	BloomBuffer mBB;//Bloom buffer
+	DecalBuffer mDB;//Decal Buffer
+
 	float mLightRad;
 	float mLuminence;
 	float mContrast;

@@ -14,6 +14,7 @@ void RenderManagerClass::Initialize()
 {
 	mGBuffer.Create();
 	mFB.Create();
+	mDisplayBuffer.Create();
 	mBB.Create();
 	mDB.Create();
 	LoadShaders();
@@ -48,6 +49,8 @@ void RenderManagerClass::Update()
 		mDisplay = DisplayTex::Depth;
 	if (KeyDown(Key::Num7))
 		mDisplay = DisplayTex::LuminenceMap;
+	if (KeyDown(Key::Num8))
+		mDisplay = DisplayTex::Blurred;
 
 	for (auto& it : mLights)
 		it.Update();
@@ -78,9 +81,9 @@ void RenderManagerClass::Edit()
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 	
-	const char* texture_options[7] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth", "Luminence"};
+	const char* texture_options[8] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth", "Luminence", "Blurred"};
 	
-	if (ImGui::Combo("Display Texture", &tex, texture_options, 7, 8))
+	if (ImGui::Combo("Display Texture", &tex, texture_options, 8, 9))
 	{
 		switch (tex)
 		{
@@ -104,6 +107,9 @@ void RenderManagerClass::Edit()
 			break;
 		case 6:
 			mDisplay = DisplayTex::LuminenceMap;
+			break;
+		case 7:
+			mDisplay = DisplayTex::Blurred;
 			break;
 		}
 	}
@@ -294,56 +300,56 @@ void RenderManagerClass::GeometryStage()
 
 void RenderManagerClass::DecalStage()
 {
-	glm::vec2 size = Window.GetViewport();
-	mGBuffer.BindReadBuffer();
-	mDB.BindDrawBuffer();
-	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
-		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-	mDB.UseRenderBuffer();
-
-	//get shader program
-	ShaderProgram& shader = mShaders[RenderMode::Decals];
-	shader.Use();
-	mGBuffer.BindDiffuseTexture();
-	//SET BLENDING TO ADDITIVE
-	glEnable(GL_BLEND);
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_ONE, GL_ONE);
-
-	glDepthMask(GL_FALSE);
-
-	for (auto& decal : mDecals)
-	{
-		//binding the screen triangle
-		decal.mModel->BindVAO();
-		//set uniforms in shader
-		glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat() * decal.mM2W;
-		shader.SetMatUniform("MVP", &mvp[0][0]);
-		shader.SetVec2Uniform("Size", Window.GetViewport());
-		decal.SetUniforms();
-		//rendering the screen triangle
-		const tinygltf::Scene& scene = decal.mModel->GetGLTFModel().scenes[decal.mModel->GetGLTFModel().defaultScene];
-		for (size_t i = 0; i < scene.nodes.size(); i++)
-			RenderNode(*decal.mModel, decal.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
-
-		//unbinding the VAOs
-		glBindVertexArray(0);
-	}
-
-	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
-	glUseProgram(0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glm::vec2 size = Window.GetViewport();
+	//mGBuffer.BindReadBuffer();
+	//mDB.BindDrawBuffer();
+	//glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
+	//	static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	//mDB.UseRenderBuffer();
+	//
+	////get shader program
+	//ShaderProgram& shader = mShaders[RenderMode::Decals];
+	//shader.Use();
+	//mGBuffer.BindDiffuseTexture();
+	////SET BLENDING TO ADDITIVE
+	//glEnable(GL_BLEND);
+	//glBlendEquation(GL_FUNC_ADD);
+	//glBlendFunc(GL_ONE, GL_ONE);
+	//
+	//glDepthMask(GL_FALSE);
+	//
+	//for (auto& decal : mDecals)
+	//{
+	//	//binding the screen triangle
+	//	decal.mModel->BindVAO();
+	//	//set uniforms in shader
+	//	glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat() * decal.mM2W;
+	//	shader.SetMatUniform("MVP", &mvp[0][0]);
+	//	shader.SetVec2Uniform("Size", Window.GetViewport());
+	//	decal.SetUniforms();
+	//	//rendering the screen triangle
+	//	const tinygltf::Scene& scene = decal.mModel->GetGLTFModel().scenes[decal.mModel->GetGLTFModel().defaultScene];
+	//	for (size_t i = 0; i < scene.nodes.size(); i++)
+	//		RenderNode(*decal.mModel, decal.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+	//
+	//	//unbinding the VAOs
+	//	glBindVertexArray(0);
+	//}
+	//
+	//glDepthMask(GL_TRUE);
+	//glDisable(GL_BLEND);
+	//glUseProgram(0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::LightingStage()
 {
 	glm::vec2 size = Window.GetViewport();
 	mGBuffer.BindReadBuffer();
-	mFB.BindDrawBuffer();
+	mDisplayBuffer.BindDrawBuffer();
 	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0, 
 					static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST );
-	mFB.UseRenderBuffer();
+	mDisplayBuffer.UseRenderBuffer();
 
 	//get shader program
 	ShaderProgram& shader = mShaders[RenderMode::Lighting];
@@ -389,6 +395,8 @@ void RenderManagerClass::LightingStage()
 
 void RenderManagerClass::ExtractLuminence()
 {
+	mFB.UseRenderBuffer();
+	ClearBuffer();
 	//get shader program
 	ShaderProgram& shader = GetShader(RenderMode::Luminence);
 	shader.Use();
@@ -400,7 +408,7 @@ void RenderManagerClass::ExtractLuminence()
 	shader.SetFloatUniform("LumThreshold", mLuminence);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
+	glBindTexture(GL_TEXTURE_2D, mDisplayBuffer.GetRenderTexture());
 	glUniform1i(0, 0);
 
 	//rendering the screen triangle
@@ -411,6 +419,7 @@ void RenderManagerClass::ExtractLuminence()
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
@@ -427,9 +436,9 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 
 	glActiveTexture(GL_TEXTURE0);
 	if(first_pass)
-		glBindTexture(GL_TEXTURE_2D, mFB.GetLuminenceTexture());
+		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
 	else
-		glBindTexture(GL_TEXTURE_2D, mBB.GetTexture(horizontal));
+		glBindTexture(GL_TEXTURE_2D, mBB.GetLuminenceTexture(!horizontal));
 
 	glUniform1i(0, 0);
 
@@ -441,11 +450,12 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
+
 }
 
 void RenderManagerClass::AmbientStage()
 {
-	mFB.UseRenderBuffer();
+	mDisplayBuffer.UseRenderBuffer();
 	ClearBuffer();
 
 	//get shader program
@@ -470,6 +480,7 @@ void RenderManagerClass::AmbientStage()
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::PostProcessStage()
@@ -488,6 +499,11 @@ void RenderManagerClass::PostProcessStage()
 
 		horizontal = !horizontal;
 	}
+
+	//blend blurred with standar
+	//BlendBlur();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::Display()
@@ -523,10 +539,13 @@ void RenderManagerClass::Display()
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
 		break;
 	case DisplayTex::LuminenceMap:
-		glBindTexture(GL_TEXTURE_2D, mFB.GetLuminenceTexture());
+		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
+		break;
+	case DisplayTex::Blurred:
+		glBindTexture(GL_TEXTURE_2D, mBB.GetLuminenceTexture());
 		break;
 	default:
-		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
+		glBindTexture(GL_TEXTURE_2D, mDisplayBuffer.GetRenderTexture());
 		break;
 	}
 	glUniform1i(0, 0);
@@ -534,8 +553,11 @@ void RenderManagerClass::Display()
 	if (mBloom)
 	{
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, mBB.GetRenderTexture());
+		glBindTexture(GL_TEXTURE_2D, mBB.GetLuminenceTexture());
 		glUniform1i(1, 1);
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_2D, mBB.GetLuminenceTexture(false));
+		glUniform1i(2, 2);
 	}
 	shader.SetBoolUniform("Bloom", mBloom);
 	bool depth = mDisplay == DisplayTex::Depth ? true : false;

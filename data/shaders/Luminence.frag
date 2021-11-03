@@ -1,7 +1,7 @@
 #version 430
 
 //output fragmet color
-layout(location = 1)out vec4 Luminence;
+layout(location = 0)out vec4 Luminence;
 //the used textures
 layout(location = 0)uniform sampler2D textureData;
 uniform float LumThreshold;
