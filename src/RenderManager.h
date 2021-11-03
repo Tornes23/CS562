@@ -29,6 +29,7 @@ public:
 		Ambient,
 		Luminence,
 		Blur,
+		Decals,
 		Regular
 	};
 
@@ -39,7 +40,15 @@ public:
 		Normal,
 		Position,
 		Specular,
-		Depth
+		Depth,
+		LuminenceMap
+	};
+
+	enum DecalMode
+	{
+		Volume,
+		Projected,
+		Result,
 	};
 
 	void Initialize();
@@ -78,11 +87,12 @@ private:
 	const int MAX_LIGHTS = 3000;
 	std::vector<Light> mLights;
 	std::vector<Decal> mDecals;
-	std::vector<ShaderProgram> mShaders;
+	std::map<RenderMode, ShaderProgram> mShaders;
 	GBuffer mGBuffer;
 	Model* mScreenTriangle;
 	Color mAmbient;
 	DisplayTex mDisplay;
+	DecalMode mDecalMode;
 	FrameBuffer mFB;
 	FrameBuffer mBloomBuffer;
 	float mLightRad;

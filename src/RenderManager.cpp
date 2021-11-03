@@ -18,6 +18,7 @@ void RenderManagerClass::Initialize()
 	LoadShaders();
 	mAmbient = Color(0.02F);
 	mDisplay = DisplayTex::Standar;
+	mDecalMode = DecalMode::Result;
 	mBloom = true;
 	mLuminence = 1.0F;
 	mBlurSamples = 1;
@@ -74,9 +75,9 @@ void RenderManagerClass::Edit()
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 	
-	const char* options[6] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth"};
+	const char* texture_options[7] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth", "Luminence"};
 	
-	if (ImGui::Combo("Display Texture", &tex, options, 6, 7))
+	if (ImGui::Combo("Display Texture", &tex, texture_options, 7, 8))
 	{
 		switch (tex)
 		{
@@ -97,6 +98,9 @@ void RenderManagerClass::Edit()
 			break;
 		case 5:
 			mDisplay = DisplayTex::Depth;
+			break;
+		case 6:
+			mDisplay = DisplayTex::LuminenceMap;
 			break;
 		}
 	}
@@ -137,6 +141,33 @@ void RenderManagerClass::Edit()
 		ImGui::TreePop();
 	}
 
+	if (ImGui::TreeNode("Decals"))
+	{
+		//code to change the output
+		int dec = static_cast<int>(mDecalMode);
+
+		const char* decal_options[3] = { "Volume", "Projected", "Result" };
+
+		if (ImGui::Combo("Decal Stage", &dec, decal_options, 3, 4))
+		{
+			switch (dec)
+			{
+			case 0:
+				mDecalMode = DecalMode::Volume;
+				break;
+			case 1:
+				mDecalMode = DecalMode::Projected;
+				break;
+			case 2:
+				mDecalMode = DecalMode::Result;
+				break;
+			}
+		}
+
+		ImGui::TreePop();
+	}
+
+
 	ImGui::End();
 }
 
@@ -171,6 +202,8 @@ void RenderManagerClass::LoadDecals(const nlohmann::json& decals)
 		nlohmann::json object = *it;
 		//load decal
 		object >> decal;
+
+		decal.GenM2W();
 		//load mesh
 		mDecals.push_back(decal);
 	}
@@ -181,19 +214,20 @@ void RenderManagerClass::LoadShaders(bool reload)
 	if (reload)
 		FreeShaders();
 
-	mShaders.push_back(ShaderProgram("./data/shaders/GeometryStg.vert", "./data/shaders/GeometryStg.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/LightingStg.vert", "./data/shaders/LightingStg.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/Ambient.vert", "./data/shaders/Ambient.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/Luminence.vert", "./data/shaders/Luminence.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/Blur.vert", "./data/shaders/Blur.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/Regular.vert", "./data/shaders/Regular.frag"));
+	mShaders[RenderMode::Geometry] = ShaderProgram("./data/shaders/GeometryStg.vert", "./data/shaders/GeometryStg.frag");
+	mShaders[RenderMode::Lighting] = ShaderProgram("./data/shaders/LightingStg.vert", "./data/shaders/LightingStg.frag");
+	mShaders[RenderMode::Ambient] = ShaderProgram("./data/shaders/Ambient.vert", "./data/shaders/Ambient.frag");
+	mShaders[RenderMode::Luminence] = ShaderProgram("./data/shaders/Luminence.vert", "./data/shaders/Luminence.frag");
+	mShaders[RenderMode::Blur] = ShaderProgram("./data/shaders/Blur.vert", "./data/shaders/Blur.frag");
+	mShaders[RenderMode::Decals] = ShaderProgram("./data/shaders/Decal.vert", "./data/shaders/Decal.frag");
+	mShaders[RenderMode::Regular] = ShaderProgram("./data/shaders/Regular.vert", "./data/shaders/Regular.frag");
 }
 
 void RenderManagerClass::FreeShaders()
 {
 	//for each shader destroy
 	for (auto& it : mShaders)
-		it.Free();
+		it.second.Free();
 
 	mShaders.clear();
 }
@@ -230,7 +264,7 @@ void RenderManagerClass::GeometryStage()
 	mGBuffer.Bind();
 	ClearBuffer();
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Geometry)];
+	ShaderProgram& shader = mShaders[RenderMode::Geometry];
 	shader.Use();
 	for (auto& it : objs)
 	{
@@ -264,7 +298,7 @@ void RenderManagerClass::DecalStage()
 	glBindFramebuffer(GL_FRAMEBUFFER, mFB.GetRenderBuffer());
 
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Lighting)];
+	ShaderProgram& shader = GetShader(RenderMode::Decals);
 	shader.Use();
 	BindGTextures();
 	//Diabling the back face culling
@@ -284,7 +318,7 @@ void RenderManagerClass::DecalStage()
 		//binding the screen triangle
 		decal.mModel->BindVAO();
 		//set uniforms in shader
-		glm::mat4x4 mv = Camera.GetCameraMat() * decal.GenM2W();
+		glm::mat4x4 mv = Camera.GetCameraMat() * decal.mM2W;
 		glm::mat4x4 mvp = Camera.GetProjection() * mv;
 		shader.SetMatUniform("MV", &mv[0][0]);
 		shader.SetMatUniform("MVP", &mvp[0][0]);
@@ -304,6 +338,8 @@ void RenderManagerClass::DecalStage()
 	glDepthFunc(GL_LESS);
 	glCullFace(GL_BACK);
 	glUseProgram(0);
+	//Project Volumes
+	//
 }
 
 void RenderManagerClass::LightingStage()
@@ -316,7 +352,7 @@ void RenderManagerClass::LightingStage()
 	glBindFramebuffer(GL_FRAMEBUFFER, mFB.GetRenderBuffer());
 
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Lighting)];
+	ShaderProgram& shader = mShaders[RenderMode::Lighting];
 	shader.Use();
 	BindGTextures();
 	//Diabling the back face culling
@@ -359,7 +395,7 @@ void RenderManagerClass::LightingStage()
 void RenderManagerClass::ExtractLuminence()
 {
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Luminence)];
+	ShaderProgram& shader = GetShader(RenderMode::Luminence);
 	shader.Use();
 	//binding the screen triangle
 	mScreenTriangle->BindVAO();
@@ -385,7 +421,7 @@ void RenderManagerClass::ExtractLuminence()
 void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 {
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Blur)];
+	ShaderProgram& shader = mShaders[RenderMode::Blur];
 	shader.Use();
 	//binding the screen triangle
 	mScreenTriangle->BindVAO();
@@ -436,7 +472,7 @@ void RenderManagerClass::AmbientStage()
 	ClearBuffer();
 
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Ambient)];
+	ShaderProgram& shader = GetShader(RenderMode::Ambient);
 	shader.Use();
 	//binding the screen triangle
 	mScreenTriangle->BindVAO();
@@ -482,7 +518,7 @@ void RenderManagerClass::Display()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	ClearBuffer();
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Regular)];
+	ShaderProgram& shader = mShaders[RenderMode::Regular];
 	shader.Use();
 
 	//binding the screen triangle
@@ -508,6 +544,9 @@ void RenderManagerClass::Display()
 		break;
 	case DisplayTex::Depth:
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
+		break;
+	case DisplayTex::LuminenceMap:
+		glBindTexture(GL_TEXTURE_2D, mFB.GetLuminenceTexture());
 		break;
 	default:
 		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
@@ -598,7 +637,7 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
 	}
 }
 
-ShaderProgram& RenderManagerClass::GetShader(const RenderMode& mode) { return mShaders[static_cast<size_t>(mode)]; }
+ShaderProgram& RenderManagerClass::GetShader(const RenderMode& mode) { return mShaders[mode]; }
 
 GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precision)
 {

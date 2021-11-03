@@ -162,6 +162,9 @@
     <ClCompile Include="src\FrameBuffer.cpp">
       <Filter>Source Files\GFX\FrameBuffer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Decal.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Utils.h">
