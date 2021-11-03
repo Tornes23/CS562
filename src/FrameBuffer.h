@@ -14,6 +14,7 @@ public:
 	const GLuint GetTexture(bool first) const;
 
 	void UseRenderBuffer();
+	void BindDrawBuffer();
 
 	void ClearColorBuffer();
 	void ClearDepthBuffer();

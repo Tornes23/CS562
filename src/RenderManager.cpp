@@ -14,7 +14,8 @@ void RenderManagerClass::Initialize()
 {
 	mGBuffer.Create();
 	mFB.Create();
-	mBloomBuffer.Create();
+	mBB.Create();
+	mDB.Create();
 	LoadShaders();
 	mAmbient = Color(0.02F);
 	mDisplay = DisplayTex::Standar;
@@ -45,6 +46,8 @@ void RenderManagerClass::Update()
 		mDisplay = DisplayTex::Specular;
 	if (KeyDown(Key::Num6))
 		mDisplay = DisplayTex::Depth;
+	if (KeyDown(Key::Num7))
+		mDisplay = DisplayTex::LuminenceMap;
 
 	for (auto& it : mLights)
 		it.Update();
@@ -286,21 +289,22 @@ void RenderManagerClass::GeometryStage()
 	}
 
 	glUseProgram(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::DecalStage()
 {
 	glm::vec2 size = Window.GetViewport();
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBuffer.mHandle);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFB.GetRenderBuffer());
+	mGBuffer.BindReadBuffer();
+	mDB.BindDrawBuffer();
 	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
 		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-	glBindFramebuffer(GL_FRAMEBUFFER, mFB.GetRenderBuffer());
+	mDB.UseRenderBuffer();
 
 	//get shader program
-	ShaderProgram& shader = GetShader(RenderMode::Decals);
+	ShaderProgram& shader = mShaders[RenderMode::Decals];
 	shader.Use();
-	BindGTextures();
+	mGBuffer.BindDiffuseTexture();
 	//Diabling the back face culling
 	glCullFace(GL_FRONT);
 	//SET BLENDING TO ADDITIVE
@@ -311,16 +315,12 @@ void RenderManagerClass::DecalStage()
 	glDepthFunc(GL_GREATER);
 	glDepthMask(GL_FALSE);
 
-	//get the gbuffer diffuse texture as input
-	//similar to light, render decal volumes
 	for (auto& decal : mDecals)
 	{
 		//binding the screen triangle
 		decal.mModel->BindVAO();
 		//set uniforms in shader
-		glm::mat4x4 mv = Camera.GetCameraMat() * decal.mM2W;
-		glm::mat4x4 mvp = Camera.GetProjection() * mv;
-		shader.SetMatUniform("MV", &mv[0][0]);
+		glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat();
 		shader.SetMatUniform("MVP", &mvp[0][0]);
 		shader.SetVec2Uniform("Size", Window.GetViewport());
 
@@ -338,23 +338,22 @@ void RenderManagerClass::DecalStage()
 	glDepthFunc(GL_LESS);
 	glCullFace(GL_BACK);
 	glUseProgram(0);
-	//Project Volumes
-	//
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::LightingStage()
 {
 	glm::vec2 size = Window.GetViewport();
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBuffer.mHandle);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFB.GetRenderBuffer());
+	mGBuffer.BindReadBuffer();
+	mFB.BindDrawBuffer();
 	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0, 
 					static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST );
-	glBindFramebuffer(GL_FRAMEBUFFER, mFB.GetRenderBuffer());
+	mFB.UseRenderBuffer();
 
 	//get shader program
 	ShaderProgram& shader = mShaders[RenderMode::Lighting];
 	shader.Use();
-	BindGTextures();
+	mGBuffer.BindTextures();
 	//Diabling the back face culling
 	glCullFace(GL_FRONT);
 	//SET BLENDING TO ADDITIVE
@@ -365,22 +364,22 @@ void RenderManagerClass::LightingStage()
 	glDepthFunc(GL_GREATER);
 	glDepthMask(GL_FALSE);
 
-	for (auto& it : mLights)
+	for (auto& light : mLights)
 	{
 		//binding the screen triangle
-		it.mModel->BindVAO();
+		light.mModel->BindVAO();
 		//set uniforms in shader
-		glm::mat4x4 mv = Camera.GetCameraMat() * it.mM2W;
+		glm::mat4x4 mv = Camera.GetCameraMat() * light.mM2W;
 		glm::mat4x4 mvp = Camera.GetProjection() * mv;
 		shader.SetMatUniform("MV", &mv[0][0]);
 		shader.SetMatUniform("MVP", &mvp[0][0]);
 		shader.SetVec2Uniform("Size", Window.GetViewport());
-		it.SetUniforms("mLight", &shader);
+		light.SetUniforms("mLight", &shader);
 
 		//rendering the screen triangle
-		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
+		const tinygltf::Scene& scene = light.mModel->GetGLTFModel().scenes[light.mModel->GetGLTFModel().defaultScene];
 		for (size_t i = 0; i < scene.nodes.size(); i++)
-			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+			RenderNode(*light.mModel, light.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
 	}
 
 	glDepthMask(GL_TRUE);
@@ -390,6 +389,7 @@ void RenderManagerClass::LightingStage()
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::ExtractLuminence()
@@ -434,7 +434,7 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 	if(first_pass)
 		glBindTexture(GL_TEXTURE_2D, mFB.GetLuminenceTexture());
 	else
-		glBindTexture(GL_TEXTURE_2D, mBloomBuffer.GetTexture(horizontal));
+		glBindTexture(GL_TEXTURE_2D, mBB.GetTexture(horizontal));
 
 	glUniform1i(0, 0);
 
@@ -446,24 +446,6 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
-}
-
-void RenderManagerClass::BindGTextures()
-{
-	//binding the gbuffer textures as inputs
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDiffuseBuffer);
-	glUniform1i(0, 0);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mGBuffer.mNormalBuffer);
-	glUniform1i(1, 1);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, mGBuffer.mPositionBuffer);
-	glUniform1i(2, 2);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, mGBuffer.mSpecularBuffer);
-	glUniform1i(3, 3);
-
 }
 
 void RenderManagerClass::AmbientStage()
@@ -498,7 +480,7 @@ void RenderManagerClass::AmbientStage()
 void RenderManagerClass::PostProcessStage()
 {
 	ExtractLuminence();
-	mBloomBuffer.UseRenderBuffer();
+	mBB.UseRenderBuffer();
 	ClearBuffer();
 
 	bool horizontal = true;
@@ -557,7 +539,7 @@ void RenderManagerClass::Display()
 	if (mBloom)
 	{
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, mBloomBuffer.GetRenderTexture());
+		glBindTexture(GL_TEXTURE_2D, mBB.GetRenderTexture());
 		glUniform1i(1, 1);
 	}
 	shader.SetBoolUniform("Bloom", mBloom);

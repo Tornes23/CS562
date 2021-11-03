@@ -6,7 +6,12 @@ struct GBuffer
 {
 	void Create();
 	void Bind();
-
+	void BindTextures();
+	void BindDiffuseTexture();
+	void BindNormalTexture();
+	void BindPositionTexture();
+	void BindSpecularTexture();
+	void BindReadBuffer();
 	GLuint mHandle;
 	
 	GLuint mNormalBuffer;

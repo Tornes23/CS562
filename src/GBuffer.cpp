@@ -36,22 +36,54 @@ void GBuffer::Create()
 	GLuint attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_NONE };
 	glDrawBuffers(5, attachments);
 
-	//// Attach the depth buffer
-	//glGenRenderbuffers(1, &mDepth);
-	//glBindRenderbuffer(GL_RENDERBUFFER, mDepth);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, mSize.x, mSize.y);
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepth);
-	//
-	//// sanity check that everything went fine
-	//if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-	//	std::cerr << "Unable to generate framebuffer" << std::endl;
-	//	return;
-	//}
-
 	// unbind 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
 
 void GBuffer::Bind() { glBindFramebuffer(GL_FRAMEBUFFER, mHandle); }
+
+void GBuffer::BindTextures()
+{
+	//binding the gbuffer textures as inputs
+	BindDiffuseTexture();
+	BindNormalTexture();
+	BindPositionTexture();
+	BindSpecularTexture();
+
+}
+
+void GBuffer::BindDiffuseTexture()
+{
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mDiffuseBuffer);
+	glUniform1i(0, 0);
+}
+
+void GBuffer::BindNormalTexture()
+{
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mNormalBuffer);
+	glUniform1i(1, 1);
+}
+
+void GBuffer::BindPositionTexture()
+{
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, mPositionBuffer);
+	glUniform1i(2, 2);
+}
+
+void GBuffer::BindSpecularTexture()
+{
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, mSpecularBuffer);
+	glUniform1i(3, 3);
+}
+
+void GBuffer::BindReadBuffer()
+{
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, mHandle);
+
+}
 

@@ -75,7 +75,6 @@ public:
 	
 	void ExtractLuminence();
 	void BlurTexture(bool horizontal = false, bool first_pass = false);
-	void BindGTextures();
 	ShaderProgram& GetShader(const RenderMode& mode);
 	GLuint GenTexture(const glm::ivec2& size, bool high_precision = false);
 	Color GenRandomCol();
@@ -93,8 +92,9 @@ private:
 	Color mAmbient;
 	DisplayTex mDisplay;
 	DecalMode mDecalMode;
-	FrameBuffer mFB;
-	FrameBuffer mBloomBuffer;
+	FrameBuffer mFB;//Frame Buffer	
+	FrameBuffer mDB;//Decal Buffer
+	FrameBuffer mBB;//Bloom buffer
 	float mLightRad;
 	float mLuminence;
 	float mContrast;

@@ -52,6 +52,12 @@ void FrameBuffer::UseRenderBuffer()
 	glBindFramebuffer(GL_FRAMEBUFFER, mRenderBuffer);
 }
 
+void FrameBuffer::BindDrawBuffer()
+{
+	// Bind created FBO
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mRenderBuffer);
+}
+
 void FrameBuffer::ClearColorBuffer()
 {
 	// Clear framebuffer
