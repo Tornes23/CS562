@@ -20,11 +20,11 @@ void RenderManagerClass::Initialize()
 	LoadShaders();
 	mAmbient = Color(0.6F);
 	mDisplay = DisplayTex::Standar;
-	mDecalMode = DecalMode::Projected;
+	mDecalMode = DecalMode::Result;
 	mBloom = true;
 	mbUseDecals = true;
 	mLuminence = 1.0F;
-	mClipAngle = 0.1F;
+	mClipAngle = 0.01F;
 	mBlurSamples = 5;
 	mLightsAnimated = false;
 	mContrast = 1.0F - 0.99784F;
@@ -176,7 +176,7 @@ void RenderManagerClass::Edit()
 			}
 		}
 
-		ImGui::DragFloat("Clip Angle", &mClipAngle, 0.5F, 0.0F);
+		ImGui::DragFloat("Clip Angle", &mClipAngle, 0.005F, 0.0F);
 
 		ImGui::TreePop();
 	}
@@ -343,6 +343,7 @@ void RenderManagerClass::DecalStage()
 		shader.SetMatUniform("invP", &invP[0][0]);
 		shader.SetMatUniform("invV", &invV[0][0]);
 		shader.SetMatUniform("invM", &invM2W[0][0]);
+		shader.SetMatUniform("M2W", &decal.mM2W[0][0]);
 		shader.SetFloatUniform("ClipAngle", mClipAngle);
 
 		shader.SetIntUniform("Mode", static_cast<int>(mDecalMode));

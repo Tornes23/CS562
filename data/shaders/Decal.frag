@@ -15,6 +15,7 @@ uniform vec2 Size;
 uniform mat4 invP;
 uniform mat4 invV;
 uniform mat4 invM;
+uniform mat4 M2W;
 uniform int Mode;
 uniform float ClipAngle;
 
@@ -39,12 +40,6 @@ void main()
 		
 	vec3 posInCam = GetViewPosition(uv);
 	vec3 specular = texture(specularMap, newUV).rgb;
-	vec3 normal = normalize(texture(normalMap, newUV).rgb * 2.0 - 1.0);
-	vec3 tangent = normalize(dFdx(posInCam));
-	vec3 bitan = normalize(dFdy(posInCam));
-	mat3 tbn = mat3(tangent, bitan, normal);
-
-	NormalOut = vec4(tbn * normal, 1.0);
 	SpecOut = vec4(0, specular.g, specular.b, 1.0);
 
 }
@@ -79,9 +74,9 @@ vec2 ShowDecalTexture(vec2 UV)
 {
 	vec3 pos = GetModelPosition(UV);
 	//if point between -0.5, 0.5 is inside of volume
-	bool outX = pos.x < -1.0 || pos.x > 1.0;
-	bool outY = pos.y < -1.0 || pos.y > 1.0;
-	bool outZ = pos.z < -1.0 || pos.z > 1.0;
+	bool outX = pos.x < -0.5 || pos.x > 0.5;
+	bool outY = pos.y < -0.5 || pos.y > 0.5;
+	bool outZ = pos.z < -0.5 || pos.z > 0.5;
 
 	//if is outside the volume
 	if(outX || outY || outZ)
@@ -91,13 +86,21 @@ vec2 ShowDecalTexture(vec2 UV)
 	//offseting the coords to be on 0,1
 	vec2 newUV = pos.xy + 0.5;
 	float alpha = texture(diffuseTex, newUV).a;
-	//compute the angle between normal and surface if smaler than set value discard
-	//float angle = cross();
-	float angle = 1.0;
-	if(alpha == 0.0 || angle < ClipAngle)
+
+	//compute the angle between normal and M2W of cube * (0, 0, -1)
+	vec3 cube_forward = (M2W * vec4(0.0 ,0.0, -1.0, 1.0)).xyz;
+	vec3 posInCam = GetViewPosition(UV);
+	vec3 tangent = normalize(dFdx(posInCam));
+	vec3 bitan = normalize(dFdy(posInCam));
+	vec3 normal = normalize(texture(normalMap, newUV).rgb * 2.0 - 1.0);
+	mat3 tbn = mat3(tangent, bitan, normalize(cross(tangent, bitan)));
+	float angle = dot(normal, cube_forward);
+
+	if(alpha == 0.0 || (angle < ClipAngle && angle > -ClipAngle))
 		discard;
 
 	DiffuseOut = texture2D(diffuseTex, newUV).rgba;
+	NormalOut = vec4(tbn * normal, 1.0);
 
 	return newUV;
 }
@@ -111,15 +114,15 @@ vec2 ShowDecalProjected(vec2 UV)
 {
 	vec3 pos = GetModelPosition(UV);
 	//if point between -0.5, 0.5 is inside of volume
-	bool outX = pos.x < -1.0 || pos.x > 1.0;
-	bool outY = pos.y < -1.0 || pos.y > 1.0;
-	bool outZ = pos.z < -1.0 || pos.z > 1.0;
+	bool outX = pos.x < -0.5 || pos.x > 0.5;
+	bool outY = pos.y < -0.5 || pos.y > 0.5;
+	bool outZ = pos.z < -0.5 || pos.z > 0.5;
 	
 	//if is inside the volume
 	if(outX || outY || outZ)
 		discard;
 
-	DiffuseOut = vec4(pos, 1.0);
+	DiffuseOut = vec4(1.0);
 
 	return pos.xy + 0.5;
 }
