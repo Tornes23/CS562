@@ -93,14 +93,15 @@ vec2 ShowDecalTexture(vec2 UV)
 	vec3 tangent = normalize(dFdx(posInCam));
 	vec3 bitan = normalize(dFdy(posInCam));
 	vec3 normal = normalize(texture(normalMap, newUV).rgb * 2.0 - 1.0);
-	mat3 tbn = mat3(tangent, bitan, normalize(cross(tangent, bitan)));
+	mat3 tbn = mat3(tangent, bitan, normalize(cross(bitan, tangent)));
+	normal = tbn * normal;
 	float angle = dot(normal, cube_forward);
 
-	if(alpha == 0.0 || (angle < ClipAngle && angle > -ClipAngle))
+	if(alpha == 0.0 || angle < ClipAngle)
 		discard;
 
 	DiffuseOut = texture2D(diffuseTex, newUV).rgba;
-	NormalOut = vec4(tbn * normal, 1.0);
+	NormalOut = vec4(normal, 1.0);
 
 	return newUV;
 }
