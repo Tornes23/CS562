@@ -11,7 +11,6 @@ void GBuffer::Create()
 	glBindFramebuffer(GL_FRAMEBUFFER, mHandle);
 
 	// Attach the different textures of the GBuffer
-	mPositionBuffer = RenderManager.GenTexture(mSize, true);
 	mNormalBuffer   = RenderManager.GenTexture(mSize, true);
 	mDiffuseBuffer  = RenderManager.GenTexture(mSize);
 	mSpecularBuffer  = RenderManager.GenTexture(mSize);
@@ -29,12 +28,11 @@ void GBuffer::Create()
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseBuffer, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalBuffer, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mPositionBuffer, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mSpecularBuffer, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSpecularBuffer, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepth, 0);
 
-	GLuint attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_NONE };
-	glDrawBuffers(5, attachments);
+	GLuint attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_NONE };
+	glDrawBuffers(4, attachments);
 
 	// unbind 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -48,8 +46,8 @@ void GBuffer::BindTextures()
 	//binding the gbuffer textures as inputs
 	BindDiffuseTexture();
 	BindNormalTexture();
-	BindPositionTexture();
 	BindSpecularTexture();
+	BindDepthTexture();
 
 }
 
@@ -67,17 +65,17 @@ void GBuffer::BindNormalTexture()
 	glUniform1i(1, 1);
 }
 
-void GBuffer::BindPositionTexture()
+void GBuffer::BindSpecularTexture()
 {
 	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, mPositionBuffer);
+	glBindTexture(GL_TEXTURE_2D, mSpecularBuffer);
 	glUniform1i(2, 2);
 }
 
-void GBuffer::BindSpecularTexture()
+void GBuffer::BindDepthTexture()
 {
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, mSpecularBuffer);
+	glBindTexture(GL_TEXTURE_2D, mDepth);
 	glUniform1i(3, 3);
 }
 

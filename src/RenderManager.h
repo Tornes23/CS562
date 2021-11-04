@@ -42,7 +42,6 @@ public:
 		Standar,
 		Diffuse,
 		Normal,
-		Position,
 		Specular,
 		Depth
 	};
@@ -112,6 +111,7 @@ private:
 	float mLuminence;
 	float mContrast;
 	bool mBloom;
+	bool mbUseDecals;
 	bool mLightsAnimated;
 	int mBlurSamples;
 	RenderManagerClass() {}

@@ -10,6 +10,9 @@ struct DecalBuffer
 	void BindDiffuseTexture();
 	void BindNormalTexture();
 	void BindSpecularTexture();
+
+	void UseRenderBuffer();
+	void BindDrawBuffer();
 	GLuint mHandle;
 
 	GLuint mDiffuseBuffer;

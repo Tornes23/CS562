@@ -60,3 +60,14 @@ void DecalBuffer::BindSpecularTexture()
 	glUniform1i(3, 3);
 }
 
+void DecalBuffer::UseRenderBuffer()
+{
+	// Bind created FBO
+	glBindFramebuffer(GL_FRAMEBUFFER, mHandle);
+}
+
+void DecalBuffer::BindDrawBuffer()
+{
+	// Bind created FBO
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mHandle);
+}

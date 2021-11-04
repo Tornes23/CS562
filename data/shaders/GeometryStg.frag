@@ -3,8 +3,7 @@
 //output fragmet color
 layout(location = 0)out vec4 DiffuseOut;
 layout(location = 1)out vec4 NormalOut;
-layout(location = 2)out vec4 PosOut;
-layout(location = 3)out vec4 SpecOut;
+layout(location = 2)out vec4 SpecOut;
 
 //the used textures
 layout(location = 0)uniform sampler2D diffuseTex;
@@ -17,7 +16,6 @@ in VS_OUT
     vec3 Normal;
     vec3 Tangent;
     vec3 Bitangent;
-    vec3 PosInCamSpc;
     vec2 UV;
     mat3 TanMat;
 
@@ -32,6 +30,5 @@ void main()
 
     DiffuseOut = vec4(diffuse, 0);
     NormalOut = vec4(vertex.TanMat * normal, 0.0F);
-    PosOut = vec4(vertex.PosInCamSpc, 0.0F);
     SpecOut = vec4(0, specular.g, specular.b, 0.0F);
 }

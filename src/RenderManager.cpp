@@ -22,6 +22,7 @@ void RenderManagerClass::Initialize()
 	mDisplay = DisplayTex::Standar;
 	mDecalMode = DecalMode::Result;
 	mBloom = true;
+	mbUseDecals = true;
 	mLuminence = 1.0F;
 	mBlurSamples = 5;
 	mLightsAnimated = false;
@@ -42,10 +43,8 @@ void RenderManagerClass::Update()
 	if (KeyDown(Key::Num3))
 		mDisplay = DisplayTex::Normal;
 	if (KeyDown(Key::Num4))
-		mDisplay = DisplayTex::Position;
-	if (KeyDown(Key::Num5))
 		mDisplay = DisplayTex::Specular;
-	if (KeyDown(Key::Num6))
+	if (KeyDown(Key::Num5))
 		mDisplay = DisplayTex::Depth;
 
 	for (auto& it : mLights)
@@ -64,6 +63,8 @@ void RenderManagerClass::Edit()
 	}
 
 	ImGui::Checkbox("Bloom", &mBloom);
+	ImGui::SameLine();
+	ImGui::Checkbox("Decals", &mbUseDecals);
 	ImGui::DragInt("Bloom Smaples", &mBlurSamples);
 	if (mBlurSamples < 0)
 		mBlurSamples = 0;
@@ -77,9 +78,9 @@ void RenderManagerClass::Edit()
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 	
-	const char* texture_options[6] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth" };
+	const char* texture_options[5] = { "Standar", "Diffuse", "Normal", "Specular", "Depth" };
 	
-	if (ImGui::Combo("Display Texture", &tex, texture_options, 6, 7))
+	if (ImGui::Combo("Display Texture", &tex, texture_options, 5, 6))
 	{
 		switch (tex)
 		{
@@ -93,12 +94,9 @@ void RenderManagerClass::Edit()
 			mDisplay = DisplayTex::Normal;
 			break;
 		case 3:
-			mDisplay = DisplayTex::Position;
-			break;
-		case 4:
 			mDisplay = DisplayTex::Specular;
 			break;
-		case 5:
+		case 4:
 			mDisplay = DisplayTex::Depth;
 			break;
 		}
@@ -248,7 +246,10 @@ void RenderManagerClass::AddLight()
 void RenderManagerClass::Render()
 {
 	GeometryStage();
-	DecalStage();
+
+	//if(mbUseDecals)
+	//	DecalStage();
+
 	LightingStage();
 
 	if(mBloom)
@@ -291,46 +292,53 @@ void RenderManagerClass::GeometryStage()
 
 void RenderManagerClass::DecalStage()
 {
-	//glm::vec2 size = Window.GetViewport();
-	//mGBuffer.BindReadBuffer();
-	//mDB.BindDrawBuffer();
+	glm::vec2 size = Window.GetViewport();
+	mGBuffer.BindReadBuffer();
+	mDB.BindDrawBuffer();
+	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
+		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	//glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
-	//	static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-	//mDB.UseRenderBuffer();
-	//
-	////get shader program
-	//ShaderProgram& shader = mShaders[RenderMode::Decals];
-	//shader.Use();
-	//mGBuffer.BindDiffuseTexture();
-	////SET BLENDING TO ADDITIVE
-	//glEnable(GL_BLEND);
-	//glBlendEquation(GL_FUNC_ADD);
-	//glBlendFunc(GL_ONE, GL_ONE);
-	//
-	//glDepthMask(GL_FALSE);
-	//
-	//for (auto& decal : mDecals)
-	//{
-	//	//binding the screen triangle
-	//	decal.mModel->BindVAO();
-	//	//set uniforms in shader
-	//	glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat() * decal.mM2W;
-	//	shader.SetMatUniform("MVP", &mvp[0][0]);
-	//	shader.SetVec2Uniform("Size", Window.GetViewport());
-	//	decal.SetUniforms();
-	//	//rendering the screen triangle
-	//	const tinygltf::Scene& scene = decal.mModel->GetGLTFModel().scenes[decal.mModel->GetGLTFModel().defaultScene];
-	//	for (size_t i = 0; i < scene.nodes.size(); i++)
-	//		RenderNode(*decal.mModel, decal.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
-	//
-	//	//unbinding the VAOs
-	//	glBindVertexArray(0);
-	//}
-	//
-	//glDepthMask(GL_TRUE);
-	//glDisable(GL_BLEND);
-	//glUseProgram(0);
-	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//	static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	mDB.UseRenderBuffer();
+	
+	//get shader program
+	ShaderProgram& shader = mShaders[RenderMode::Decals];
+	shader.Use();
+	mGBuffer.BindDiffuseTexture();
+	mGBuffer.BindDepthTexture();
+	//SET BLENDING TO ADDITIVE
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+	
+	glDepthMask(GL_FALSE);
+	
+	for (auto& decal : mDecals)
+	{
+		//binding the screen triangle
+		decal.mModel->BindVAO();
+		//set uniforms in shader
+		glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat() * decal.mM2W;
+		glm::mat4x4 invP = glm::inverse(Camera.GetProjection());
+		glm::mat4x4 invV = glm::inverse(Camera.GetCameraMat());
+		glm::mat4x4 invM2W = glm::inverse(decal.mM2W);
+
+		shader.SetMatUniform("MVP", &mvp[0][0]);
+		shader.SetVec2Uniform("Size", Window.GetViewport());
+		decal.SetUniforms();
+		//rendering the screen triangle
+		const tinygltf::Scene& scene = decal.mModel->GetGLTFModel().scenes[decal.mModel->GetGLTFModel().defaultScene];
+		for (size_t i = 0; i < scene.nodes.size(); i++)
+			RenderNode(*decal.mModel, decal.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+	
+		//unbinding the VAOs
+		glBindVertexArray(0);
+	}
+	
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+	glUseProgram(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::LightingStage()
@@ -370,8 +378,10 @@ void RenderManagerClass::LightPass()
 		//set uniforms in shader
 		glm::mat4x4 mv = Camera.GetCameraMat() * light.mM2W;
 		glm::mat4x4 mvp = Camera.GetProjection() * mv;
+		glm::mat4x4 invP = glm::inverse(Camera.GetProjection());
 		shader.SetMatUniform("MV", &mv[0][0]);
 		shader.SetMatUniform("MVP", &mvp[0][0]);
+		shader.SetMatUniform("invP", &invP[0][0]);
 		shader.SetVec2Uniform("Size", Window.GetViewport());
 		light.SetUniforms("mLight", &shader);
 
@@ -593,9 +603,6 @@ void RenderManagerClass::Display()
 		break;
 	case DisplayTex::Normal:
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mNormalBuffer);
-		break;
-	case DisplayTex::Position:
-		glBindTexture(GL_TEXTURE_2D, mGBuffer.mPositionBuffer);
 		break;
 	case DisplayTex::Specular:
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mSpecularBuffer);

@@ -9,14 +9,13 @@ struct GBuffer
 	void BindTextures();
 	void BindDiffuseTexture();
 	void BindNormalTexture();
-	void BindPositionTexture();
 	void BindSpecularTexture();
+	void BindDepthTexture();
 	void BindReadBuffer();
 	GLuint mHandle;
 	
 	GLuint mNormalBuffer;
 	GLuint mDiffuseBuffer;
-	GLuint mPositionBuffer;
 	GLuint mSpecularBuffer;
 	GLuint mDepth;
 

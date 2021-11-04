@@ -11,7 +11,6 @@ out VS_OUT
     vec3 Normal;
     vec3 Tangent;
     vec3 Bitangent;
-    vec3 PosInCamSpc;
     vec2 UV;
     mat3 TanMat;
 
@@ -27,7 +26,6 @@ void main()
     
     //setting the out variables
     vertexCam.UV = vTexCoord;
-    vertexCam.PosInCamSpc = vec3(MV * vec4(vPosition, 1.0F));
     vertexCam.Normal = normalize(mat3(m2v_normal) * vNormal);
     vertexCam.Tangent = normalize(vec3(MV * vec4(vTangent, 0.0F)));
 
