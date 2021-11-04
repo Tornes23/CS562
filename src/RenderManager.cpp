@@ -23,7 +23,7 @@ void RenderManagerClass::Initialize()
 	mDecalMode = DecalMode::Result;
 	mBloom = true;
 	mLuminence = 1.0F;
-	mBlurSamples = 1;
+	mBlurSamples = 5;
 	mLightsAnimated = false;
 	mContrast = 1.0F - 0.99784F;
 }
@@ -47,10 +47,6 @@ void RenderManagerClass::Update()
 		mDisplay = DisplayTex::Specular;
 	if (KeyDown(Key::Num6))
 		mDisplay = DisplayTex::Depth;
-	if (KeyDown(Key::Num7))
-		mDisplay = DisplayTex::LuminenceMap;
-	if (KeyDown(Key::Num8))
-		mDisplay = DisplayTex::Blurred;
 
 	for (auto& it : mLights)
 		it.Update();
@@ -81,9 +77,9 @@ void RenderManagerClass::Edit()
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 	
-	const char* texture_options[8] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth", "Luminence", "Blurred"};
+	const char* texture_options[6] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth" };
 	
-	if (ImGui::Combo("Display Texture", &tex, texture_options, 8, 9))
+	if (ImGui::Combo("Display Texture", &tex, texture_options, 6, 7))
 	{
 		switch (tex)
 		{
@@ -104,12 +100,6 @@ void RenderManagerClass::Edit()
 			break;
 		case 5:
 			mDisplay = DisplayTex::Depth;
-			break;
-		case 6:
-			mDisplay = DisplayTex::LuminenceMap;
-			break;
-		case 7:
-			mDisplay = DisplayTex::Blurred;
 			break;
 		}
 	}
@@ -230,6 +220,8 @@ void RenderManagerClass::LoadShaders(bool reload)
 	mShaders[RenderMode::Blur] = ShaderProgram("./data/shaders/Blur.vert", "./data/shaders/Blur.frag");
 	mShaders[RenderMode::Decals] = ShaderProgram("./data/shaders/Decal.vert", "./data/shaders/Decal.frag");
 	mShaders[RenderMode::Regular] = ShaderProgram("./data/shaders/Regular.vert", "./data/shaders/Regular.frag");
+	mShaders[RenderMode::Blend] = ShaderProgram("./data/shaders/Blend.vert", "./data/shaders/Blend.frag");
+	mShaders[RenderMode::White] = ShaderProgram("./data/shaders/White.vert", "./data/shaders/White.frag");
 }
 
 void RenderManagerClass::FreeShaders()
@@ -257,7 +249,6 @@ void RenderManagerClass::Render()
 {
 	GeometryStage();
 	DecalStage();
-	AmbientStage();
 	LightingStage();
 
 	if(mBloom)
@@ -344,11 +335,18 @@ void RenderManagerClass::DecalStage()
 
 void RenderManagerClass::LightingStage()
 {
+	AmbientPass();
+	LightPass();
+	RenderLights();
+}
+
+void RenderManagerClass::LightPass()
+{
 	glm::vec2 size = Window.GetViewport();
 	mGBuffer.BindReadBuffer();
 	mDisplayBuffer.BindDrawBuffer();
-	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0, 
-					static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST );
+	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
+		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	mDisplayBuffer.UseRenderBuffer();
 
 	//get shader program
@@ -387,6 +385,39 @@ void RenderManagerClass::LightingStage()
 	glDisable(GL_BLEND);
 	glDepthFunc(GL_LESS);
 	glCullFace(GL_BACK);
+	glUseProgram(0);
+	//unbinding the VAOs
+	glBindVertexArray(0);
+}
+
+void RenderManagerClass::RenderLights()
+{
+	//get shader program
+	ShaderProgram& shader = mShaders[RenderMode::White];
+	shader.Use();
+	//SET BLENDING TO ADDITIVE
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+
+	for (auto& light : mLights)
+	{
+		//binding the screen triangle
+		light.mModel->BindVAO();
+		//set uniforms in shader
+		glm::mat4x4 m2w = glm::translate(glm::mat4x4(1.0F), light.mPos);
+		m2w = glm::scale(m2w, glm::vec3(2.0F));
+		glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat() * m2w;
+		shader.SetMatUniform("MVP", &mvp[0][0]);
+
+		//rendering the screen triangle
+		const tinygltf::Scene& scene = light.mModel->GetGLTFModel().scenes[light.mModel->GetGLTFModel().defaultScene];
+		for (size_t i = 0; i < scene.nodes.size(); i++)
+			RenderNode(*light.mModel, light.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+	}
+
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
@@ -453,7 +484,7 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 
 }
 
-void RenderManagerClass::AmbientStage()
+void RenderManagerClass::AmbientPass()
 {
 	mDisplayBuffer.UseRenderBuffer();
 	ClearBuffer();
@@ -501,9 +532,43 @@ void RenderManagerClass::PostProcessStage()
 	}
 
 	//blend blurred with standar
-	//BlendBlur();
+	BlendBlur();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void RenderManagerClass::BlendBlur()
+{
+	mFB.UseRenderBuffer();
+	ClearBuffer();
+
+	//get shader program
+	ShaderProgram& shader = mShaders[RenderMode::Blend];
+	shader.Use();
+
+	//binding the screen triangle
+	mScreenTriangle->BindVAO();
+	//set uniforms in shader
+	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
+	shader.SetMatUniform("MVP", &mvp[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mDisplayBuffer.GetRenderTexture());
+	glUniform1i(0, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mBB.GetLuminenceTexture());
+	glUniform1i(1, 1);
+
+	//rendering the screen triangle
+	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
+
+	glUseProgram(0);
+	//unbinding the VAOs
+	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 void RenderManagerClass::Display()
@@ -538,28 +603,12 @@ void RenderManagerClass::Display()
 	case DisplayTex::Depth:
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
 		break;
-	case DisplayTex::LuminenceMap:
-		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
-		break;
-	case DisplayTex::Blurred:
-		glBindTexture(GL_TEXTURE_2D, mBB.GetLuminenceTexture());
-		break;
 	default:
-		glBindTexture(GL_TEXTURE_2D, mDisplayBuffer.GetRenderTexture());
+		glBindTexture(GL_TEXTURE_2D, mBloom ? mFB.GetRenderTexture() : mDisplayBuffer.GetRenderTexture());
 		break;
 	}
 	glUniform1i(0, 0);
 
-	if (mBloom)
-	{
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, mBB.GetLuminenceTexture());
-		glUniform1i(1, 1);
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, mBB.GetLuminenceTexture(false));
-		glUniform1i(2, 2);
-	}
-	shader.SetBoolUniform("Bloom", mBloom);
 	bool depth = mDisplay == DisplayTex::Depth ? true : false;
 	shader.SetBoolUniform("Depth", depth);
 	if(depth)

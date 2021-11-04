@@ -32,7 +32,9 @@ public:
 		Luminence,
 		Blur,
 		Decals,
-		Regular
+		Regular,
+		Blend,
+		White
 	};
 
 	enum DisplayTex
@@ -42,9 +44,7 @@ public:
 		Normal,
 		Position,
 		Specular,
-		Depth,
-		LuminenceMap,
-		Blurred
+		Depth
 	};
 
 	enum DecalMode
@@ -67,12 +67,18 @@ public:
 	void Render();
 	void Display();
 	void ClearBuffer();
+
 	void GeometryStage();
+
 	void DecalStage();
+
+	void LightPass();
+	void AmbientPass();
+	void RenderLights();
 	void LightingStage();
-	void AmbientStage();
+
 	void PostProcessStage();
-	//void BlendTextures();
+	void BlendBlur();
 
 	void RenderNode(Model& model, const tinygltf::Node& node);
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
