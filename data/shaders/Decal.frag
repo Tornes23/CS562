@@ -8,80 +8,90 @@ layout(location = 2)out vec4 SpecOut;
 //the used textures
 layout(location = 0)uniform sampler2D diffuseTex;
 layout(location = 1)uniform sampler2D normalMap;
-layout(location = 2)uniform sampler2D positionMap;
-layout(location = 3)uniform sampler2D specularMap;
-layout(location = 4)uniform sampler2D depthMap;
-
-//in variables for the fragment shader
-in VS_OUT
-{
-    vec3 Normal;
-    vec3 PosInCamSpc;
-    vec2 UV;
-    mat3 TanMat;
-
-}vertex;
-
+layout(location = 2)uniform sampler2D specularMap;
+layout(location = 3)uniform sampler2D depthMap;
 
 uniform vec2 Size;
 uniform mat4 invP;
 uniform mat4 invV;
 uniform mat4 invM;
-uniform int mode;
+uniform int Mode;
+
+vec3 GetModelPosition(vec2 UV);
+void ShowDecalTexture();
+void ShowDecalVolume();
+void ShowDecalProjected();
 
 void main()
 {
-    ////getting the output color to the texture sample
-    //vec3 diffuse = texture(diffuseTex, vertex.UV).rgb;
-    //vec3 normal = texture(normalMap, vertex.UV).rgb * 2.0F - 1.0F;
-    //vec3 specular = texture(specularMap, vertex.UV).rgb;
-	//
-    //vec4 color = vec4(0.0, 0.0, 0.0, 0.0);
-    DiffuseOut = vec4(1.0, 1.0, 1.0, 1.0);
-    NormalOut = vec4(1.0, 1.0, 1.0, 1.0);
-    SpecOut = vec4(1.0, 1.0, 1.0, 1.0);
-	////if rendering the volumes
-	//if(mode == 0)
-	//{
-	//	color = vec4(1.0, 1.0, 1.0, 1.0);
-	//}
-	//
-	//mat4 invMVP = invM * invV * invP;
-	//
-	//vec2 uv = gl_FragCoord.xy / Size;
-	////converting to NDC
-	//uv = uv * 2.0 - 1.0;
-	//
-	////get depth value from texture
-	////float depth = texture2D(depthMap, uv).r;
-	////depth = depth * 2.0 - 1.0;
-	////vec3 pos = vec3(uv, depth);
-	//////apply inverse of perspective matrix
-	////vec4 final = invMVP * vec4(pos, 1.0);
-	//vec4 final = invMVP * texture2D(positionMap, uv).rgba;
-	////apply perspective division
-	//final /= final.a;
-	////if point between -0.5, 0.5 is inside
-	//bool inX = final.x >= -0.5 && final.x <= 0.5;
-	//bool inY = final.y >= -0.5 && final.y <= 0.5;
-	//bool inZ = final.z >= -0.5 && final.z <= 0.5;
-	//
-	//if(inX && inY && inZ)
-	//{
-	//	//setting the pixel color as the sample of the diffuse texture (where model space coords are UV)
-	//	//offseting the coords to be on 0,1
-	//	final += 0.5;
-	//	fragColor = texture2D(diffuse, final.xy);
-	//}
-	//
-	////if rendering the projected areas
-	//if(mode == 1)
-	//{
-	//}
-	//
-	////if rendering the actual decal
-	//if(mode == 2)
-	//{
-	//	color = texture(d_diffuseTex, uv).rgba;
-	//}
+	if(Mode == 0)
+		ShowDecalVolume();
+	if(Mode == 1)
+		ShowDecalProjected();
+	if(Mode == 2)
+		ShowDecalTexture();
+
+}
+
+vec3 GetModelPosition(vec2 UV)
+{
+	mat4 invMV = invM * invP;
+    //get depth value from texture
+	float depth = texture2D(depthMap, UV).r * 2.0 - 1.0;
+    vec2 xy = UV * 2.0 - 1.0;
+	vec4 position = vec4(xy, depth, 1.0);
+    position = invP * position;
+    position /= position.w;
+
+	position = invMV * position;
+
+	return position.xyz;
+}
+
+void ShowDecalTexture()
+{
+	vec2 uv = gl_FragCoord.xy / Size;
+	vec3 pos = GetModelPosition(uv);
+	//if point between -0.5, 0.5 is inside of volume
+	bool inX = pos.x >= -0.5 && pos.x <= 0.5;
+	bool inY = pos.y >= -0.5 && pos.y <= 0.5;
+	bool inZ = pos.z >= -0.5 && pos.z <= 0.5;
+	
+
+	if(inX && inY && inZ)
+	{
+		//setting the pixel color as the sample of the diffuse texture (where model space coords are UV)
+		//offseting the coords to be on 0,1
+		vec2 newUV = pos.xy + 0.5;
+
+		vec3 specular = texture(specularMap, newUV).rgb;
+
+		vec3 normal = normalize(texture(normalMap, newUV).rgb * 2.0 - 1.0);
+		vec3 tangent = normalize(dFdy(pos));
+		vec3 bitan = normalize(dFdy(pos));
+		mat3 tbn = mat3(tangent, bitan, normal);
+
+		DiffuseOut = texture2D(diffuseTex, newUV);
+		NormalOut = vec4(tbn * normal, 1.0F);
+		SpecOut = vec4(0, specular.g, specular.b, 1.0F);
+
+	}
+}
+
+void ShowDecalVolume()
+{
+	DiffuseOut = vec4(1.0);
+}
+void ShowDecalProjected()
+{
+	vec2 uv = gl_FragCoord.xy / Size;
+	vec3 pos = GetModelPosition(uv);
+	//if point between -0.5, 0.5 is inside of volume
+	bool inX = pos.x >= -0.5 && pos.x <= 0.5;
+	bool inY = pos.y >= -0.5 && pos.y <= 0.5;
+	bool inZ = pos.z >= -0.5 && pos.z <= 0.5;
+	
+
+	if(inX && inY && inZ)
+		DiffuseOut = vec4(1.0);
 }

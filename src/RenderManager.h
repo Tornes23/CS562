@@ -43,7 +43,8 @@ public:
 		Diffuse,
 		Normal,
 		Specular,
-		Depth
+		Depth,
+		DecalsTex
 	};
 
 	enum DecalMode
@@ -77,13 +78,13 @@ public:
 	void LightingStage();
 
 	void PostProcessStage();
+	void ExtractLuminence();
+	void BlurTexture(bool horizontal = false, bool first_pass = false);
 	void BlendBlur();
 
 	void RenderNode(Model& model, const tinygltf::Node& node);
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
 	
-	void ExtractLuminence();
-	void BlurTexture(bool horizontal = false, bool first_pass = false);
 	ShaderProgram& GetShader(const RenderMode& mode);
 	GLuint GenTexture(const glm::ivec2& size, bool high_precision = false);
 	Color GenRandomCol();
