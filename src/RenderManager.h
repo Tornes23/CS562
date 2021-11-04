@@ -111,6 +111,7 @@ private:
 	float mLightRad;
 	float mLuminence;
 	float mContrast;
+	float mClipAngle;
 	bool mBloom;
 	bool mbUseDecals;
 	bool mLightsAnimated;

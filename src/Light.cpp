@@ -21,10 +21,9 @@ void Light::Update()
 				mMoveUp = true;
 		}
 	}
-	glm::mat4x4 m2w(1.0);
-	m2w = m2w * glm::translate(mPos);
-	m2w = m2w * glm::scale(glm::vec3(2.0F * mRadius));
-	mM2W = m2w;
+
+	mM2W = glm::translate(mPos);
+	mM2W = mM2W * glm::scale(glm::vec3(2.0F * mRadius));
 }
 
 void Light::SetUniforms(const std::string& name, ShaderProgram* shader)

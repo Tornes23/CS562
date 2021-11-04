@@ -20,10 +20,11 @@ void RenderManagerClass::Initialize()
 	LoadShaders();
 	mAmbient = Color(0.6F);
 	mDisplay = DisplayTex::Standar;
-	mDecalMode = DecalMode::Volume;
+	mDecalMode = DecalMode::Projected;
 	mBloom = true;
 	mbUseDecals = true;
 	mLuminence = 1.0F;
+	mClipAngle = 0.1F;
 	mBlurSamples = 5;
 	mLightsAnimated = false;
 	mContrast = 1.0F - 0.99784F;
@@ -36,16 +37,27 @@ void RenderManagerClass::Update()
 	if (KeyDown(Key::F5))
 		LoadShaders(true);
 
-	if (KeyDown(Key::Num1))
+	bool ctrl = KeyDown(Key::Control);
+
+	if (KeyDown(Key::Num1) && !ctrl)
 		mDisplay = DisplayTex::Standar;
-	if (KeyDown(Key::Num2))
+	if (KeyDown(Key::Num2) && !ctrl)
 		mDisplay = DisplayTex::Diffuse;
-	if (KeyDown(Key::Num3))
+	if (KeyDown(Key::Num3) && !ctrl)
 		mDisplay = DisplayTex::Normal;
-	if (KeyDown(Key::Num4))
+	if (KeyDown(Key::Num4) && !ctrl)
 		mDisplay = DisplayTex::Specular;
-	if (KeyDown(Key::Num5))
+	if (KeyDown(Key::Num5) && !ctrl)
 		mDisplay = DisplayTex::Depth;
+
+	if (KeyDown(Key::Num1) && ctrl)
+		mDecalMode = DecalMode::Volume;
+	if (KeyDown(Key::Num2) && ctrl)
+		mDecalMode = DecalMode::Projected;
+	if (KeyDown(Key::Num3) && ctrl)
+		mDecalMode = DecalMode::Result;
+
+
 
 	for (auto& it : mLights)
 		it.Update();
@@ -163,6 +175,8 @@ void RenderManagerClass::Edit()
 				break;
 			}
 		}
+
+		ImGui::DragFloat("Clip Angle", &mClipAngle, 0.5F, 0.0F);
 
 		ImGui::TreePop();
 	}
@@ -307,11 +321,6 @@ void RenderManagerClass::DecalStage()
 	shader.Use();
 	mGBuffer.BindDepthTexture();
 
-	//setting blending
-	glEnable(GL_BLEND);
-	glBlendEquation(GL_FUNC_ADD);
-	glBlendFunc(GL_ONE, GL_ONE);
-
 	//disabling writing ono the depth buffer
 	glDepthFunc(GL_GREATER);
 	glCullFace(GL_FRONT);
@@ -334,6 +343,7 @@ void RenderManagerClass::DecalStage()
 		shader.SetMatUniform("invP", &invP[0][0]);
 		shader.SetMatUniform("invV", &invV[0][0]);
 		shader.SetMatUniform("invM", &invM2W[0][0]);
+		shader.SetFloatUniform("ClipAngle", mClipAngle);
 
 		shader.SetIntUniform("Mode", static_cast<int>(mDecalMode));
 		decal.SetUniforms();
@@ -347,11 +357,9 @@ void RenderManagerClass::DecalStage()
 	}
 
 	glDepthMask(GL_TRUE);
-	glDisable(GL_BLEND);
 	glDepthFunc(GL_LESS);
 	glCullFace(GL_BACK);
 
-	
 	glUseProgram(0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

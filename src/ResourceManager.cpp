@@ -118,6 +118,7 @@ void ResourceManagerClass::LoadTexture(const std::string& file)
 #undef LoadImage
 stbi_uc* ResourceManagerClass::LoadImage(const std::string& file, int* width, int* height, int* channels, int desired_channels)
 {
+	stbi_set_flip_vertically_on_load(true);
 	stbi_uc* pixels = stbi_load(file.data(), width, height, channels, desired_channels);
 
 	if (pixels == nullptr) {
