@@ -46,7 +46,7 @@ vec3 GetModelPosition(vec2 UV)
 vec3 GetWorldPosition(vec2 UV)
 {
 	vec4 position = vec4(GetViewPosition(UV), 1.0);
-	position = invM * position;
+	position = invV * position;
 	return position.xyz;
 }
 
@@ -58,7 +58,6 @@ vec3 GetViewPosition(vec2 UV)
 	vec4 position = vec4(xy, depth, 1.0);
     position = invP * position;
     position /= position.w;
-
 	return position.xyz;
 }
 
