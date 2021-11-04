@@ -35,7 +35,6 @@ void main()
 
 vec3 GetModelPosition(vec2 UV)
 {
-	mat4 invMV = invM * invP;
     //get depth value from texture
 	float depth = texture2D(depthMap, UV).r * 2.0 - 1.0;
     vec2 xy = UV * 2.0 - 1.0;
@@ -43,7 +42,8 @@ vec3 GetModelPosition(vec2 UV)
     position = invP * position;
     position /= position.w;
 
-	position = invMV * position;
+	position = invV * position;
+	position = invM * position;
 
 	return position.xyz;
 }
@@ -91,7 +91,6 @@ void ShowDecalProjected()
 	bool inY = pos.y >= -0.5 && pos.y <= 0.5;
 	bool inZ = pos.z >= -0.5 && pos.z <= 0.5;
 	
-
 	if(inX && inY && inZ)
 		DiffuseOut = vec4(1.0);
 }

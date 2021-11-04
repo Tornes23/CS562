@@ -315,7 +315,7 @@ void RenderManagerClass::DecalStage()
 	glBlendFunc(GL_ONE, GL_ONE);
 	
 	glDepthMask(GL_FALSE);
-	
+
 	for (auto& decal : mDecals)
 	{
 		//binding the screen triangle
@@ -330,9 +330,9 @@ void RenderManagerClass::DecalStage()
 		shader.SetVec2Uniform("Size", Window.GetViewport());
 
 		shader.SetMatUniform("MVP", &mvp[0][0]);
-		shader.SetMatUniform("invP", &mvp[0][0]);
-		shader.SetMatUniform("invV", &mvp[0][0]);
-		shader.SetMatUniform("invM", &mvp[0][0]);
+		shader.SetMatUniform("invP", &invP[0][0]);
+		shader.SetMatUniform("invV", &invV[0][0]);
+		shader.SetMatUniform("invM", &invM2W[0][0]);
 
 		shader.SetIntUniform("Mode", static_cast<int>(mDecalMode));
 		decal.SetUniforms();
