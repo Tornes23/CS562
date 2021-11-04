@@ -4,7 +4,7 @@
 
 struct DecalBuffer
 {
-	void Create();
+	void Create(GLuint diffuse, GLuint normal, GLuint specular);
 	void Bind();
 	void BindTextures();
 	void BindDiffuseTexture();

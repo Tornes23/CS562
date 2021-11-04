@@ -16,9 +16,9 @@ void RenderManagerClass::Initialize()
 	mFB.Create();
 	mDisplayBuffer.Create();
 	mBB.Create();
-	mDB.Create();
+	mDB.Create(mGBuffer.mDiffuseBuffer, mGBuffer.mNormalBuffer, mGBuffer.mSpecularBuffer);
 	LoadShaders();
-	mAmbient = Color(0.02F);
+	mAmbient = Color(0.6F);
 	mDisplay = DisplayTex::Standar;
 	mDecalMode = DecalMode::Volume;
 	mBloom = true;
@@ -300,20 +300,21 @@ void RenderManagerClass::DecalStage()
 	mDB.BindDrawBuffer();
 	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
 		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-	//glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
-	//	static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_COLOR_BUFFER_BIT, GL_NEAREST);
 	mDB.UseRenderBuffer();
-	ClearBuffer();
 	
 	//get shader program
 	ShaderProgram& shader = mShaders[RenderMode::Decals];
 	shader.Use();
 	mGBuffer.BindDepthTexture();
-	//SET BLENDING TO ADDITIVE
+
+	//setting blending
 	glEnable(GL_BLEND);
 	glBlendEquation(GL_FUNC_ADD);
 	glBlendFunc(GL_ONE, GL_ONE);
-	
+
+	//disabling writing ono the depth buffer
+	glDepthFunc(GL_GREATER);
+	glCullFace(GL_FRONT);
 	glDepthMask(GL_FALSE);
 
 	for (auto& decal : mDecals)
@@ -344,9 +345,13 @@ void RenderManagerClass::DecalStage()
 		//unbinding the VAOs
 		glBindVertexArray(0);
 	}
-	
+
 	glDepthMask(GL_TRUE);
 	glDisable(GL_BLEND);
+	glDepthFunc(GL_LESS);
+	glCullFace(GL_BACK);
+
+	
 	glUseProgram(0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

@@ -55,7 +55,7 @@ void CameraClass::Update()
 void CameraClass::UpdateVectors(const glm::vec2& offset)
 {
 	glm::vec2 movement = offset * mSensitivity;
-	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * movement.y, glm::vec3(0, 0, 1)));
+	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * movement.y, mRightVector));
 	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * -movement.x, glm::vec3(0, 1, 0)));
 
 	mRightVector = glm::normalize(glm::cross(mView, mUp));

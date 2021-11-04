@@ -3,7 +3,7 @@
 #include "Window.h"
 #include "RenderManager.h"
 
-void DecalBuffer::Create()
+void DecalBuffer::Create(GLuint diffuse, GLuint normal, GLuint specular)
 {
 	mSize = Window.GetViewport();
 
@@ -11,13 +11,13 @@ void DecalBuffer::Create()
 	glBindFramebuffer(GL_FRAMEBUFFER, mHandle);
 
 	// Attach the different textures of the DecalBuffer
-	mNormalBuffer = RenderManager.GenTexture(mSize, true);
-	mDiffuseBuffer = RenderManager.GenTexture(mSize);
-	mSpecularBuffer = RenderManager.GenTexture(mSize);
+	mNormalBuffer = normal;
+	mDiffuseBuffer = diffuse;
+	mSpecularBuffer = specular;
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseBuffer, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalBuffer, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mSpecularBuffer, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSpecularBuffer, 0);
 
 	GLuint attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
 	glDrawBuffers(3, attachments);

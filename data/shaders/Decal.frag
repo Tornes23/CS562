@@ -18,6 +18,8 @@ uniform mat4 invM;
 uniform int Mode;
 
 vec3 GetModelPosition(vec2 UV);
+vec3 GetWorldPosition(vec2 UV);
+vec3 GetViewPosition(vec2 UV);
 void ShowDecalTexture();
 void ShowDecalVolume();
 void ShowDecalProjected();
@@ -36,14 +38,26 @@ void main()
 vec3 GetModelPosition(vec2 UV)
 {
     //get depth value from texture
+	vec4 position = vec4(GetWorldPosition(UV), 1.0);
+	position = invM * position;
+	return position.xyz;
+}
+
+vec3 GetWorldPosition(vec2 UV)
+{
+	vec4 position = vec4(GetViewPosition(UV), 1.0);
+	position = invM * position;
+	return position.xyz;
+}
+
+vec3 GetViewPosition(vec2 UV)
+{
+    //get depth value from texture
 	float depth = texture2D(depthMap, UV).r * 2.0 - 1.0;
     vec2 xy = UV * 2.0 - 1.0;
 	vec4 position = vec4(xy, depth, 1.0);
     position = invP * position;
     position /= position.w;
-
-	position = invV * position;
-	position = invM * position;
 
 	return position.xyz;
 }
@@ -51,46 +65,66 @@ vec3 GetModelPosition(vec2 UV)
 void ShowDecalTexture()
 {
 	vec2 uv = gl_FragCoord.xy / Size;
+	vec3 posInCam = GetViewPosition(uv);
 	vec3 pos = GetModelPosition(uv);
 	//if point between -0.5, 0.5 is inside of volume
-	bool inX = pos.x >= -0.5 && pos.x <= 0.5;
-	bool inY = pos.y >= -0.5 && pos.y <= 0.5;
-	bool inZ = pos.z >= -0.5 && pos.z <= 0.5;
+	bool outX = pos.x < -0.5 || pos.x > 0.5;
+	bool outY = pos.y < -0.5 || pos.y > 0.5;
+	bool outZ = pos.z < -0.5 || pos.z > 0.5;
 	
+	DiffuseOut = vec4(0.0);
+	NormalOut = vec4(0.0);
+	SpecOut = vec4(0.0);
 
-	if(inX && inY && inZ)
+	//if is inside the volume
+	if(!outX && !outY && !outZ)
 	{
 		//setting the pixel color as the sample of the diffuse texture (where model space coords are UV)
 		//offseting the coords to be on 0,1
 		vec2 newUV = pos.xy + 0.5;
+		float alpha = texture(diffuseTex, newUV).a;
 
-		vec3 specular = texture(specularMap, newUV).rgb;
+		if(alpha > 0.0)
+		{
+			vec3 specular = texture(specularMap, newUV).rgb;
+			vec3 normal = normalize(texture(normalMap, newUV).rgb * 2.0 - 1.0);
+			vec3 tangent = normalize(dFdx(posInCam));
+			vec3 bitan = normalize(dFdy(posInCam));
+			mat3 tbn = mat3(tangent, bitan, normal);
 
-		vec3 normal = normalize(texture(normalMap, newUV).rgb * 2.0 - 1.0);
-		vec3 tangent = normalize(dFdy(pos));
-		vec3 bitan = normalize(dFdy(pos));
-		mat3 tbn = mat3(tangent, bitan, normal);
-
-		DiffuseOut = texture2D(diffuseTex, newUV);
-		NormalOut = vec4(tbn * normal, 1.0F);
-		SpecOut = vec4(0, specular.g, specular.b, 1.0F);
-
+			DiffuseOut = texture2D(diffuseTex, newUV).rgba;
+			NormalOut = vec4(tbn * normal, 1.0);
+			SpecOut = vec4(0, specular.g, specular.b, 1.0);
+		}
 	}
 }
 
 void ShowDecalVolume()
 {
 	DiffuseOut = vec4(1.0);
+	NormalOut = vec4(1.0);
+	SpecOut = vec4(1.0);
 }
+
 void ShowDecalProjected()
 {
 	vec2 uv = gl_FragCoord.xy / Size;
 	vec3 pos = GetModelPosition(uv);
+	vec3 posInCam = GetViewPosition(uv);
 	//if point between -0.5, 0.5 is inside of volume
-	bool inX = pos.x >= -0.5 && pos.x <= 0.5;
-	bool inY = pos.y >= -0.5 && pos.y <= 0.5;
-	bool inZ = pos.z >= -0.5 && pos.z <= 0.5;
+	bool outX = pos.x < -0.5 || pos.x > 0.5;
+	bool outY = pos.y < -0.5 || pos.y > 0.5;
+	bool outZ = pos.z < -0.5 || pos.z > 0.5;
 	
-	if(inX && inY && inZ)
+	DiffuseOut = vec4(0.0);
+	NormalOut = vec4(0.0);
+	SpecOut = vec4(0.0);
+
+	//if is inside the volume
+	if(!outX && !outY && !outZ)
+	{
 		DiffuseOut = vec4(1.0);
+		NormalOut = vec4(1.0);
+		SpecOut = vec4(1.0);
+	}
 }
