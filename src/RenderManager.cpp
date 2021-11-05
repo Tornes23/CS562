@@ -328,7 +328,6 @@ void RenderManagerClass::DecalStage()
 	//disabling writing ono the depth buffer
 	glDepthFunc(GL_GREATER);
 	glCullFace(GL_FRONT);
-	glDepthMask(GL_FALSE);
 
 	for (auto& decal : mDecals)
 	{
@@ -361,7 +360,6 @@ void RenderManagerClass::DecalStage()
 		glBindVertexArray(0);
 	}
 
-	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
 	glCullFace(GL_BACK);
 

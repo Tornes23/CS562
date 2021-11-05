@@ -16,6 +16,8 @@ uniform mat4 invP;
 uniform mat4 invV;
 uniform mat4 invM;
 uniform mat4 MV;
+in mat4 gltf;
+
 uniform int Mode;
 uniform float ClipAngle;
 
@@ -87,20 +89,21 @@ vec2 ShowDecalTexture(vec2 UV)
 	vec2 newUV = pos.xy + 0.5;
 	float alpha = texture(diffuseTex, newUV).a;
 
-	//compute the angle between normal and M2W of cube * (0, 0, -1)
-	vec3 cube_forward = (MV * vec4(0.0 ,0.0, 1.0, 1.0)).xyz;
+	//compute the angle between normal and forward vector of cube in camera space
+	vec3 cube_forward = (MV * vec4(0.0, 0.0, -1.0, 0.0)).xyz;
 	vec3 posInCam = GetViewPosition(UV);
 	vec3 tangent = normalize(dFdx(posInCam));
-	vec3 bitan = -normalize(dFdy(posInCam));
-	mat3 tbn = mat3(tangent, bitan, normalize(cross(tangent, bitan)));
-	vec3 normal = normalize(texture(normalMap, newUV).rgb * 2.0 - 1.0);
-	normal = normalize(tbn * normal);
+	vec3 bitan = normalize(dFdy(posInCam));
+	vec3 normal = normalize(cross(tangent, bitan));
+	mat3 tbn = mat3(tangent, bitan, normal);
 	float angle = dot(normal, cube_forward);
 
 	if(alpha == 0.0 || angle < ClipAngle)
 		discard;
 
 	DiffuseOut = texture2D(diffuseTex, newUV).rgba;
+	normal = normalize(texture2D(normalMap, newUV).rgb * 2.0 - 1.0); 
+	normal = normalize(tbn * normal);
 	NormalOut = vec4(normal, 1.0);
 
 	return newUV;
@@ -124,20 +127,18 @@ vec2 ShowDecalProjected(vec2 UV)
 		discard;
 
 	vec2 newUV = pos.xy + 0.5;
-	DiffuseOut = vec4(1.0);
 	//compute the angle between normal and forward vector of cube in camera space
-	vec3 cube_forward = (MV * vec4(0.0 ,0.0, 1.0, 1.0)).xyz;
+	vec3 cube_forward = (MV * vec4(0.0, 0.0, -1.0, 0.0)).xyz;
 	vec3 posInCam = GetViewPosition(UV);
 	vec3 tangent = normalize(dFdx(posInCam));
-	vec3 bitan = -normalize(dFdy(posInCam));
-	mat3 tbn = mat3(tangent, bitan, normalize(cross(tangent, bitan)));
-	vec3 normal = normalize(texture(normalMap, newUV).rgb * 2.0 - 1.0);
-	normal = normalize(tbn * normal);
+	vec3 bitan = normalize(dFdy(posInCam));
+	vec3 normal = normalize(cross(tangent, bitan));
+	mat3 tbn = mat3(tangent, bitan, normal);
 	float angle = dot(normal, cube_forward);
 
 	if(angle < ClipAngle)
 		discard;
 
-	NormalOut = vec4(normal, 1.0);
+	DiffuseOut = vec4(1.0); 
 	return newUV;
 }
