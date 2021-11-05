@@ -83,7 +83,7 @@ public:
 	void BlendBlur();
 
 	void RenderNode(Model& model, const tinygltf::Node& node);
-	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
+	void RenderMesh(Model& model, const tinygltf::Mesh& mesh, glm::mat4x4& gltf_mat);
 	
 	ShaderProgram& GetShader(const RenderMode& mode);
 	GLuint GenTexture(const glm::ivec2& size, bool high_precision = false);
@@ -102,6 +102,7 @@ private:
 	Color mAmbient;
 	DisplayTex mDisplay;
 	DecalMode mDecalMode;
+	RenderMode mMode;
 
 	FrameBuffer mFB;//Frame Buffer	
 	FrameBuffer mDisplayBuffer;//Frame Buffer	

@@ -20,6 +20,7 @@ out VS_OUT
 uniform mat4 MVP;
 uniform mat4 MV;
 uniform mat4 m2v_normal;
+uniform mat4 GLTF;
 
 void main()
 {
@@ -27,12 +28,12 @@ void main()
     //setting the out variables
     vertexCam.UV = vTexCoord;
     vertexCam.Normal = normalize(mat3(m2v_normal) * vNormal);
-    vertexCam.Tangent = normalize(vec3(MV * vec4(vTangent, 0.0F)));
+    vertexCam.Tangent = normalize(vec3(MV * GLTF * vec4(vTangent, 0.0F)));
 
     vec3 bitan = normalize(cross(vNormal, vTangent));
     vertexCam.TanMat = mat3(normalize(vTangent), normalize(bitan), normalize(vNormal));
-    vertexCam.Bitangent = normalize(mat3(MV) * bitan);
+    vertexCam.Bitangent = normalize(mat3(MV * GLTF) * bitan);
 
     //applying the transformation to the vertex pos
-    gl_Position = MVP * vec4(vPosition, 1.0);
+    gl_Position = MVP * GLTF * vec4(vPosition, 1.0);
 }

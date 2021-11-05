@@ -21,6 +21,7 @@ void RenderManagerClass::Initialize()
 	mAmbient = Color(0.6F);
 	mDisplay = DisplayTex::Standar;
 	mDecalMode = DecalMode::Result;
+	mMode = RenderMode::Regular;
 	mBloom = true;
 	mbUseDecals = true;
 	mLuminence = 1.0F;
@@ -277,6 +278,7 @@ void RenderManagerClass::Render()
 
 void RenderManagerClass::GeometryStage()
 {
+	mMode = RenderMode::Geometry;
 	auto objs = GOManager.GetObjs();
 	//binding GBuffer
 	mGBuffer.Bind();
@@ -309,6 +311,8 @@ void RenderManagerClass::GeometryStage()
 
 void RenderManagerClass::DecalStage()
 {
+	mMode = RenderMode::Decals;
+
 	glm::vec2 size = Window.GetViewport();
 	mGBuffer.BindReadBuffer();
 	mDB.BindDrawBuffer();
@@ -374,6 +378,7 @@ void RenderManagerClass::LightingStage()
 
 void RenderManagerClass::LightPass()
 {
+	mMode = RenderMode::Lighting;
 	glm::vec2 size = Window.GetViewport();
 	mGBuffer.BindReadBuffer();
 	mDisplayBuffer.BindDrawBuffer();
@@ -427,6 +432,7 @@ void RenderManagerClass::LightPass()
 
 void RenderManagerClass::RenderLights()
 {
+	mMode = RenderMode::White;
 	mDisplayBuffer.UseRenderBuffer();
 	//get shader program
 	ShaderProgram& shader = mShaders[RenderMode::White];
@@ -462,6 +468,7 @@ void RenderManagerClass::RenderLights()
 
 void RenderManagerClass::ExtractLuminence()
 {
+	mMode = RenderMode::Luminence;
 	mFB.UseRenderBuffer();
 	ClearBuffer();
 	//get shader program
@@ -522,6 +529,7 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 
 void RenderManagerClass::AmbientPass()
 {
+	mMode = RenderMode::Ambient;
 	mDisplayBuffer.UseRenderBuffer();
 	ClearBuffer();
 
@@ -556,6 +564,7 @@ void RenderManagerClass::PostProcessStage()
 	mBB.UseRenderBuffer();
 	ClearBuffer();
 
+	mMode = RenderMode::Blur;
 	bool horizontal = true;
 	for (int i = 0; i < mBlurSamples; i++)
 	{
@@ -575,6 +584,7 @@ void RenderManagerClass::PostProcessStage()
 
 void RenderManagerClass::BlendBlur()
 {
+	mMode = RenderMode::Blend;
 	mFB.UseRenderBuffer();
 	ClearBuffer();
 
@@ -609,6 +619,7 @@ void RenderManagerClass::BlendBlur()
 
 void RenderManagerClass::Display()
 {
+	mMode = RenderMode::Regular;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	ClearBuffer();
 	//get shader program
@@ -670,15 +681,27 @@ void RenderManagerClass::ClearBuffer()
 void RenderManagerClass::RenderNode(Model& model, const tinygltf::Node& node)
 {
 	const tinygltf::Model& tiny_model = model.GetGLTFModel();
+	glm::mat4x4 mat(1.0F);
+
+	if (!node.translation.empty())
+		mat = mat * glm::translate(glm::vec3(node.translation[0], node.translation[1], node.translation[2]));
+	if (!node.rotation.empty())
+	{
+		mat = mat * glm::rotate(glm::radians((float)node.rotation[0]), glm::vec3(1, 0, 0));
+		mat = mat * glm::rotate(glm::radians((float)node.rotation[1]), glm::vec3(0, 1, 0));
+		mat = mat * glm::rotate(glm::radians((float)node.rotation[2]), glm::vec3(0, 0, 1));
+	}
+	if(!node.scale.empty())
+		mat = mat * glm::scale(glm::vec3(node.scale[0], node.scale[1], node.scale[2]));
 
 	if((node.mesh >= 0) && (node.mesh < tiny_model.meshes.size()))
-		RenderMesh(model, tiny_model.meshes[node.mesh]);
+		RenderMesh(model, tiny_model.meshes[node.mesh], mat);
 
 	for (size_t i = 0; i < node.children.size(); i++) 
 		RenderNode(model, tiny_model.nodes[node.children[i]]);
 }
 
-void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
+void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh, glm::mat4x4& gltf_mat)
 {
 	const tinygltf::Model& tiny_model = model.GetGLTFModel();
 
@@ -714,7 +737,10 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model.mVBOs[indexAccessor.bufferView]);
 
 		//set correct material active
-		model.SetMaterialActive(mesh.primitives[i].material);		
+		model.SetMaterialActive(mesh.primitives[i].material);	
+
+		auto& shader = GetShader(mMode);
+		shader.SetMatUniform("GLTF", &gltf_mat[0][0]);
 
 		glDrawElements(primitive.mode, static_cast<GLsizei>(indexAccessor.count), indexAccessor.componentType,
 						BUFFER_OFFSET(indexAccessor.byteOffset));
@@ -743,6 +769,6 @@ GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precisio
 
 Color RenderManagerClass::GenRandomCol() { return Color(glm::linearRand(0.0F ,1.0F), glm::linearRand(0.0F, 1.0F), glm::linearRand(0.0F, 1.0F), 1.0F); }
 
-glm::vec3 RenderManagerClass::GenRandomPos() { return glm::vec3(glm::linearRand(-200.0F, 200.0F), glm::linearRand(-200.0F, 200.0F), glm::linearRand(-200.0F, 200.0F)); }
+glm::vec3 RenderManagerClass::GenRandomPos() { return glm::vec3(glm::linearRand(-100.0F, 100.0F), glm::linearRand(-100.0F, 100.0F), glm::linearRand(-200.0F, 200.0F)); }
 
 bool RenderManagerClass::LightsAnimated() const { return mLightsAnimated;}
