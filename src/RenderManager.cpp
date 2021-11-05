@@ -91,9 +91,9 @@ void RenderManagerClass::Edit()
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 	
-	const char* texture_options[6] = { "Standar", "Diffuse", "Normal", "Specular", "Depth", "Decals"};
+	const char* texture_options[5] = { "Standar", "Diffuse", "Normal", "Specular", "Depth"};
 	
-	if (ImGui::Combo("Display Texture", &tex, texture_options, 6, 7))
+	if (ImGui::Combo("Display Texture", &tex, texture_options, 5, 6))
 	{
 		switch (tex)
 		{
@@ -111,9 +111,6 @@ void RenderManagerClass::Edit()
 			break;
 		case 4:
 			mDisplay = DisplayTex::Depth;
-			break;
-		case 5:
-			mDisplay = DisplayTex::DecalsTex;
 			break;
 		}
 	}
@@ -644,9 +641,6 @@ void RenderManagerClass::Display()
 		break;
 	case DisplayTex::Depth:
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
-		break;
-	case DisplayTex::DecalsTex:
-		glBindTexture(GL_TEXTURE_2D, mDB.mNormalBuffer);
 		break;
 	default:
 		glBindTexture(GL_TEXTURE_2D, mBloom ? mFB.GetRenderTexture() : mDisplayBuffer.GetRenderTexture());
