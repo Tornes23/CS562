@@ -24,7 +24,7 @@ void RenderManagerClass::Initialize()
 	mBloom = true;
 	mbUseDecals = true;
 	mLuminence = 1.0F;
-	mClipAngle = 0.01F;
+	mClipAngle = 0.1F;
 	mBlurSamples = 5;
 	mLightsAnimated = false;
 	mContrast = 1.0F - 0.99784F;
@@ -90,9 +90,9 @@ void RenderManagerClass::Edit()
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 	
-	const char* texture_options[5] = { "Standar", "Diffuse", "Normal", "Specular", "Depth"};
+	const char* texture_options[6] = { "Standar", "Diffuse", "Normal", "Specular", "Depth", "Decals"};
 	
-	if (ImGui::Combo("Display Texture", &tex, texture_options, 5, 6))
+	if (ImGui::Combo("Display Texture", &tex, texture_options, 6, 7))
 	{
 		switch (tex)
 		{
@@ -110,6 +110,9 @@ void RenderManagerClass::Edit()
 			break;
 		case 4:
 			mDisplay = DisplayTex::Depth;
+			break;
+		case 5:
+			mDisplay = DisplayTex::DecalsTex;
 			break;
 		}
 	}
@@ -173,7 +176,7 @@ void RenderManagerClass::Edit()
 			}
 		}
 
-		ImGui::DragFloat("Clip Angle", &mClipAngle, 0.0002F, 0.0F);
+		ImGui::DragFloat("Clip Angle", &mClipAngle, 0.02F, 0.0F);
 
 		ImGui::TreePop();
 	}
@@ -340,7 +343,7 @@ void RenderManagerClass::DecalStage()
 		shader.SetMatUniform("invP", &invP[0][0]);
 		shader.SetMatUniform("invV", &invV[0][0]);
 		shader.SetMatUniform("invM", &invM2W[0][0]);
-		shader.SetMatUniform("M2W", &decal.mM2W[0][0]);
+		shader.SetMatUniform("MV", &mv[0][0]);
 		shader.SetFloatUniform("ClipAngle", mClipAngle);
 
 		shader.SetIntUniform("Mode", static_cast<int>(mDecalMode));
@@ -632,6 +635,9 @@ void RenderManagerClass::Display()
 		break;
 	case DisplayTex::Depth:
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
+		break;
+	case DisplayTex::DecalsTex:
+		glBindTexture(GL_TEXTURE_2D, mDB.mNormalBuffer);
 		break;
 	default:
 		glBindTexture(GL_TEXTURE_2D, mBloom ? mFB.GetRenderTexture() : mDisplayBuffer.GetRenderTexture());

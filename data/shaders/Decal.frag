@@ -15,7 +15,7 @@ uniform vec2 Size;
 uniform mat4 invP;
 uniform mat4 invV;
 uniform mat4 invM;
-uniform mat4 M2W;
+uniform mat4 MV;
 uniform int Mode;
 uniform float ClipAngle;
 
@@ -88,13 +88,13 @@ vec2 ShowDecalTexture(vec2 UV)
 	float alpha = texture(diffuseTex, newUV).a;
 
 	//compute the angle between normal and M2W of cube * (0, 0, -1)
-	vec3 cube_forward = (M2W * vec4(0.0 ,0.0, -1.0, 1.0)).xyz;
+	vec3 cube_forward = (MV * vec4(0.0 ,0.0, 1.0, 1.0)).xyz;
 	vec3 posInCam = GetViewPosition(UV);
 	vec3 tangent = normalize(dFdx(posInCam));
-	vec3 bitan = normalize(dFdy(posInCam));
+	vec3 bitan = -normalize(dFdy(posInCam));
+	mat3 tbn = mat3(tangent, bitan, normalize(cross(tangent, bitan)));
 	vec3 normal = normalize(texture(normalMap, newUV).rgb * 2.0 - 1.0);
-	mat3 tbn = mat3(tangent, bitan, normalize(cross(bitan, tangent)));
-	normal = tbn * normal;
+	normal = normalize(tbn * normal);
 	float angle = dot(normal, cube_forward);
 
 	if(alpha == 0.0 || angle < ClipAngle)
@@ -123,7 +123,21 @@ vec2 ShowDecalProjected(vec2 UV)
 	if(outX || outY || outZ)
 		discard;
 
+	vec2 newUV = pos.xy + 0.5;
 	DiffuseOut = vec4(1.0);
+	//compute the angle between normal and forward vector of cube in camera space
+	vec3 cube_forward = (MV * vec4(0.0 ,0.0, 1.0, 1.0)).xyz;
+	vec3 posInCam = GetViewPosition(UV);
+	vec3 tangent = normalize(dFdx(posInCam));
+	vec3 bitan = -normalize(dFdy(posInCam));
+	mat3 tbn = mat3(tangent, bitan, normalize(cross(tangent, bitan)));
+	vec3 normal = normalize(texture(normalMap, newUV).rgb * 2.0 - 1.0);
+	normal = normalize(tbn * normal);
+	float angle = dot(normal, cube_forward);
 
-	return pos.xy + 0.5;
+	if(angle < ClipAngle)
+		discard;
+
+	NormalOut = vec4(normal, 1.0);
+	return newUV;
 }

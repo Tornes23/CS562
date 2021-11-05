@@ -43,7 +43,8 @@ public:
 		Diffuse,
 		Normal,
 		Specular,
-		Depth
+		Depth,
+		DecalsTex
 	};
 
 	enum DecalMode
