@@ -77,11 +77,12 @@ namespace Utils
         if (inFile.good() && inFile.is_open())
         {
             inFile >> j;
-            nlohmann::json& lights = *j.find("lights");
             if (j.find("camera") != j.end())
                 Camera.LoadCamera(*j.find("camera"));
             if (j.find("objects") != j.end())
                 GOManager.LoadObjects(*j.find("objects"));
+            if (j.find("decals") != j.end())
+                RenderManager.LoadDecals(*j.find("decals"));
             if (j.find("lights") != j.end())
                 RenderManager.LoadLights(*j.find("lights"));
         }

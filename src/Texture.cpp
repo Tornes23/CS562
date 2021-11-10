@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Texture.h"
 #include "tinyglft/tiny_gltf.h"
+#include "ResourceManager.h"
 
 Texture::Texture(const tinygltf::Image* tex) 
 { 
@@ -30,6 +31,33 @@ Texture::Texture(const tinygltf::Image* tex)
 
     glTexImage2D(GL_TEXTURE_2D, 0, format, tex->width, tex->height, 0,
         format, type, &tex->image.at(0));
+
+    mName = tex->name;
+}
+
+#undef LoadImage
+Texture::Texture(const std::string& file)
+{
+    glGenTextures(1, &mHandle);
+
+    int width;
+    int height;
+    int channels;
+    int desired = 4;
+    stbi_uc* pixels = ResourceManager.LoadImage(file, &width, &height, &channels, desired);
+
+    if (pixels != nullptr)
+    {
+        glBindTexture(GL_TEXTURE_2D, mHandle);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+        stbi_image_free(pixels);
+    }
+
+    std::string filename = file.substr(file.find_last_of("/") + 1, file.length());
+    mName = filename;
 }
 Texture::Texture() {}
 Texture::~Texture() { glDeleteTextures(1, &mHandle); }

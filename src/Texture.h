@@ -1,5 +1,6 @@
 #pragma once
 #include "gl/glew.h"
+#include <string>
 
 namespace tinygltf
 {
@@ -15,6 +16,7 @@ struct Texture
     };
 
     Texture(const tinygltf::Image* tex);
+    Texture(const std::string& file);
     Texture();
     ~Texture();
 
@@ -22,5 +24,6 @@ struct Texture
     void Bind(unsigned index) const;
 
     GLuint          mHandle;
+    std::string mName;
 };
 

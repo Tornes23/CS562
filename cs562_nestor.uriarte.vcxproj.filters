@@ -76,6 +76,15 @@
     <Filter Include="Source Files\GFX\FrameBuffer">
       <UniqueIdentifier>{035900e3-a70c-425e-a163-8efea8a1660d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GFX\Decal">
+      <UniqueIdentifier>{e67b728d-4e88-4e77-ae10-16ce7cc6bd51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GFX\BloomBuffer">
+      <UniqueIdentifier>{616307ae-6d6e-4160-ad58-4f139351d668}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\GFX\DecalBuffer">
+      <UniqueIdentifier>{956be17d-e01a-4d94-bf83-16b40954f52c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -158,6 +167,15 @@
     </ClCompile>
     <ClCompile Include="src\FrameBuffer.cpp">
       <Filter>Source Files\GFX\FrameBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Decal.cpp">
+      <Filter>Source Files\GFX\Decal</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BloomBuffer.cpp">
+      <Filter>Source Files\GFX\BloomBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DecalBuffer.cpp">
+      <Filter>Source Files\GFX\DecalBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -247,6 +265,15 @@
     </ClInclude>
     <ClInclude Include="src\FrameBuffer.h">
       <Filter>Source Files\GFX\FrameBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Decal.h">
+      <Filter>Source Files\GFX\Decal</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BloomBuffer.h">
+      <Filter>Source Files\GFX\BloomBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DecalBuffer.h">
+      <Filter>Source Files\GFX\DecalBuffer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

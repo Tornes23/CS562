@@ -7,9 +7,24 @@ o Click + Drag: the mouse should tilt the camera around its yaw and pitch.
 o Up/Down: rotate the camera around the pitch.
 o Left/right: rotate the camera around the yaw.
 
+o LShift + WASDQE: moves the camera faster.
+o LControl + + WASDQE: moves the camera slower.
+
+o Num1: Displays the resulting texture.
+o Num2: Displays the Diffuse texture.
+o Num3: Displays the Normal texture.
+o Num4: Displays the Specular texture.
+o Num5: Displays the Depth texture.
+
+o LContol + Num1: Displays the Decal Volumes.
+o LContol + Num2: Displays the Decal Projected Areas.
+o LContol + Num3: Displays the Decal Result.
+
 2. Important parts of the code: 
-    RenderManager.h/cpp
-    GBuffer.h/cpp
-    GeometryStage shaders
+    RenderManager.h/cpp (DecalStage Function)
+    DecalBuffer.h/cpp
+    Decal shaders
 
 3. Known issues and problems: 
+    - I think i fixed the bloom problem 
+      if possible let me know that is corrected

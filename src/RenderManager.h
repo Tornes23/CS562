@@ -8,6 +8,9 @@
 #include "Model.h"
 #include "GBuffer.h"
 #include "FrameBuffer.h"
+#include "BloomBuffer.h"
+#include "DecalBuffer.h"
+#include "Decal.h"
 
 class RenderManagerClass
 {
@@ -28,7 +31,10 @@ public:
 		Ambient,
 		Luminence,
 		Blur,
-		Regular
+		Decals,
+		Regular,
+		Blend,
+		White
 	};
 
 	enum DisplayTex
@@ -36,9 +42,15 @@ public:
 		Standar,
 		Diffuse,
 		Normal,
-		Position,
 		Specular,
 		Depth
+	};
+
+	enum DecalMode
+	{
+		Volume,
+		Projected,
+		Result,
 	};
 
 	void Initialize();
@@ -46,6 +58,7 @@ public:
 	
 	void Edit();
 	void LoadLights(const nlohmann::json& lights);
+	void LoadDecals(const nlohmann::json& decals);
 	void LoadShaders(bool reload = false);
 	void FreeShaders();
 	void AddLight();
@@ -53,17 +66,24 @@ public:
 	void Render();
 	void Display();
 	void ClearBuffer();
-	void GeometryStage();
-	void LightingStage();
-	void AmbientStage();
-	void PostProcessStage();
 
-	void RenderNode(Model& model, const tinygltf::Node& node);
-	void RenderMesh(Model& model, const tinygltf::Mesh& mesh);
-	
+	void GeometryStage();
+
+	void DecalStage();
+
+	void LightPass();
+	void AmbientPass();
+	void RenderLights();
+	void LightingStage();
+
+	void PostProcessStage();
 	void ExtractLuminence();
 	void BlurTexture(bool horizontal = false, bool first_pass = false);
-	void BindGTextures();
+	void BlendBlur();
+
+	void RenderNode(Model& model, const tinygltf::Node& node);
+	void RenderMesh(Model& model, const tinygltf::Mesh& mesh, glm::mat4x4& gltf_mat);
+	
 	ShaderProgram& GetShader(const RenderMode& mode);
 	GLuint GenTexture(const glm::ivec2& size, bool high_precision = false);
 	Color GenRandomCol();
@@ -74,17 +94,26 @@ private:
 	const std::string mShaderPath = "./data/shaders/";
 	const int MAX_LIGHTS = 3000;
 	std::vector<Light> mLights;
-	std::vector<ShaderProgram> mShaders;
+	std::vector<Decal> mDecals;
+	std::map<RenderMode, ShaderProgram> mShaders;
 	GBuffer mGBuffer;
 	Model* mScreenTriangle;
 	Color mAmbient;
 	DisplayTex mDisplay;
-	FrameBuffer mFB;
-	FrameBuffer mBloomBuffer;
+	DecalMode mDecalMode;
+	RenderMode mMode;
+
+	FrameBuffer mFB;//Frame Buffer	
+	FrameBuffer mDisplayBuffer;//Frame Buffer	
+	BloomBuffer mBB;//Bloom buffer
+	DecalBuffer mDB;//Decal Buffer
+
 	float mLightRad;
 	float mLuminence;
 	float mContrast;
+	float mClipAngle;
 	bool mBloom;
+	bool mbUseDecals;
 	bool mLightsAnimated;
 	int mBlurSamples;
 	RenderManagerClass() {}

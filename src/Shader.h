@@ -21,7 +21,7 @@ private:
 class ShaderProgram
 {
 public:
-	ShaderProgram(std::string vertex, std::string fragment, std::string geometry = "");
+	ShaderProgram(std::string vertex = "./data/shaders/Regular.vert", std::string fragment = "./data/shaders/Regular.frag", std::string geometry = "");
 	const GLuint GetHandle() const;
 	void Create();
 	void Free();

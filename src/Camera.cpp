@@ -19,7 +19,7 @@ void CameraClass::LoadCamera(const nlohmann::json& j)
 	//set right vector
 	mUp = {0,1,0};
 	mRightVector = glm::normalize(glm::cross(mView, mUp));
-	mSpeed = 2.0F;
+	mSpeed = 0.5F;
 	mSensitivity = 0.01F;
 }
 
@@ -27,19 +27,22 @@ void CameraClass::Move()
 {
 	Rotate();
 
+	float speed = KeyDown(Key::LShift) ? mSpeed * 2.0F : mSpeed;
+	speed = KeyDown(Key::Control) ? mSpeed / 2.0F : mSpeed;
+
 	//displacement
 	if (KeyDown(Key::W))
-		mPos += mSpeed * mView;
+		mPos += speed * mView;
 	if (KeyDown(Key::S))
-		mPos -= mSpeed * mView;
+		mPos -= speed * mView;
 	if (KeyDown(Key::D))
-		mPos += mSpeed * mRightVector;
+		mPos += speed * mRightVector;
 	if (KeyDown(Key::A))
-		mPos -= mSpeed * mRightVector;
+		mPos -= speed * mRightVector;
 	if (KeyDown(Key::Q))
-		mPos += mSpeed * glm::vec3(0,1,0);
+		mPos += speed * glm::vec3(0,1,0);
 	if (KeyDown(Key::E))
-		mPos -= mSpeed * glm::vec3(0, 1, 0);
+		mPos -= speed * glm::vec3(0, 1, 0);
 }
 
 void CameraClass::Update()
@@ -56,9 +59,8 @@ void CameraClass::UpdateVectors(const glm::vec2& offset)
 {
 	glm::vec2 movement = offset * mSensitivity;
 	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * movement.y, mRightVector));
-	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * -movement.x, mUp));
+	mView = glm::vec3(glm::vec4(mView, 0) * glm::rotate(glm::radians(5.0f) * -movement.x, glm::vec3(0, 1, 0)));
 
-	mUp = glm::vec3(glm::vec4(mUp, 0) * glm::rotate(glm::radians(5.0f) * movement.y, mRightVector));
 	mRightVector = glm::normalize(glm::cross(mView, mUp));
 
 }

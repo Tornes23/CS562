@@ -10,19 +10,13 @@ public:
 
 	const GLuint GetRenderBuffer() const;
 	const GLuint GetRenderTexture() const;
-	const GLuint GetLuminenceTexture() const;
-	const GLuint GetTexture(bool first) const;
 
 	void UseRenderBuffer();
-
-	void ClearColorBuffer();
-	void ClearDepthBuffer();
+	void BindDrawBuffer();
 
 
 private:
 
 	GLuint mRenderTexture;
 	GLuint mRenderBuffer;
-	GLuint mLuminenceTexture;
-
 };

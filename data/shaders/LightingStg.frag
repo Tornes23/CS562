@@ -13,20 +13,27 @@ struct Light
 //the used textures
 layout(location = 0) uniform sampler2D g_diffuseTex;
 layout(location = 1) uniform sampler2D g_normalTex;
-layout(location = 2) uniform sampler2D g_posTex;
-layout(location = 3) uniform sampler2D g_SpecTex;
+layout(location = 2) uniform sampler2D g_SpecTex;
+layout(location = 3) uniform sampler2D g_DepthTex;
 
 uniform Light mLight;
 uniform vec2 Size;
+uniform mat4 invP;
 
 vec3 PointLight(Light light, vec2 UV)
 {   
-    
     //computing the required vectors and required data
     vec3 normal = normalize(texture(g_normalTex, UV).rgb); 
-    vec3 position = texture(g_posTex, UV).rgb;
-    vec3 lightDir = normalize(light.PosInCamSpc - position);
-    vec3 viewDir = normalize(-position);//since im cam space cam pos = origin
+
+    //get depth value from texture
+	float depth = texture2D(g_DepthTex, UV).r * 2.0 - 1.0;
+    vec2 xy = UV * 2.0 - 1.0;
+	vec4 position = vec4(xy, depth, 1.0);
+    position = invP * position;
+    position /= position.w;
+
+    vec3 lightDir = normalize(light.PosInCamSpc - position.xyz);
+    vec3 viewDir = normalize(-position.xyz);//since im cam space cam pos = origin
     vec3 reflectDir = reflect(-lightDir, normal);  
     //getting the shininess and specular values
     float shininess = texture(g_SpecTex, UV).g;
@@ -40,7 +47,7 @@ vec3 PointLight(Light light, vec2 UV)
     //computing specular color
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
     //computing the distance
-    float dist = length(light.PosInCamSpc - position);
+    float dist = length(light.PosInCamSpc - position.xyz);
     //specular color is always white
     vec3 specularCol = vec3(1,1,1) * spec * specVal;  
     

@@ -14,13 +14,19 @@ void RenderManagerClass::Initialize()
 {
 	mGBuffer.Create();
 	mFB.Create();
-	mBloomBuffer.Create();
+	mDisplayBuffer.Create();
+	mBB.Create();
+	mDB.Create(mGBuffer.mDiffuseBuffer, mGBuffer.mNormalBuffer, mGBuffer.mSpecularBuffer);
 	LoadShaders();
-	mAmbient = Color(0.02F);
+	mAmbient = Color(0.6F);
 	mDisplay = DisplayTex::Standar;
+	mDecalMode = DecalMode::Result;
+	mMode = RenderMode::Regular;
 	mBloom = true;
+	mbUseDecals = true;
 	mLuminence = 1.0F;
-	mBlurSamples = 1;
+	mClipAngle = 0.1F;
+	mBlurSamples = 5;
 	mLightsAnimated = false;
 	mContrast = 1.0F - 0.99784F;
 }
@@ -32,18 +38,27 @@ void RenderManagerClass::Update()
 	if (KeyDown(Key::F5))
 		LoadShaders(true);
 
-	if (KeyDown(Key::Num1))
+	bool ctrl = KeyDown(Key::Control);
+
+	if (KeyDown(Key::Num1) && !ctrl)
 		mDisplay = DisplayTex::Standar;
-	if (KeyDown(Key::Num2))
+	if (KeyDown(Key::Num2) && !ctrl)
 		mDisplay = DisplayTex::Diffuse;
-	if (KeyDown(Key::Num3))
+	if (KeyDown(Key::Num3) && !ctrl)
 		mDisplay = DisplayTex::Normal;
-	if (KeyDown(Key::Num4))
-		mDisplay = DisplayTex::Position;
-	if (KeyDown(Key::Num5))
+	if (KeyDown(Key::Num4) && !ctrl)
 		mDisplay = DisplayTex::Specular;
-	if (KeyDown(Key::Num6))
+	if (KeyDown(Key::Num5) && !ctrl)
 		mDisplay = DisplayTex::Depth;
+
+	if (KeyDown(Key::Num1) && ctrl)
+		mDecalMode = DecalMode::Volume;
+	if (KeyDown(Key::Num2) && ctrl)
+		mDecalMode = DecalMode::Projected;
+	if (KeyDown(Key::Num3) && ctrl)
+		mDecalMode = DecalMode::Result;
+
+
 
 	for (auto& it : mLights)
 		it.Update();
@@ -61,6 +76,8 @@ void RenderManagerClass::Edit()
 	}
 
 	ImGui::Checkbox("Bloom", &mBloom);
+	ImGui::SameLine();
+	ImGui::Checkbox("Decals", &mbUseDecals);
 	ImGui::DragInt("Bloom Smaples", &mBlurSamples);
 	if (mBlurSamples < 0)
 		mBlurSamples = 0;
@@ -74,9 +91,9 @@ void RenderManagerClass::Edit()
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 	
-	const char* options[6] = { "Standar", "Diffuse", "Normal", "Position", "Specular", "Depth"};
+	const char* texture_options[5] = { "Standar", "Diffuse", "Normal", "Specular", "Depth"};
 	
-	if (ImGui::Combo("Display Texture", &tex, options, 6, 7))
+	if (ImGui::Combo("Display Texture", &tex, texture_options, 5, 6))
 	{
 		switch (tex)
 		{
@@ -90,12 +107,9 @@ void RenderManagerClass::Edit()
 			mDisplay = DisplayTex::Normal;
 			break;
 		case 3:
-			mDisplay = DisplayTex::Position;
-			break;
-		case 4:
 			mDisplay = DisplayTex::Specular;
 			break;
-		case 5:
+		case 4:
 			mDisplay = DisplayTex::Depth;
 			break;
 		}
@@ -137,6 +151,35 @@ void RenderManagerClass::Edit()
 		ImGui::TreePop();
 	}
 
+	if (ImGui::TreeNode("Decals"))
+	{
+		//code to change the output
+		int dec = static_cast<int>(mDecalMode);
+
+		const char* decal_options[3] = { "Volume", "Projected", "Result" };
+
+		if (ImGui::Combo("Decal Stage", &dec, decal_options, 3, 4))
+		{
+			switch (dec)
+			{
+			case 0:
+				mDecalMode = DecalMode::Volume;
+				break;
+			case 1:
+				mDecalMode = DecalMode::Projected;
+				break;
+			case 2:
+				mDecalMode = DecalMode::Result;
+				break;
+			}
+		}
+
+		ImGui::DragFloat("Clip Angle", &mClipAngle, 0.02F, 0.0F);
+
+		ImGui::TreePop();
+	}
+
+
 	ImGui::End();
 }
 
@@ -157,7 +200,25 @@ void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 	}
 
 	mLightRad /= mLights.size();
+
+
 	mScreenTriangle = ResourceManager.GetResource<Model>("ScreenTriangle.gltf");
+}
+
+void RenderManagerClass::LoadDecals(const nlohmann::json& decals)
+{
+	mDecals.clear();
+	for (auto it = decals.begin(); it != decals.end(); it++)
+	{
+		Decal decal;
+		nlohmann::json object = *it;
+		//load decal
+		object >> decal;
+
+		decal.GenM2W();
+		//load mesh
+		mDecals.push_back(decal);
+	}
 }
 
 void RenderManagerClass::LoadShaders(bool reload)
@@ -165,19 +226,22 @@ void RenderManagerClass::LoadShaders(bool reload)
 	if (reload)
 		FreeShaders();
 
-	mShaders.push_back(ShaderProgram("./data/shaders/GeometryStg.vert", "./data/shaders/GeometryStg.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/LightingStg.vert", "./data/shaders/LightingStg.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/Ambient.vert", "./data/shaders/Ambient.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/Luminence.vert", "./data/shaders/Luminence.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/Blur.vert", "./data/shaders/Blur.frag"));
-	mShaders.push_back(ShaderProgram("./data/shaders/Regular.vert", "./data/shaders/Regular.frag"));
+	mShaders[RenderMode::Geometry] = ShaderProgram("./data/shaders/GeometryStg.vert", "./data/shaders/GeometryStg.frag");
+	mShaders[RenderMode::Lighting] = ShaderProgram("./data/shaders/LightingStg.vert", "./data/shaders/LightingStg.frag");
+	mShaders[RenderMode::Ambient] = ShaderProgram("./data/shaders/Ambient.vert", "./data/shaders/Ambient.frag");
+	mShaders[RenderMode::Luminence] = ShaderProgram("./data/shaders/Luminence.vert", "./data/shaders/Luminence.frag");
+	mShaders[RenderMode::Blur] = ShaderProgram("./data/shaders/Blur.vert", "./data/shaders/Blur.frag");
+	mShaders[RenderMode::Decals] = ShaderProgram("./data/shaders/Decal.vert", "./data/shaders/Decal.frag");
+	mShaders[RenderMode::Regular] = ShaderProgram("./data/shaders/Regular.vert", "./data/shaders/Regular.frag");
+	mShaders[RenderMode::Blend] = ShaderProgram("./data/shaders/Blend.vert", "./data/shaders/Blend.frag");
+	mShaders[RenderMode::White] = ShaderProgram("./data/shaders/White.vert", "./data/shaders/White.frag");
 }
 
 void RenderManagerClass::FreeShaders()
 {
 	//for each shader destroy
 	for (auto& it : mShaders)
-		it.Free();
+		it.second.Free();
 
 	mShaders.clear();
 }
@@ -196,27 +260,28 @@ void RenderManagerClass::AddLight()
 
 void RenderManagerClass::Render()
 {
-	if(mDisplay == DisplayTex::Standar)
-	{
-		GeometryStage();
-		AmbientStage();
-		LightingStage();
+	GeometryStage();
 
-		if(mBloom)
-			PostProcessStage();
-	}
+	if(mbUseDecals)
+		DecalStage();
+
+	LightingStage();
+
+	if(mBloom)
+		PostProcessStage();
 
 	Display();
 }
 
 void RenderManagerClass::GeometryStage()
 {
+	mMode = RenderMode::Geometry;
 	auto objs = GOManager.GetObjs();
 	//binding GBuffer
 	mGBuffer.Bind();
 	ClearBuffer();
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Geometry)];
+	ShaderProgram& shader = mShaders[RenderMode::Geometry];
 	shader.Use();
 	for (auto& it : objs)
 	{
@@ -232,24 +297,94 @@ void RenderManagerClass::GeometryStage()
 		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
 		for (size_t i = 0; i < scene.nodes.size(); i++)
 			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+
+		//unbinding the VAOs
+		glBindVertexArray(0);
 	}
 
 	glUseProgram(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void RenderManagerClass::DecalStage()
+{
+	mMode = RenderMode::Decals;
+
+	glm::vec2 size = Window.GetViewport();
+	mGBuffer.BindReadBuffer();
+	mDB.BindDrawBuffer();
+	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
+		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	mDB.UseRenderBuffer();
+	
+	//get shader program
+	ShaderProgram& shader = mShaders[RenderMode::Decals];
+	shader.Use();
+	mGBuffer.BindDepthTexture();
+
+	//disabling writing ono the depth buffer
+	glDepthFunc(GL_GREATER);
+	glCullFace(GL_FRONT);
+
+	for (auto& decal : mDecals)
+	{
+		//binding the screen triangle
+		decal.mModel->BindVAO();
+		//set uniforms in shader
+		glm::mat4x4 mv = Camera.GetCameraMat() * decal.mM2W;
+		glm::mat4x4 mvp = Camera.GetProjection() * mv;
+		glm::mat4x4 invP = glm::inverse(Camera.GetProjection());
+		glm::mat4x4 invV = glm::inverse(Camera.GetCameraMat());
+		glm::mat4x4 invM2W = glm::inverse(decal.mM2W);
+
+		shader.SetVec2Uniform("Size", Window.GetViewport());
+
+		shader.SetMatUniform("MVP", &mvp[0][0]);
+		shader.SetMatUniform("invP", &invP[0][0]);
+		shader.SetMatUniform("invV", &invV[0][0]);
+		shader.SetMatUniform("invM", &invM2W[0][0]);
+		shader.SetMatUniform("MV", &mv[0][0]);
+		shader.SetFloatUniform("ClipAngle", mClipAngle);
+
+		shader.SetIntUniform("Mode", static_cast<int>(mDecalMode));
+		decal.SetUniforms();
+		//rendering the screen triangle
+		const tinygltf::Scene& scene = decal.mModel->GetGLTFModel().scenes[decal.mModel->GetGLTFModel().defaultScene];
+		for (size_t i = 0; i < scene.nodes.size(); i++)
+			RenderNode(*decal.mModel, decal.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+	
+		//unbinding the VAOs
+		glBindVertexArray(0);
+	}
+
+	glDepthFunc(GL_LESS);
+	glCullFace(GL_BACK);
+
+	glUseProgram(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::LightingStage()
 {
+	AmbientPass();
+	LightPass();
+	RenderLights();
+}
+
+void RenderManagerClass::LightPass()
+{
+	mMode = RenderMode::Lighting;
 	glm::vec2 size = Window.GetViewport();
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, mGBuffer.mHandle);
-	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFB.GetRenderBuffer());
-	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0, 
-					static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST );
-	glBindFramebuffer(GL_FRAMEBUFFER, mFB.GetRenderBuffer());
+	mGBuffer.BindReadBuffer();
+	mDisplayBuffer.BindDrawBuffer();
+	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
+		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	mDisplayBuffer.UseRenderBuffer();
 
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Lighting)];
+	ShaderProgram& shader = mShaders[RenderMode::Lighting];
 	shader.Use();
-	BindGTextures();
+	mGBuffer.BindTextures();
 	//Diabling the back face culling
 	glCullFace(GL_FRONT);
 	//SET BLENDING TO ADDITIVE
@@ -260,22 +395,24 @@ void RenderManagerClass::LightingStage()
 	glDepthFunc(GL_GREATER);
 	glDepthMask(GL_FALSE);
 
-	for (auto& it : mLights)
+	for (auto& light : mLights)
 	{
 		//binding the screen triangle
-		it.mModel->BindVAO();
+		light.mModel->BindVAO();
 		//set uniforms in shader
-		glm::mat4x4 mv = Camera.GetCameraMat() * it.mM2W;
+		glm::mat4x4 mv = Camera.GetCameraMat() * light.mM2W;
 		glm::mat4x4 mvp = Camera.GetProjection() * mv;
+		glm::mat4x4 invP = glm::inverse(Camera.GetProjection());
 		shader.SetMatUniform("MV", &mv[0][0]);
 		shader.SetMatUniform("MVP", &mvp[0][0]);
+		shader.SetMatUniform("invP", &invP[0][0]);
 		shader.SetVec2Uniform("Size", Window.GetViewport());
-		it.SetUniforms("mLight", &shader);
+		light.SetUniforms("mLight", &shader);
 
 		//rendering the screen triangle
-		const tinygltf::Scene& scene = it.mModel->GetGLTFModel().scenes[it.mModel->GetGLTFModel().defaultScene];
+		const tinygltf::Scene& scene = light.mModel->GetGLTFModel().scenes[light.mModel->GetGLTFModel().defaultScene];
 		for (size_t i = 0; i < scene.nodes.size(); i++)
-			RenderNode(*it.mModel, it.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+			RenderNode(*light.mModel, light.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
 	}
 
 	glDepthMask(GL_TRUE);
@@ -285,12 +422,52 @@ void RenderManagerClass::LightingStage()
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void RenderManagerClass::RenderLights()
+{
+	mMode = RenderMode::White;
+	mDisplayBuffer.UseRenderBuffer();
+	//get shader program
+	ShaderProgram& shader = mShaders[RenderMode::White];
+	shader.Use();
+	//SET BLENDING TO ADDITIVE
+	glEnable(GL_BLEND);
+	glBlendEquation(GL_FUNC_ADD);
+	glBlendFunc(GL_ONE, GL_ONE);
+
+	for (auto& light : mLights)
+	{
+		//binding the screen triangle
+		light.mModel->BindVAO();
+		//set uniforms in shader
+		glm::mat4x4 m2w = glm::translate(glm::mat4x4(1.0F), light.mPos);
+		m2w = glm::scale(m2w, glm::vec3(2.0F));
+		glm::mat4x4 mvp = Camera.GetProjection() * Camera.GetCameraMat() * m2w;
+		shader.SetMatUniform("MVP", &mvp[0][0]);
+
+		//rendering the screen triangle
+		const tinygltf::Scene& scene = light.mModel->GetGLTFModel().scenes[light.mModel->GetGLTFModel().defaultScene];
+		for (size_t i = 0; i < scene.nodes.size(); i++)
+			RenderNode(*light.mModel, light.mModel->GetGLTFModel().nodes[scene.nodes[i]]);
+	}
+
+	glDepthMask(GL_TRUE);
+	glDisable(GL_BLEND);
+	glUseProgram(0);
+	//unbinding the VAOs
+	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::ExtractLuminence()
 {
+	mMode = RenderMode::Luminence;
+	mFB.UseRenderBuffer();
+	ClearBuffer();
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Luminence)];
+	ShaderProgram& shader = GetShader(RenderMode::Luminence);
 	shader.Use();
 	//binding the screen triangle
 	mScreenTriangle->BindVAO();
@@ -300,7 +477,7 @@ void RenderManagerClass::ExtractLuminence()
 	shader.SetFloatUniform("LumThreshold", mLuminence);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
+	glBindTexture(GL_TEXTURE_2D, mDisplayBuffer.GetRenderTexture());
 	glUniform1i(0, 0);
 
 	//rendering the screen triangle
@@ -311,12 +488,13 @@ void RenderManagerClass::ExtractLuminence()
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 {
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Blur)];
+	ShaderProgram& shader = mShaders[RenderMode::Blur];
 	shader.Use();
 	//binding the screen triangle
 	mScreenTriangle->BindVAO();
@@ -327,9 +505,9 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 
 	glActiveTexture(GL_TEXTURE0);
 	if(first_pass)
-		glBindTexture(GL_TEXTURE_2D, mFB.GetLuminenceTexture());
+		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
 	else
-		glBindTexture(GL_TEXTURE_2D, mBloomBuffer.GetTexture(horizontal));
+		glBindTexture(GL_TEXTURE_2D, mBB.GetLuminenceTexture(!horizontal));
 
 	glUniform1i(0, 0);
 
@@ -341,33 +519,17 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
-}
-
-void RenderManagerClass::BindGTextures()
-{
-	//binding the gbuffer textures as inputs
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mGBuffer.mDiffuseBuffer);
-	glUniform1i(0, 0);
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, mGBuffer.mNormalBuffer);
-	glUniform1i(1, 1);
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, mGBuffer.mPositionBuffer);
-	glUniform1i(2, 2);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, mGBuffer.mSpecularBuffer);
-	glUniform1i(3, 3);
 
 }
 
-void RenderManagerClass::AmbientStage()
+void RenderManagerClass::AmbientPass()
 {
-	mFB.UseRenderBuffer();
+	mMode = RenderMode::Ambient;
+	mDisplayBuffer.UseRenderBuffer();
 	ClearBuffer();
 
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Ambient)];
+	ShaderProgram& shader = GetShader(RenderMode::Ambient);
 	shader.Use();
 	//binding the screen triangle
 	mScreenTriangle->BindVAO();
@@ -388,14 +550,16 @@ void RenderManagerClass::AmbientStage()
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::PostProcessStage()
 {
 	ExtractLuminence();
-	mBloomBuffer.UseRenderBuffer();
+	mBB.UseRenderBuffer();
 	ClearBuffer();
 
+	mMode = RenderMode::Blur;
 	bool horizontal = true;
 	for (int i = 0; i < mBlurSamples; i++)
 	{
@@ -406,14 +570,55 @@ void RenderManagerClass::PostProcessStage()
 
 		horizontal = !horizontal;
 	}
+
+	//blend blurred with standar
+	BlendBlur();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void RenderManagerClass::BlendBlur()
+{
+	mMode = RenderMode::Blend;
+	mFB.UseRenderBuffer();
+	ClearBuffer();
+
+	//get shader program
+	ShaderProgram& shader = mShaders[RenderMode::Blend];
+	shader.Use();
+
+	//binding the screen triangle
+	mScreenTriangle->BindVAO();
+	//set uniforms in shader
+	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
+	shader.SetMatUniform("MVP", &mvp[0][0]);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mDisplayBuffer.GetRenderTexture());
+	glUniform1i(0, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mBB.GetLuminenceTexture());
+	glUniform1i(1, 1);
+
+	//rendering the screen triangle
+	const tinygltf::Scene& scene = mScreenTriangle->GetGLTFModel().scenes[mScreenTriangle->GetGLTFModel().defaultScene];
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+		RenderNode(*mScreenTriangle, mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
+
+	glUseProgram(0);
+	//unbinding the VAOs
+	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 void RenderManagerClass::Display()
 {
+	mMode = RenderMode::Regular;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	ClearBuffer();
 	//get shader program
-	ShaderProgram& shader = mShaders[static_cast<size_t>(RenderMode::Regular)];
+	ShaderProgram& shader = mShaders[RenderMode::Regular];
 	shader.Use();
 
 	//binding the screen triangle
@@ -431,9 +636,6 @@ void RenderManagerClass::Display()
 	case DisplayTex::Normal:
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mNormalBuffer);
 		break;
-	case DisplayTex::Position:
-		glBindTexture(GL_TEXTURE_2D, mGBuffer.mPositionBuffer);
-		break;
 	case DisplayTex::Specular:
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mSpecularBuffer);
 		break;
@@ -441,18 +643,11 @@ void RenderManagerClass::Display()
 		glBindTexture(GL_TEXTURE_2D, mGBuffer.mDepth);
 		break;
 	default:
-		glBindTexture(GL_TEXTURE_2D, mFB.GetRenderTexture());
+		glBindTexture(GL_TEXTURE_2D, mBloom ? mFB.GetRenderTexture() : mDisplayBuffer.GetRenderTexture());
 		break;
 	}
 	glUniform1i(0, 0);
 
-	if (mBloom)
-	{
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, mBloomBuffer.GetRenderTexture());
-		glUniform1i(1, 1);
-	}
-	shader.SetBoolUniform("Bloom", mBloom);
 	bool depth = mDisplay == DisplayTex::Depth ? true : false;
 	shader.SetBoolUniform("Depth", depth);
 	if(depth)
@@ -478,15 +673,27 @@ void RenderManagerClass::ClearBuffer()
 void RenderManagerClass::RenderNode(Model& model, const tinygltf::Node& node)
 {
 	const tinygltf::Model& tiny_model = model.GetGLTFModel();
+	glm::mat4x4 mat(1.0F);
+
+	if (!node.translation.empty())
+		mat = mat * glm::translate(glm::vec3(node.translation[0], node.translation[1], node.translation[2]));
+	if (!node.rotation.empty())
+	{
+		mat = mat * glm::rotate(glm::radians((float)node.rotation[0]), glm::vec3(1, 0, 0));
+		mat = mat * glm::rotate(glm::radians((float)node.rotation[1]), glm::vec3(0, 1, 0));
+		mat = mat * glm::rotate(glm::radians((float)node.rotation[2]), glm::vec3(0, 0, 1));
+	}
+	if(!node.scale.empty())
+		mat = mat * glm::scale(glm::vec3(node.scale[0], node.scale[1], node.scale[2]));
 
 	if((node.mesh >= 0) && (node.mesh < tiny_model.meshes.size()))
-		RenderMesh(model, tiny_model.meshes[node.mesh]);
+		RenderMesh(model, tiny_model.meshes[node.mesh], mat);
 
 	for (size_t i = 0; i < node.children.size(); i++) 
 		RenderNode(model, tiny_model.nodes[node.children[i]]);
 }
 
-void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
+void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh, glm::mat4x4& gltf_mat)
 {
 	const tinygltf::Model& tiny_model = model.GetGLTFModel();
 
@@ -522,14 +729,17 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh)
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, model.mVBOs[indexAccessor.bufferView]);
 
 		//set correct material active
-		model.SetMaterialActive(mesh.primitives[i].material);		
+		model.SetMaterialActive(mesh.primitives[i].material);	
+
+		auto& shader = GetShader(mMode);
+		shader.SetMatUniform("GLTF", &gltf_mat[0][0]);
 
 		glDrawElements(primitive.mode, static_cast<GLsizei>(indexAccessor.count), indexAccessor.componentType,
 						BUFFER_OFFSET(indexAccessor.byteOffset));
 	}
 }
 
-ShaderProgram& RenderManagerClass::GetShader(const RenderMode& mode) { return mShaders[static_cast<size_t>(mode)]; }
+ShaderProgram& RenderManagerClass::GetShader(const RenderMode& mode) { return mShaders[mode]; }
 
 GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precision)
 {
@@ -551,6 +761,6 @@ GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precisio
 
 Color RenderManagerClass::GenRandomCol() { return Color(glm::linearRand(0.0F ,1.0F), glm::linearRand(0.0F, 1.0F), glm::linearRand(0.0F, 1.0F), 1.0F); }
 
-glm::vec3 RenderManagerClass::GenRandomPos() { return glm::vec3(glm::linearRand(-200.0F, 200.0F), glm::linearRand(-200.0F, 200.0F), glm::linearRand(-200.0F, 200.0F)); }
+glm::vec3 RenderManagerClass::GenRandomPos() { return glm::vec3(glm::linearRand(-100.0F, 100.0F), glm::linearRand(-100.0F, 100.0F), glm::linearRand(-200.0F, 200.0F)); }
 
 bool RenderManagerClass::LightsAnimated() const { return mLightsAnimated;}

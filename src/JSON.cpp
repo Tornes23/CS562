@@ -1,4 +1,5 @@
 #include "JSON.h"
+#include "ResourceManager.h"
 
 bool& operator>>(const nlohmann::json& j, bool& val) { val = j; return val; }
 short& operator>>(const nlohmann::json& j, short& val) { val = j; return val; }
@@ -13,6 +14,31 @@ glm::vec4& operator>>(const nlohmann::json& j, glm::vec4& val) { j["x"] >> val.x
 Color& operator>>(const nlohmann::json& j, Color& val) { val = { j["x"], j["y"], j["z"] }; return val; }
 std::string& operator>>(const nlohmann::json& j, std::string& val) { val = j.get<std::string>(); return val; }
 Light& operator>>(const nlohmann::json& j, Light& val) { j["position"] >> val.mPos; j["color"] >> val.mColor; j["radius"] >> val.mRadius; return val; }
+Decal& operator>>(const nlohmann::json& j, Decal& val)
+{
+    std::string name;
+    j["diffuse"] >> name;
+    name = name.substr(name.find_last_of("/") + 1, name.length());
+    //Get resource
+    val.mDiffuse = ResourceManager.GetResource<Texture>(name);
+
+    j["normal"] >> name;
+    name = name.substr(name.find_last_of("/") + 1, name.length());
+    //Get resource
+    val.mNormal = ResourceManager.GetResource<Texture>(name);
+    j["metallic"] >> name;
+    name = name.substr(name.find_last_of("/") + 1, name.length());
+    //Get resource
+    val.mMetallic = ResourceManager.GetResource<Texture>(name);
+
+    j["translate"] >> val.mPosition;
+    j["rotate"] >> val.mRotation;
+    j["scale"] >> val.mScale;
+
+    val.mModel = ResourceManager.GetResource<Model>("Cube.gltf");
+
+    return val;
+}
 GameObject& operator>>(const nlohmann::json& j, GameObject& val)
 {
     j["mesh"] >> val.mMesh;

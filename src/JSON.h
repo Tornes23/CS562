@@ -7,6 +7,7 @@
 #include "Color.h"
 #include "GameObject.h"
 #include "Light.h"
+#include "Decal.h"
 
 bool& operator>>(const nlohmann::json& j, bool& val);
 short& operator>>(const nlohmann::json& j, short& val);
@@ -22,3 +23,4 @@ Color& operator>>(const nlohmann::json& j, Color& val);
 std::string& operator>>(const nlohmann::json& j, std::string& val);
 GameObject& operator>>(const nlohmann::json& j, GameObject& val);
 Light& operator>>(const nlohmann::json& j, Light& val);
+Decal& operator>>(const nlohmann::json& j, Decal& val);
