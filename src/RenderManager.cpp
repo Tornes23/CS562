@@ -235,6 +235,7 @@ void RenderManagerClass::LoadShaders(bool reload)
 	mShaders[RenderMode::Regular] = ShaderProgram("./data/shaders/Regular.vert", "./data/shaders/Regular.frag");
 	mShaders[RenderMode::Blend] = ShaderProgram("./data/shaders/Blend.vert", "./data/shaders/Blend.frag");
 	mShaders[RenderMode::White] = ShaderProgram("./data/shaders/White.vert", "./data/shaders/White.frag");
+	mShaders[RenderMode::AmbientOcclusion] = ShaderProgram("./data/shaders/AmbientOcclusion.vert", "./data/shaders/AmbientOcclusion.frag");
 }
 
 void RenderManagerClass::FreeShaders()
@@ -362,6 +363,11 @@ void RenderManagerClass::DecalStage()
 
 	glUseProgram(0);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void RenderManagerClass::AOStage()
+{
+
 }
 
 void RenderManagerClass::LightingStage()

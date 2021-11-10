@@ -34,7 +34,8 @@ public:
 		Decals,
 		Regular,
 		Blend,
-		White
+		White,
+		AmbientOcclusion
 	};
 
 	enum DisplayTex
@@ -43,7 +44,8 @@ public:
 		Diffuse,
 		Normal,
 		Specular,
-		Depth
+		Depth,
+		AO
 	};
 
 	enum DecalMode
@@ -70,6 +72,7 @@ public:
 	void GeometryStage();
 
 	void DecalStage();
+	void AOStage();
 
 	void LightPass();
 	void AmbientPass();
