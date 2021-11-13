@@ -8,6 +8,7 @@ layout (location = 3) in vec3 vTangent;
 //out variables for the fragment shader
 out VS_OUT
 {
+    vec3 PosInCam;
     vec3 Normal;
     vec3 Tangent;
     vec3 Bitangent;
@@ -26,13 +27,13 @@ void main()
 {
     
     //setting the out variables
-    vertexCam.UV = vTexCoord;
+    vertexCam.PosInCam = vec3(MV * GLTF * vec4(vPosition, 1.0F));
     vertexCam.Normal = normalize(mat3(m2v_normal) * vNormal);
     vertexCam.Tangent = normalize(vec3(MV * GLTF * vec4(vTangent, 0.0F)));
-
     vec3 bitan = normalize(cross(vNormal, vTangent));
     vertexCam.TanMat = mat3(normalize(vTangent), normalize(bitan), normalize(vNormal));
     vertexCam.Bitangent = normalize(mat3(MV * GLTF) * bitan);
+    vertexCam.UV = vTexCoord;
 
     //applying the transformation to the vertex pos
     gl_Position = MVP * GLTF * vec4(vPosition, 1.0);

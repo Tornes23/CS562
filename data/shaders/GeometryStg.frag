@@ -4,6 +4,7 @@
 layout(location = 0)out vec4 DiffuseOut;
 layout(location = 1)out vec4 NormalOut;
 layout(location = 2)out vec4 SpecOut;
+layout(location = 3)out vec4 PosOut;
 
 //the used textures
 layout(location = 0)uniform sampler2D diffuseTex;
@@ -13,6 +14,7 @@ layout(location = 2)uniform sampler2D specularMap;
 //in variables for the fragment shader
 in VS_OUT
 {
+    vec3 PosInCam;
     vec3 Normal;
     vec3 Tangent;
     vec3 Bitangent;
@@ -31,4 +33,5 @@ void main()
     DiffuseOut = vec4(diffuse, 0);
     NormalOut = vec4(vertex.TanMat * normal, 0.0F);
     SpecOut = vec4(0, specular.g, specular.b, 0.0F);
+    PosOut = vec4(vertex.PosInCam, 0.0F);
 }
