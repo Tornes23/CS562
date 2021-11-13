@@ -158,6 +158,9 @@ void RenderManagerClass::Render()
 	if(mDecalsData.mbActive)
 		DecalStage();
 
+	if(mAOData.mbActive)
+		AOStage();
+
 	LightingStage();
 
 	if(mBloomData.mbActive)

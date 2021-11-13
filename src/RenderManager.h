@@ -176,6 +176,7 @@ public:
 
 private:
 	const std::string mShaderPath = "./data/shaders/";
+	std::vector<Light> mLights;
 	RenderData mRenderData;
 	DeferredData mDeferredData;
 	LightData mLightData;

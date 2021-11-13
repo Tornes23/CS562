@@ -27,7 +27,7 @@ void main()
 {
     
     //setting the out variables
-    vertexCam.PosInCam = vec3(MV * GLTF * vec4(vPosition, 1.0F));
+    vertexCam.PosInCam = vec3(MV * GLTF * vec4(vPosition, 1.0));
     vertexCam.Normal = normalize(mat3(m2v_normal) * vNormal);
     vertexCam.Tangent = normalize(vec3(MV * GLTF * vec4(vTangent, 0.0F)));
     vec3 bitan = normalize(cross(vNormal, vTangent));
