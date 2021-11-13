@@ -12,6 +12,117 @@
 #include "DecalBuffer.h"
 #include "Decal.h"
 
+
+enum RenderMode
+{
+	Geometry,
+	Lighting,
+	Ambient,
+	Luminence,
+	Blur,
+	Decals,
+	Regular,
+	Blend,
+	White,
+	AmbientOcclusion
+};
+
+enum DisplayTex
+{
+	Standar,
+	Diffuse,
+	Normal,
+	Specular,
+	Depth,
+	AO
+};
+
+struct DeferredData
+{
+	void Init();
+	void Edit();
+
+	GBuffer mGBuffer;
+	DisplayTex mDisplay;
+};
+
+struct LightData
+{
+	void Init();
+	void Edit();
+
+	const int MAX_LIGHTS = 3000;
+	std::vector<Light> mLights;
+	Color mAmbient;
+	float mLightRad;
+	bool mbActive;
+};
+
+struct BloomData
+{
+	void Init();
+	void Edit();
+
+	BloomBuffer mBB;//Bloom buffer
+	bool mbActive;
+	int mBlurSamples;
+	float mLuminence;
+};
+
+struct DecalData
+{
+	enum DecalMode
+	{
+		Volume,
+		Projected,
+		Result,
+	};
+	void Init(GLuint diffuse, GLuint normal, GLuint specular);
+	void Edit();
+
+	std::vector<Decal> mDecals;
+	DecalBuffer mDB;//Decal Buffer
+	float mClipAngle;
+	bool mbActive;
+	DecalMode mDecalMode;
+};
+
+struct AOData
+{
+	enum BlurType
+	{
+		Gaussian,
+		Bilateral
+	};
+
+	void Init();
+	void Edit();
+
+	bool mbActive;
+	int mDirectionNum;
+	int mSteps;
+	float mBias;
+	float mRadius;
+	float mAttenuation;
+	float mScale;
+	int mBlurPasses;
+	float mRangeSigma;
+	BlurType mBlur;
+};
+
+struct RenderData
+{
+	void Init();
+	void Edit();
+
+	std::map<RenderMode, ShaderProgram> mShaders;
+	Model* mScreenTriangle;
+	RenderMode mMode;
+	FrameBuffer mFB;//Frame Buffer	
+	FrameBuffer mDisplayBuffer;//Frame Buffer	
+	float mContrast;
+};
+
 class RenderManagerClass
 {
 public:
@@ -24,41 +135,11 @@ public:
 		return instance;
 	}
 
-	enum RenderMode
-	{
-		Geometry,
-		Lighting,
-		Ambient,
-		Luminence,
-		Blur,
-		Decals,
-		Regular,
-		Blend,
-		White,
-		AmbientOcclusion
-	};
-
-	enum DisplayTex
-	{
-		Standar,
-		Diffuse,
-		Normal,
-		Specular,
-		Depth,
-		AO
-	};
-
-	enum DecalMode
-	{
-		Volume,
-		Projected,
-		Result,
-	};
-
 	void Initialize();
 	void Update();
 	
 	void Edit();
+
 	void LoadLights(const nlohmann::json& lights);
 	void LoadDecals(const nlohmann::json& decals);
 	void LoadShaders(bool reload = false);
@@ -95,30 +176,14 @@ public:
 
 private:
 	const std::string mShaderPath = "./data/shaders/";
-	const int MAX_LIGHTS = 3000;
-	std::vector<Light> mLights;
-	std::vector<Decal> mDecals;
-	std::map<RenderMode, ShaderProgram> mShaders;
-	GBuffer mGBuffer;
-	Model* mScreenTriangle;
-	Color mAmbient;
-	DisplayTex mDisplay;
-	DecalMode mDecalMode;
-	RenderMode mMode;
+	RenderData mRenderData;
+	DeferredData mDeferredData;
+	LightData mLightData;
+	BloomData mBloomData;
+	DecalData mDecalsData;
+	AOData mAOData;
 
-	FrameBuffer mFB;//Frame Buffer	
-	FrameBuffer mDisplayBuffer;//Frame Buffer	
-	BloomBuffer mBB;//Bloom buffer
-	DecalBuffer mDB;//Decal Buffer
 
-	float mLightRad;
-	float mLuminence;
-	float mContrast;
-	float mClipAngle;
-	bool mBloom;
-	bool mbUseDecals;
-	bool mLightsAnimated;
-	int mBlurSamples;
 	RenderManagerClass() {}
 };
 
