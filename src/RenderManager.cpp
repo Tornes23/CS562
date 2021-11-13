@@ -1,3 +1,4 @@
+#include <limits>
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/random.hpp>
 #include <imgui/imgui.h>
@@ -74,7 +75,6 @@ void RenderManagerClass::Edit()
 
 	ImGui::End();
 }
-
 
 void RenderManagerClass::LoadLights(const nlohmann::json& lights)
 {
@@ -730,7 +730,7 @@ void LightData::Edit()
 
 		}
 
-		bool rad = ImGui::DragFloat("Light Radius", &mLightRad, 1.0F, 0.0F);
+		bool rad = ImGui::SliderFloat("Light Radius", &mLightRad, 0.0F, 100.0F);
 
 		if (mLightRad < 0.0F)
 			mLightRad = 0.0F;
@@ -758,10 +758,10 @@ void BloomData::Edit()
 	if (ImGui::TreeNode("Bloom"))
 	{
 		ImGui::Checkbox("Bloom", &mbActive);
-		ImGui::DragInt("Bloom Smaples", &mBlurSamples);
+		ImGui::SliderInt("Bloom Smaples", &mBlurSamples, 0, 500);
 		if (mBlurSamples < 0)
 			mBlurSamples = 0;
-		ImGui::DragFloat("Luminence Threshold", &mLuminence, 0.005F);
+		ImGui::SliderFloat("Luminence Threshold", &mLuminence, 0.0F, 5.0F);
 
 		ImGui::TreePop();
 	}
@@ -801,7 +801,7 @@ void DecalData::Edit()
 			}
 		}
 
-		ImGui::DragFloat("Clip Angle", &mClipAngle, 0.02F, 0.0F);
+		ImGui::SliderFloat("Clip Angle", &mClipAngle, 0.0F, 360.0F);
 
 		ImGui::TreePop();
 	}
@@ -817,7 +817,7 @@ void RenderData::Init()
 
 void RenderData::Edit()
 {
-	ImGui::DragFloat("Contrast", &mContrast, 0.0001F, 0.0F, 1.0F);
+	ImGui::SliderFloat("Contrast", &mContrast, 0.0F, 1.0F);
 	if (mContrast < 0.0F)
 		mContrast = 0.0F;
 	if (mContrast > 1.0F)
@@ -826,6 +826,16 @@ void RenderData::Edit()
 
 void AOData::Init()
 {
+	mbActive = false;
+	mDirectionNum = 8;
+	mSteps = 10;
+	mBias = 0.5F;
+	mRadius = 2.0F;
+	mAttenuation = 0.1F;
+	mScale = 2.0F;
+	mBlurPasses = 1;
+	mRangeSigma = 0.5F;
+	mBlur = BlurType::Gaussian;
 }
 
 void AOData::Edit()
@@ -833,6 +843,32 @@ void AOData::Edit()
 	if (ImGui::TreeNode("Ambient Occlusion"))
 	{
 		ImGui::Checkbox("Enable AO", &mbActive);
+
+		ImGui::SliderInt("Direction Count", &mDirectionNum, 1, 50);
+		ImGui::SliderInt("Steps", &mSteps, 0, 50);
+		ImGui::SliderFloat("Bias", &mBias, 0.0F, 2.5F);
+		ImGui::SliderFloat("Radius", &mRadius, 0.0F, 10.0F);
+		ImGui::SliderFloat("Attenuation", &mAttenuation, 0.0F, 1.0F);
+		ImGui::SliderFloat("Scale", &mScale, 0.0F, 5.0F);
+		ImGui::SliderInt("Blur Passes", &mBlurPasses, 0, 100);
+		ImGui::SliderFloat("Range Sigma", &mRangeSigma, 0.0F, 100.0F);
+
+		const char* blur_options[2] = { "Gaussian", "Bilateral" };
+
+		int blur = static_cast<int>(mBlur);
+
+		if (ImGui::Combo("Blur Mode", &blur, blur_options, 2, 3))
+		{
+			switch (blur)
+			{
+			case 0:
+				mBlur = AOData::BlurType::Gaussian;
+				break;
+			case 1:
+				mBlur = AOData::BlurType::Bilateral;
+				break;
+			}
+		}
 
 		ImGui::TreePop();
 	}
