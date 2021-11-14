@@ -11,6 +11,7 @@
 #include "BloomBuffer.h"
 #include "DecalBuffer.h"
 #include "Decal.h"
+#include "AOBuffer.h"
 
 
 enum RenderMode
@@ -108,6 +109,8 @@ struct AOData
 	int mBlurPasses;
 	float mRangeSigma;
 	BlurType mBlur;
+	AOBuffer mAOBuffer;
+
 };
 
 struct RenderData
@@ -153,6 +156,7 @@ public:
 	void GeometryStage();
 
 	void DecalStage();
+
 	void AOStage();
 
 	void LightPass();
@@ -168,7 +172,7 @@ public:
 	void RenderNode(Model& model, const tinygltf::Node& node);
 	void RenderMesh(Model& model, const tinygltf::Mesh& mesh, glm::mat4x4& gltf_mat);
 	
-	ShaderProgram& GetShader(const RenderMode& mode);
+	ShaderProgram& GetShader();
 	GLuint GenTexture(const glm::ivec2& size, bool high_precision = false);
 	Color GenRandomCol();
 	glm::vec3 GenRandomPos();

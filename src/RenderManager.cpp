@@ -262,7 +262,33 @@ void RenderManagerClass::DecalStage()
 
 void RenderManagerClass::AOStage()
 {
+	mRenderData.mMode = RenderMode::AmbientOcclusion;
+	mRenderData.mDisplayBuffer.UseRenderBuffer();
+	ClearBuffer();
 
+	//get shader program
+	ShaderProgram& shader = GetShader();
+	shader.Use();
+	//binding the screen triangle
+	mRenderData.mScreenTriangle->BindVAO();
+	//set uniforms in shader
+	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
+	shader.SetMatUniform("MVP", &mvp[0][0]);
+	shader.SetColorUniform("Ambient", mLightData.mAmbient);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mDeferredData.mGBuffer.mDiffuseBuffer);
+	glUniform1i(0, 0);
+
+	//rendering the screen triangle
+	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
+
+	glUseProgram(0);
+	//unbinding the VAOs
+	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::LightingStage()
@@ -365,21 +391,18 @@ void RenderManagerClass::RenderLights()
 void RenderManagerClass::ExtractLuminence()
 {
 	mRenderData.mMode = RenderMode::Luminence;
-	mRenderData.mFB.UseRenderBuffer();
+	mAOData.mAOBuffer.UseRenderBuffer();
 	ClearBuffer();
 	//get shader program
-	ShaderProgram& shader = GetShader(RenderMode::Luminence);
+	ShaderProgram& shader = GetShader();
 	shader.Use();
 	//binding the screen triangle
 	mRenderData.mScreenTriangle->BindVAO();
 	//set uniforms in shader
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
 	shader.SetMatUniform("MVP", &mvp[0][0]);
-	shader.SetFloatUniform("LumThreshold", mBloomData.mLuminence);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mRenderData.mDisplayBuffer.GetRenderTexture());
-	glUniform1i(0, 0);
+	//bind the necessary textures
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
@@ -430,7 +453,7 @@ void RenderManagerClass::AmbientPass()
 	ClearBuffer();
 
 	//get shader program
-	ShaderProgram& shader = GetShader(RenderMode::Ambient);
+	ShaderProgram& shader = GetShader();
 	shader.Use();
 	//binding the screen triangle
 	mRenderData.mScreenTriangle->BindVAO();
@@ -632,7 +655,7 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh, gl
 		//set correct material active
 		model.SetMaterialActive(mesh.primitives[i].material);	
 
-		auto& shader = GetShader(mRenderData.mMode);
+		auto& shader = GetShader();
 		shader.SetMatUniform("GLTF", &gltf_mat[0][0]);
 
 		glDrawElements(primitive.mode, static_cast<GLsizei>(indexAccessor.count), indexAccessor.componentType,
@@ -640,7 +663,7 @@ void RenderManagerClass::RenderMesh(Model& model, const tinygltf::Mesh& mesh, gl
 	}
 }
 
-ShaderProgram& RenderManagerClass::GetShader(const RenderMode& mode) { return mRenderData.mShaders[mode]; }
+ShaderProgram& RenderManagerClass::GetShader() { return mRenderData.mShaders[mRenderData.mMode]; }
 
 GLuint RenderManagerClass::GenTexture(const glm::ivec2& size, bool high_precision)
 {
@@ -839,6 +862,7 @@ void AOData::Init()
 	mBlurPasses = 1;
 	mRangeSigma = 0.5F;
 	mBlur = BlurType::Gaussian;
+	mAOBuffer.Create();
 }
 
 void AOData::Edit()

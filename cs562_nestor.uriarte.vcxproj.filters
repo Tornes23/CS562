@@ -85,6 +85,9 @@
     <Filter Include="Source Files\GFX\DecalBuffer">
       <UniqueIdentifier>{956be17d-e01a-4d94-bf83-16b40954f52c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GFX\AOBuffer">
+      <UniqueIdentifier>{bb410cfe-0434-4873-a326-2c168f0d46db}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -176,6 +179,9 @@
     </ClCompile>
     <ClCompile Include="src\DecalBuffer.cpp">
       <Filter>Source Files\GFX\DecalBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\AOBuffer.cpp">
+      <Filter>Source Files\GFX\AOBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -274,6 +280,9 @@
     </ClInclude>
     <ClInclude Include="src\DecalBuffer.h">
       <Filter>Source Files\GFX\DecalBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\AOBuffer.h">
+      <Filter>Source Files\GFX\AOBuffer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
