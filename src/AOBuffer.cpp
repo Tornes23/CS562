@@ -15,7 +15,7 @@ void AOBuffer::GenRenderBuffer()
 
 	// Create to render texture (use window resolution)
 	glm::ivec2 size = Window.GetViewport();
-	mAOTexture = RenderManager.GenTexture(size, true);
+	mAOTexture = RenderManager.GenTexture(size);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mAOTexture, 0);
 	GLuint attachements[1] = { GL_COLOR_ATTACHMENT0 };

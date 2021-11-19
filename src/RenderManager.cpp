@@ -41,6 +41,8 @@ void RenderManagerClass::Update()
 		mDeferredData.mDisplay = DisplayTex::Specular;
 	if (KeyDown(Key::Num5) && !ctrl)
 		mDeferredData.mDisplay = DisplayTex::Depth;
+	if (KeyDown(Key::Num6) && !ctrl)
+		mDeferredData.mDisplay = DisplayTex::AO;
 
 	if (KeyDown(Key::Num1) && ctrl)
 		mDecalsData.mDecalMode = DecalData::DecalMode::Volume;
@@ -262,23 +264,35 @@ void RenderManagerClass::DecalStage()
 
 void RenderManagerClass::AOStage()
 {
+	glm::vec2 size = Window.GetViewport();
 	mRenderData.mMode = RenderMode::AmbientOcclusion;
-	mRenderData.mDisplayBuffer.UseRenderBuffer();
-	ClearBuffer();
+	mDeferredData.mGBuffer.BindReadBuffer();
+	mAOData.mAOBuffer.BindDrawBuffer();
+	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
+		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	mAOData.mAOBuffer.UseRenderBuffer();
 
 	//get shader program
 	ShaderProgram& shader = GetShader();
 	shader.Use();
+	mDeferredData.mGBuffer.BindDepthTexture();
+	mDeferredData.mGBuffer.BindPositionTexture();
 	//binding the screen triangle
 	mRenderData.mScreenTriangle->BindVAO();
 	//set uniforms in shader
+	//glm::mat4x4 p = glm::scale(glm::vec3(1.0F));
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
 	shader.SetMatUniform("MVP", &mvp[0][0]);
-	shader.SetColorUniform("Ambient", mLightData.mAmbient);
+	shader.SetMatUniform("Proj", &mvp[0][0]);
 
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, mDeferredData.mGBuffer.mDiffuseBuffer);
-	glUniform1i(0, 0);
+
+	shader.SetIntUniform("mDirectionNum", mAOData.mDirectionNum);
+	shader.SetIntUniform("mSteps", mAOData.mSteps);
+	shader.SetFloatUniform("mBias", mAOData.mBias);
+	shader.SetFloatUniform("mRadius", mAOData.mRadius);
+	shader.SetFloatUniform("mAttenuation", mAOData.mAttenuation);
+	shader.SetFloatUniform("mScale", mAOData.mScale);
+	shader.SetVec2Uniform("Size", size);
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
@@ -566,6 +580,9 @@ void RenderManagerClass::Display()
 	case DisplayTex::Depth:
 		glBindTexture(GL_TEXTURE_2D, mDeferredData.mGBuffer.mDepth);
 		break;
+	case DisplayTex::AO:
+		glBindTexture(GL_TEXTURE_2D, mAOData.mAOBuffer.GetAOTexture());
+		break;
 	default:
 		glBindTexture(GL_TEXTURE_2D, mBloomData.mbActive ? mRenderData.mFB.GetRenderTexture() : mRenderData.mDisplayBuffer.GetRenderTexture());
 		break;
@@ -701,9 +718,9 @@ void DeferredData::Edit()
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 
-	const char* texture_options[5] = { "Standar", "Diffuse", "Normal", "Specular", "Depth" };
+	const char* texture_options[6] = { "Standar", "Diffuse", "Normal", "Specular", "Depth", "Ambient Occlusion"};
 
-	if (ImGui::Combo("Display Texture", &tex, texture_options, 5, 6))
+	if (ImGui::Combo("Display Texture", &tex, texture_options, 6, 7))
 	{
 		switch (tex)
 		{
@@ -721,6 +738,9 @@ void DeferredData::Edit()
 			break;
 		case 4:
 			mDisplay = DisplayTex::Depth;
+			break;
+		case 5:
+			mDisplay = DisplayTex::AO;
 			break;
 		}
 	}
@@ -774,7 +794,7 @@ void LightData::Edit()
 void BloomData::Init()
 {
 	mBB.Create();
-	mbActive = true;
+	mbActive = false;
 	mLuminence = 1.0F;
 	mBlurSamples = 5;
 }
@@ -852,7 +872,7 @@ void RenderData::Edit()
 
 void AOData::Init()
 {
-	mbActive = false;
+	mbActive = true;
 	mDirectionNum = 8;
 	mSteps = 10;
 	mBias = 0.5F;
@@ -901,3 +921,4 @@ void AOData::Edit()
 	}
 
 }
+

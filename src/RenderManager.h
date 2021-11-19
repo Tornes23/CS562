@@ -99,6 +99,7 @@ struct AOData
 	void Init();
 	void Edit();
 
+
 	bool mbActive;
 	int mDirectionNum;
 	int mSteps;

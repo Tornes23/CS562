@@ -3,10 +3,12 @@
 //output fragmet color
 layout(location = 0)out vec4 AmbientOcclusion;
 //the used textures
-layout(location = 0)uniform sampler2D textureData;
-layout(location = 4)uniform sampler2D Positions;
+layout(location = 3)uniform sampler2D depthData;
+layout(location = 4)uniform sampler2D positionData;
+
 in vec2 UV;
-in vec2 Normal;
+in vec3 Normal;
+in mat4 Projection;
 
 uniform int mDirectionNum;
 uniform int mSteps;
@@ -14,56 +16,99 @@ uniform float mBias;
 uniform float mRadius;
 uniform float mAttenuation;
 uniform float mScale;
+uniform vec2 Size;
 
-void March()
+float GetRandomRotation()
 {
+    return 0.0;
+}
+
+vec3 RotateVector(vec3 vec, float angle)
+{
+    mat3 rot = mat3(cos(angle), -sin(angle), 0,
+                    sin(angle), cos(angle), 0,
+                    0,          0,          1);
+
+    return rot * vec;
+}
+
+vec3 GetSample(vec3 vecInView)
+{
+    vec4 projected = Projection * vec4(vecInView, 1.0);
+    projected /= projected.w;
+    return projected.xyz;
+}
+
+float HorizonOcclusion()
+{
+    vec2 deltaUV = vec2(1.0/Size.x, 1.0/Size.y);
     vec3 initialDir = vec3(1.0, 0, 0);
     float angle = 360.0 / mDirectionNum;
     float steps = mRadius / mSteps;
-    vec3 tangent = dFdx(texture(Positions,UV).xyz);
-    float tAngle;
-    float occlusion;
 
+    //initial sample
+    float initialDepth = texture(depthData, UV).r;
+    vec3 initialPos= texture(positionData,UV).xyz;
+    vec3 initialTan= dFdx(texture(positionData,UV).xyz);
+    vec3 initialBitan= dFdy(texture(positionData,UV).xyz);
+
+    float occlusion = 1.0;
+    float randomRot = GetRandomRotation();
     for(int i = 0; i < mDirectionNum; i++)
     {
-        //rotate the initial vector around z to get the direction
-        vec3 dir = initialDir;
-        //apply random rotation to get better results
+        //getting the rotation angle
+        float theta = i * angle + randomRot; 
+        //apply random rotation to the direction for better results
+        vec3 dir = RotateVector(initialDir, radians(theta));
+        //for this direction compute tangent and bitangent
+        vec3 tangent = initialBitan * sin(radians(theta)) + initialTan * cos(radians(theta));
+        vec3 bitangent = normalize(cross(tangent, Normal));
+        //variables to store the tangent angle and horizon angle
+        float tAngle = atan(tangent.z / length(tangent.xy));
+        float hAngle = 0.0;
 
         for(int j = 0; j < mSteps; j++)
         {
-            //this logic might be wrong, on slides says that we sample and if out of radius ignore
-            //if this needs to be done after i recompute the sampling point i need to get the position from texture and check distances
-            
-            //what im doing is to get uniform samples inside the radius
             //get the distance to the next sampling point
             vec3 disp = (j * steps) * dir;
+            //get the new sample point UV
+            vec3 newPos = initialPos + disp;
+            vec2 sampleUV = GetSample(newPos).xy;
+            //sample the position depth
+            vec3 samplePos= texture(positionData, sampleUV).xyz; 
+            float sampleDepth = texture(depthData, sampleUV).r; 
+            vec3 horizonVec = samplePos - initialPos;
 
+            //check distance vs radius to discard
+            if(length(horizonVec) > mRadius)
+                continue;
 
-            //sample the position
-            //maube need to vheck distance vs radius to discard
-            //check if above or below
-            //store if maximum 
+            //computing the current horizon angle
+            float angle = atan(horizonVec.z / length(horizonVec.xy));
+            //store if greater than the current maximum store it
+            if(angle > hAngle)
+                hAngle = angle;
 
             //attenuation??
         }
 
-        float hAngle;
-
         //check if angle is greater than bias
-        //if not greater == not occluded
-
-        occlusion += sin(hAngle) - sin(tAngle);
+        if(hAngle > mBias)
+        {
+            //if not greater == not occluded
+            occlusion += sin(hAngle) - sin(tAngle);
+        }
     }
 
     occlusion /= mDirectionNum;
+
+    return 1.0 - occlusion * mAttenuation;
 }
 
 
 void main()
 {
-    March();
+    float ao = HorizonOcclusion();
 
-    vec3 color = texture(textureData, UV).rgb;
-    AmbientOcclusion = vec4(color, 1.0);
+    AmbientOcclusion = vec4(vec3(ao), 1.0);
 }
