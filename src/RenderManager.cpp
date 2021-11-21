@@ -206,8 +206,10 @@ void RenderManagerClass::GeometryStage()
 
 void RenderManagerClass::DecalStage()
 {
-	mRenderData.mMode = RenderMode::Decals;
+	if (mDecalsData.mDecals.empty())
+		return;
 
+	mRenderData.mMode = RenderMode::Decals;
 	glm::vec2 size = Window.GetViewport();
 	mDeferredData.mGBuffer.BindReadBuffer();
 	mDecalsData.mDB.BindDrawBuffer();
@@ -275,16 +277,15 @@ void RenderManagerClass::AOStage()
 	//get shader program
 	ShaderProgram& shader = GetShader();
 	shader.Use();
-	mDeferredData.mGBuffer.BindDepthTexture();
+	//binding the required gbuffer textures
 	mDeferredData.mGBuffer.BindPositionTexture();
 	//binding the screen triangle
 	mRenderData.mScreenTriangle->BindVAO();
 	//set uniforms in shader
-	//glm::mat4x4 p = glm::scale(glm::vec3(1.0F));
+	glm::mat4x4 p = Camera.GetProjection();
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
 	shader.SetMatUniform("MVP", &mvp[0][0]);
-	shader.SetMatUniform("Proj", &mvp[0][0]);
-
+	shader.SetMatUniform("Proj", &p[0][0]);
 
 	shader.SetIntUniform("mDirectionNum", mAOData.mDirectionNum);
 	shader.SetIntUniform("mSteps", mAOData.mSteps);
@@ -293,12 +294,15 @@ void RenderManagerClass::AOStage()
 	shader.SetFloatUniform("mAttenuation", mAOData.mAttenuation);
 	shader.SetFloatUniform("mScale", mAOData.mScale);
 	shader.SetVec2Uniform("Size", size);
-
+	//disabling depth writing
+	glDepthMask(GL_FALSE);
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
 	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
+	//disabling writing ono the depth buffer
+	glDepthMask(GL_TRUE);
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
@@ -307,6 +311,9 @@ void RenderManagerClass::AOStage()
 
 void RenderManagerClass::LightingStage()
 {
+	if (mLightData.mLights.empty())
+		return;
+
 	AmbientPass();
 	LightPass();
 	RenderLights();
@@ -620,9 +627,9 @@ void RenderManagerClass::RenderNode(Model& model, const tinygltf::Node& node)
 		mat = mat * glm::translate(glm::vec3(node.translation[0], node.translation[1], node.translation[2]));
 	if (!node.rotation.empty())
 	{
-		mat = mat * glm::rotate(glm::radians((float)node.rotation[0]), glm::vec3(1, 0, 0));
-		mat = mat * glm::rotate(glm::radians((float)node.rotation[1]), glm::vec3(0, 1, 0));
-		mat = mat * glm::rotate(glm::radians((float)node.rotation[2]), glm::vec3(0, 0, 1));
+		mat = mat * glm::rotate(-glm::radians((float)node.rotation[0]), glm::vec3(1, 0, 0));
+		mat = mat * glm::rotate(-glm::radians((float)node.rotation[1]), glm::vec3(0, 1, 0));
+		mat = mat * glm::rotate(-glm::radians((float)node.rotation[2]), glm::vec3(0, 0, 1));
 	}
 	if(!node.scale.empty())
 		mat = mat * glm::scale(glm::vec3(node.scale[0], node.scale[1], node.scale[2]));

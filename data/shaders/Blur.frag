@@ -10,8 +10,14 @@ in vec2 UV;
 uniform bool HorizontalPass;
 //wights for gaussian blur
 uniform float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
+uniform bool Gaussian;
 
-void main()
+vec3 BilateralBlur()
+{
+    return vec3(0,0,0);
+}
+
+vec3 GaussianBlur()
 {
     vec3 color = texture(textureData, UV).rgb;
 
@@ -36,5 +42,15 @@ void main()
         }
     }
 
-    Blur = vec4(result, 1.0);
+    return result;
+}
+
+void main()
+{
+    
+    if(!Gaussian)
+        Blur = vec4(BilateralBlur(), 1.0);
+
+    Blur = vec4(GaussianBlur(), 1.0);
+
 }

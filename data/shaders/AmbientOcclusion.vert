@@ -9,7 +9,6 @@ out vec2 UV;
 out vec3 Normal;
 //uniform variables for the transformation
 uniform mat4 MVP;
-uniform mat4 Proj;
 uniform mat4 GLTF;
 
 void main()
