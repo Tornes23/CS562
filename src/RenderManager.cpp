@@ -412,7 +412,7 @@ void RenderManagerClass::RenderLights()
 void RenderManagerClass::ExtractLuminence()
 {
 	mRenderData.mMode = RenderMode::Luminence;
-	mAOData.mAOBuffer.UseRenderBuffer();
+	mRenderData.mFB.UseRenderBuffer();
 	ClearBuffer();
 	//get shader program
 	ShaderProgram& shader = GetShader();
@@ -422,9 +422,8 @@ void RenderManagerClass::ExtractLuminence()
 	//set uniforms in shader
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
 	shader.SetMatUniform("MVP", &mvp[0][0]);
-
 	//bind the necessary textures
-
+	mDeferredData.mGBuffer.BindDiffuseTexture();
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
 	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
