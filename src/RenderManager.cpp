@@ -422,8 +422,12 @@ void RenderManagerClass::ExtractLuminence()
 	//set uniforms in shader
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
 	shader.SetMatUniform("MVP", &mvp[0][0]);
+	shader.SetFloatUniform("LumThreshold", mBloomData.mLuminence);
+
 	//bind the necessary textures
-	mDeferredData.mGBuffer.BindDiffuseTexture();
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mRenderData.mDisplayBuffer.GetRenderTexture());
+	glUniform1i(0, 0);
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
 	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
@@ -446,7 +450,7 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
 	shader.SetMatUniform("MVP", &mvp[0][0]);
 	shader.SetBoolUniform("HorizontalPass", horizontal);
-
+	shader.SetBoolUniform("Gaussian", true);
 	glActiveTexture(GL_TEXTURE0);
 	if(first_pass)
 		glBindTexture(GL_TEXTURE_2D, mRenderData.mFB.GetRenderTexture());
