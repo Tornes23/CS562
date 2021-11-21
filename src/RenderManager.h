@@ -90,12 +90,6 @@ struct DecalData
 
 struct AOData
 {
-	enum BlurType
-	{
-		Gaussian,
-		Bilateral
-	};
-
 	void Init();
 	void Edit();
 
@@ -109,7 +103,6 @@ struct AOData
 	float mScale;
 	int mBlurPasses;
 	float mRangeSigma;
-	BlurType mBlur;
 	AOBuffer mAOBuffer;
 
 };
@@ -159,6 +152,7 @@ public:
 	void DecalStage();
 
 	void AOStage();
+	void AOPass();
 
 	void LightPass();
 	void AmbientPass();
@@ -167,7 +161,7 @@ public:
 
 	void PostProcessStage();
 	void ExtractLuminence();
-	void BlurTexture(bool horizontal = false, bool first_pass = false);
+	void BlurTexture(bool horizontal = false, bool first_pass = false, bool gaussian = true);
 	void BlendBlur();
 
 	void RenderNode(Model& model, const tinygltf::Node& node);

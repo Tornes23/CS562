@@ -9,7 +9,7 @@ public:
 	void GenRenderBuffer();
 
 	const GLuint GetRenderBuffer() const;
-	const GLuint GetAOTexture() const;
+	const GLuint GetAOTexture(bool first = true) const;
 
 	void UseRenderBuffer();
 	void BindDrawBuffer();
@@ -18,6 +18,6 @@ public:
 private:
 
 	GLuint mRenderBuffer;
-	GLuint mAOTexture;
+	GLuint mAOTexture[2];
 
 };

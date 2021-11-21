@@ -266,12 +266,39 @@ void RenderManagerClass::DecalStage()
 
 void RenderManagerClass::AOStage()
 {
+	mAOData.mAOBuffer.GetRenderBuffer();
+	ClearBuffer();
+	//computing the AO Texture
+	AOPass();
+	//mAOData.mAOBuffer.UseRenderBuffer();
+	//ClearBuffer();
+	//
+	////Blurring the AOTexture
+	//mRenderData.mMode = RenderMode::Blur;
+	//bool horizontal = true;
+	//for (int i = 0; i < mBloomData.mBlurSamples; i++)
+	//{
+	//	if (i == 0)
+	//		BlurTexture(horizontal, true, false);
+	//	else
+	//		BlurTexture(horizontal, false, false);
+	//
+	//	horizontal = !horizontal;
+	//}
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void RenderManagerClass::AOPass()
+{
 	glm::vec2 size = Window.GetViewport();
 	mRenderData.mMode = RenderMode::AmbientOcclusion;
 	mDeferredData.mGBuffer.BindReadBuffer();
+	//mRenderData.mFB.BindDrawBuffer();
 	mAOData.mAOBuffer.BindDrawBuffer();
 	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
 		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+	//mRenderData.mFB.UseRenderBuffer();
 	mAOData.mAOBuffer.UseRenderBuffer();
 
 	//get shader program
@@ -294,19 +321,17 @@ void RenderManagerClass::AOStage()
 	shader.SetFloatUniform("mAttenuation", mAOData.mAttenuation);
 	shader.SetFloatUniform("mScale", mAOData.mScale);
 	shader.SetVec2Uniform("Size", size);
+
 	//disabling depth writing
 	glDepthMask(GL_FALSE);
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+	for (size_t i = 0; i < scene.nodes.size(); i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	//disabling writing ono the depth buffer
 	glDepthMask(GL_TRUE);
 	glUseProgram(0);
-	//unbinding the VAOs
-	glBindVertexArray(0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::LightingStage()
@@ -430,7 +455,7 @@ void RenderManagerClass::ExtractLuminence()
 	glUniform1i(0, 0);
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+	for (size_t i = 0; i < scene.nodes.size(); i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);
@@ -439,7 +464,7 @@ void RenderManagerClass::ExtractLuminence()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
+void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass, bool gaussian)
 {
 	//get shader program
 	ShaderProgram& shader = mRenderData.mShaders[RenderMode::Blur];
@@ -450,18 +475,19 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass)
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
 	shader.SetMatUniform("MVP", &mvp[0][0]);
 	shader.SetBoolUniform("HorizontalPass", horizontal);
-	shader.SetBoolUniform("Gaussian", true);
+	shader.SetBoolUniform("Gaussian", gaussian);
+
 	glActiveTexture(GL_TEXTURE0);
 	if(first_pass)
 		glBindTexture(GL_TEXTURE_2D, mRenderData.mFB.GetRenderTexture());
 	else
-		glBindTexture(GL_TEXTURE_2D, mBloomData.mBB.GetLuminenceTexture(!horizontal));
+		glBindTexture(GL_TEXTURE_2D, gaussian ? mBloomData.mBB.GetLuminenceTexture(!horizontal) : mAOData.mAOBuffer.GetAOTexture(!horizontal));
 
 	glUniform1i(0, 0);
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+	for (size_t i = 0; i < scene.nodes.size(); i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);
@@ -492,7 +518,7 @@ void RenderManagerClass::AmbientPass()
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+	for (size_t i = 0; i < scene.nodes.size(); i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);
@@ -550,7 +576,7 @@ void RenderManagerClass::BlendBlur()
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+	for (size_t i = 0; i < scene.nodes.size(); i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);
@@ -607,7 +633,7 @@ void RenderManagerClass::Display()
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+	for (size_t i = 0; i < scene.nodes.size(); i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);
@@ -891,7 +917,6 @@ void AOData::Init()
 	mScale = 2.0F;
 	mBlurPasses = 1;
 	mRangeSigma = 0.5F;
-	mBlur = BlurType::Gaussian;
 	mAOBuffer.Create();
 }
 
@@ -909,23 +934,6 @@ void AOData::Edit()
 		ImGui::SliderFloat("Scale", &mScale, 0.0F, 5.0F);
 		ImGui::SliderInt("Blur Passes", &mBlurPasses, 0, 100);
 		ImGui::SliderFloat("Range Sigma", &mRangeSigma, 0.0F, 100.0F);
-
-		const char* blur_options[2] = { "Gaussian", "Bilateral" };
-
-		int blur = static_cast<int>(mBlur);
-
-		if (ImGui::Combo("Blur Mode", &blur, blur_options, 2, 3))
-		{
-			switch (blur)
-			{
-			case 0:
-				mBlur = AOData::BlurType::Gaussian;
-				break;
-			case 1:
-				mBlur = AOData::BlurType::Bilateral;
-				break;
-			}
-		}
 
 		ImGui::TreePop();
 	}

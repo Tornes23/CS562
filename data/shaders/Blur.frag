@@ -47,10 +47,8 @@ vec3 GaussianBlur()
 
 void main()
 {
-    
     if(!Gaussian)
         Blur = vec4(BilateralBlur(), 1.0);
-
-    Blur = vec4(GaussianBlur(), 1.0);
-
+    else
+        Blur = vec4(GaussianBlur(), 1.0);
 }

@@ -40,10 +40,10 @@ vec3 GetSample(vec3 vecInView)
 
 float HorizonOcclusion()
 {
-    vec2 deltaUV = vec2(1.0/Size.x, 1.0/Size.y);
+    vec2 texelSize = 1 / Size;
     vec3 initialDir = vec3(1.0, 0, 0);
-    float angle = 360.0 / mDirectionNum;
-    float steps = mRadius / mSteps;
+    float angle = 360.0 / float(mDirectionNum);
+    float stepDist = mRadius / float(mSteps);
 
     //initial sample
     vec3 initialPos= texture(positionData,UV).xyz;
@@ -59,24 +59,25 @@ float HorizonOcclusion()
         //apply random rotation to the direction for better results
         vec3 dir = RotateVector(initialDir, radians(theta));
         //for this direction compute tangent and bitangent
-        vec3 tangent = initialBitan * sin(radians(theta)) + initialTan * cos(radians(theta));
-        vec3 bitangent = normalize(cross(tangent, Normal));
+        vec3 tangent = initialTan * cos(radians(theta)) + initialBitan * sin(radians(theta));
         //variables to store the tangent angle and horizon angle
-        //float tAngle = atan(tangent.z / length(tangent.xy));
-        float tAngle = 0.0;
+        float tAngle = atan(tangent.z / length(tangent.xy));
+        tAngle += mBias;
         float hAngle = 0.0;
+        float len = 0.0;
 
-        for(int j = 0; j < mSteps; j++)
+        for(int j = 1; j <= mSteps; j++)
         {
             //get the distance to the next sampling point
-            vec3 disp = (j * steps) * dir;
+            vec3 disp = (float(j) * stepDist) * normalize(dir);
             //get the new sample point UV
             vec3 newPos = initialPos + disp;
             vec2 sampleUV = GetSample(newPos).xy;
-            sampleUV = sampleUV * 2.0 - 1.0;
-            sampleUV = vec2(sampleUV.x * Size.x, sampleUV.y * Size.y);
+            sampleUV = sampleUV * 0.5 + 0.5;
             //sample the position depth
             vec3 samplePos= texture(positionData, sampleUV).xyz; 
+            if(samplePos == initialPos)
+                continue;
             //float sampleDepth = texture(depthData, sampleUV).r; 
             vec3 horizonVec = samplePos - initialPos;
             //check distance vs radius to discard
@@ -87,22 +88,19 @@ float HorizonOcclusion()
             float angle = atan(horizonVec.z / length(horizonVec.xy));
             //store if greater than the current maximum store it
             if(angle > hAngle)
+            {
                 hAngle = angle;
+                len = length(horizonVec);
+            }
 
-            //attenuation??
         }
 
-        //check if angle is greater than bias
-        if(hAngle > mBias)
-        {
-            //if not greater == not occluded
-            occlusion += sin(hAngle) - sin(tAngle);
-        }
+        occlusion += (sin(hAngle) - sin(tAngle)) * (1.0 - pow((len / mRadius), 2)) * mAttenuation;
     }
 
-    occlusion /= mDirectionNum;
+    occlusion = (occlusion * mScale) / mDirectionNum;
 
-    return occlusion;
+    return 1.0 - occlusion;
 }
 
 
