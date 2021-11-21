@@ -270,21 +270,20 @@ void RenderManagerClass::AOStage()
 	ClearBuffer();
 	//computing the AO Texture
 	AOPass();
-	//mAOData.mAOBuffer.UseRenderBuffer();
-	//ClearBuffer();
-	//
-	////Blurring the AOTexture
-	//mRenderData.mMode = RenderMode::Blur;
-	//bool horizontal = true;
-	//for (int i = 0; i < mBloomData.mBlurSamples; i++)
-	//{
-	//	if (i == 0)
-	//		BlurTexture(horizontal, true, false);
-	//	else
-	//		BlurTexture(horizontal, false, false);
-	//
-	//	horizontal = !horizontal;
-	//}
+	mAOData.mAOBuffer.UseRenderBuffer();
+	
+	//Blurring the AOTexture
+	mRenderData.mMode = RenderMode::Blur;
+	bool horizontal = true;
+	for (int i = 0; i < mAOData.mBlurPasses; i++)
+	{
+		if (i == 0)
+			BlurTexture(horizontal, false);
+		else
+			BlurTexture(horizontal, false);
+	
+		horizontal = !horizontal;
+	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -293,13 +292,10 @@ void RenderManagerClass::AOPass()
 {
 	glm::vec2 size = Window.GetViewport();
 	mRenderData.mMode = RenderMode::AmbientOcclusion;
-	mDeferredData.mGBuffer.BindReadBuffer();
-	//mRenderData.mFB.BindDrawBuffer();
-	mAOData.mAOBuffer.BindDrawBuffer();
+	mRenderData.mFB.BindDrawBuffer();
 	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
 		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-	//mRenderData.mFB.UseRenderBuffer();
-	mAOData.mAOBuffer.UseRenderBuffer();
+	mRenderData.mFB.UseRenderBuffer();
 
 	//get shader program
 	ShaderProgram& shader = GetShader();
@@ -320,7 +316,7 @@ void RenderManagerClass::AOPass()
 	shader.SetFloatUniform("mRadius", mAOData.mRadius);
 	shader.SetFloatUniform("mAttenuation", mAOData.mAttenuation);
 	shader.SetFloatUniform("mScale", mAOData.mScale);
-	shader.SetVec2Uniform("Size", size);
+	shader.SetFloatUniform("Seed", glm::linearRand(0.0F, 1000.0F));
 
 	//disabling depth writing
 	glDepthMask(GL_FALSE);
@@ -329,9 +325,10 @@ void RenderManagerClass::AOPass()
 	for (size_t i = 0; i < scene.nodes.size(); i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
-	//disabling writing ono the depth buffer
+	//disabling writing onto the depth buffer
 	glDepthMask(GL_TRUE);
 	glUseProgram(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void RenderManagerClass::LightingStage()
@@ -475,7 +472,7 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass, bool gaus
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
 	shader.SetMatUniform("MVP", &mvp[0][0]);
 	shader.SetBoolUniform("HorizontalPass", horizontal);
-	shader.SetBoolUniform("Gaussian", gaussian);
+	shader.SetBoolUniform("Gaussian", true);
 
 	glActiveTexture(GL_TEXTURE0);
 	if(first_pass)
@@ -511,10 +508,14 @@ void RenderManagerClass::AmbientPass()
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
 	shader.SetMatUniform("MVP", &mvp[0][0]);
 	shader.SetColorUniform("Ambient", mLightData.mAmbient);
+	shader.SetBoolUniform("AO", mAOData.mbActive);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mDeferredData.mGBuffer.mDiffuseBuffer);
 	glUniform1i(0, 0);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, mAOData.mAOBuffer.GetAOTexture());
+	glUniform1i(1, 1);
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
@@ -909,13 +910,13 @@ void RenderData::Edit()
 void AOData::Init()
 {
 	mbActive = true;
-	mDirectionNum = 8;
-	mSteps = 10;
+	mDirectionNum = 6;
+	mSteps = 6;
 	mBias = 0.5F;
 	mRadius = 2.0F;
 	mAttenuation = 0.1F;
-	mScale = 2.0F;
-	mBlurPasses = 1;
+	mScale = 5.0F;
+	mBlurPasses = 5;
 	mRangeSigma = 0.5F;
 	mAOBuffer.Create();
 }
@@ -931,7 +932,7 @@ void AOData::Edit()
 		ImGui::SliderFloat("Bias", &mBias, 0.0F, 2.5F);
 		ImGui::SliderFloat("Radius", &mRadius, 0.0F, 10.0F);
 		ImGui::SliderFloat("Attenuation", &mAttenuation, 0.0F, 1.0F);
-		ImGui::SliderFloat("Scale", &mScale, 0.0F, 5.0F);
+		ImGui::SliderFloat("Scale", &mScale, 0.0F, 25.0F);
 		ImGui::SliderInt("Blur Passes", &mBlurPasses, 0, 100);
 		ImGui::SliderFloat("Range Sigma", &mRangeSigma, 0.0F, 100.0F);
 

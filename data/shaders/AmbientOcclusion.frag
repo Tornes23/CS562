@@ -14,12 +14,13 @@ uniform float mBias;
 uniform float mRadius;
 uniform float mAttenuation;
 uniform float mScale;
-uniform vec2 Size;
 uniform mat4 Proj;
+uniform float Seed;
 
-float GetRandomRotation()
+float GetRandomRotation(vec2 uv)
 {
-    return 0.0;
+    //some fancy formula for the random generation
+    return fract(tan(distance(uv * 1.61, uv) * Seed) * uv.x);
 }
 
 vec3 RotateVector(vec3 vec, float angle)
@@ -40,7 +41,6 @@ vec3 GetSample(vec3 vecInView)
 
 float HorizonOcclusion()
 {
-    vec2 texelSize = 1 / Size;
     vec3 initialDir = vec3(1.0, 0, 0);
     float angle = 360.0 / float(mDirectionNum);
     float stepDist = mRadius / float(mSteps);
@@ -51,7 +51,7 @@ float HorizonOcclusion()
     vec3 initialBitan= dFdy(texture(positionData,UV).xyz);
 
     float occlusion = 0.0;
-    float randomRot = GetRandomRotation();
+    float randomRot = GetRandomRotation(UV) * 360.0;
     for(int i = 0; i < mDirectionNum; i++)
     {
         //getting the rotation angle
@@ -92,7 +92,6 @@ float HorizonOcclusion()
                 hAngle = angle;
                 len = length(horizonVec);
             }
-
         }
 
         occlusion += (sin(hAngle) - sin(tAngle)) * (1.0 - pow((len / mRadius), 2)) * mAttenuation;
