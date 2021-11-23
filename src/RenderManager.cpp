@@ -266,25 +266,25 @@ void RenderManagerClass::DecalStage()
 
 void RenderManagerClass::AOStage()
 {
-	mAOData.mAOBuffer.GetRenderBuffer();
-	ClearBuffer();
+	//mAOData.mAOBuffer.UseRenderBuffer();
+	//ClearBuffer();
 	//computing the AO Texture
 	AOPass();
 	mAOData.mAOBuffer.UseRenderBuffer();
-	
+	ClearBuffer();
 	//Blurring the AOTexture
 	mRenderData.mMode = RenderMode::Blur;
 	bool horizontal = true;
 	for (int i = 0; i < mAOData.mBlurPasses; i++)
 	{
 		if (i == 0)
-			BlurTexture(horizontal, false);
+			BlurTexture(horizontal, true, false);
 		else
-			BlurTexture(horizontal, false);
+			BlurTexture(horizontal, false, false);
 	
 		horizontal = !horizontal;
 	}
-
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -293,9 +293,11 @@ void RenderManagerClass::AOPass()
 	glm::vec2 size = Window.GetViewport();
 	mRenderData.mMode = RenderMode::AmbientOcclusion;
 	mRenderData.mFB.BindDrawBuffer();
+	//mAOData.mAOBuffer.BindDrawBuffer();
 	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
 		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	mRenderData.mFB.UseRenderBuffer();
+	//mAOData.mAOBuffer.UseRenderBuffer();
 
 	//get shader program
 	ShaderProgram& shader = GetShader();
@@ -322,7 +324,7 @@ void RenderManagerClass::AOPass()
 	glDepthMask(GL_FALSE);
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size(); i++)
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	//disabling writing onto the depth buffer
@@ -452,7 +454,7 @@ void RenderManagerClass::ExtractLuminence()
 	glUniform1i(0, 0);
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size(); i++)
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);
@@ -472,11 +474,13 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass, bool gaus
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
 	shader.SetMatUniform("MVP", &mvp[0][0]);
 	shader.SetBoolUniform("HorizontalPass", horizontal);
-	shader.SetBoolUniform("Gaussian", true);
+	shader.SetBoolUniform("Gaussian", gaussian);
+	shader.SetFloatUniform("RangeSigma", mAOData.mRangeSigma);
+	shader.SetFloatUniform("mRadius", mAOData.mRadius);
 
 	glActiveTexture(GL_TEXTURE0);
 	if(first_pass)
-		glBindTexture(GL_TEXTURE_2D, mRenderData.mFB.GetRenderTexture());
+		glBindTexture(GL_TEXTURE_2D, gaussian ? mRenderData.mFB.GetRenderTexture() : mDeferredData.mGBuffer.mDiffuseBuffer);
 	else
 		glBindTexture(GL_TEXTURE_2D, gaussian ? mBloomData.mBB.GetLuminenceTexture(!horizontal) : mAOData.mAOBuffer.GetAOTexture(!horizontal));
 
@@ -484,7 +488,7 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass, bool gaus
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size(); i++)
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);
@@ -519,7 +523,7 @@ void RenderManagerClass::AmbientPass()
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size(); i++)
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);
@@ -577,7 +581,7 @@ void RenderManagerClass::BlendBlur()
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size(); i++)
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);
@@ -634,7 +638,7 @@ void RenderManagerClass::Display()
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
-	for (size_t i = 0; i < scene.nodes.size(); i++)
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
 		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
 
 	glUseProgram(0);
@@ -831,7 +835,7 @@ void LightData::Edit()
 void BloomData::Init()
 {
 	mBB.Create();
-	mbActive = false;
+	mbActive = true;
 	mLuminence = 1.0F;
 	mBlurSamples = 5;
 }
@@ -913,7 +917,7 @@ void AOData::Init()
 	mDirectionNum = 6;
 	mSteps = 6;
 	mBias = 0.5F;
-	mRadius = 2.0F;
+	mRadius = 5.0F;
 	mAttenuation = 0.1F;
 	mScale = 5.0F;
 	mBlurPasses = 5;
