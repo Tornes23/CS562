@@ -476,12 +476,10 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass, bool gaus
 	shader.SetBoolUniform("HorizontalPass", horizontal);
 	shader.SetBoolUniform("Gaussian", gaussian);
 	shader.SetFloatUniform("RangeSigma", mAOData.mRangeSigma);
-	shader.SetFloatUniform("mRadius", mAOData.mRadius);
 
 	glActiveTexture(GL_TEXTURE0);
 	if(first_pass)
 		glBindTexture(GL_TEXTURE_2D, mRenderData.mFB.GetRenderTexture());
-		//glBindTexture(GL_TEXTURE_2D, gaussian ? mRenderData.mFB.GetRenderTexture() : mDeferredData.mGBuffer.mDiffuseBuffer);
 	else
 		glBindTexture(GL_TEXTURE_2D, gaussian ? mBloomData.mBB.GetLuminenceTexture(!horizontal) : mAOData.mAOBuffer.GetAOTexture(!horizontal));
 
