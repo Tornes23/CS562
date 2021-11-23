@@ -26,7 +26,7 @@ vec3 BilateralBlur()
     vec3 texSample = SampleTexture(UV);
     vec3 result = vec3(0);
     float totalWeight = 0.0;
-    float halfKernel = 5 / 2.0;
+    float halfKernel = 2;
 
     float fracSpace = -1.0 / (2.0 * 5 * 5);
     float fracRange = -1.0 / (2.0 * RangeSigma * RangeSigma);
@@ -84,5 +84,5 @@ void main()
     if(Gaussian)
         Blur = vec4(GaussianBlur(), 1.0);
     else
-        Blur = vec4(BilateralBlur(), 1.0);
+        Blur = vec4(GaussianBlur(), 1.0);
 }

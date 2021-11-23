@@ -25,8 +25,8 @@ float GetRandomRotation(vec2 uv)
 
 vec3 RotateVector(vec3 vec, float angle)
 {
-    mat3 rot = mat3(cos(angle), -sin(angle), 0,
-                    sin(angle), cos(angle), 0,
+    mat3 rot = mat3(cos(angle), sin(angle), 0,
+                    -sin(angle), cos(angle), 0,
                     0,          0,          1);
 
     return rot * vec;
@@ -45,19 +45,23 @@ float HorizonOcclusion()
     float angle = 360.0 / float(mDirectionNum);
     float stepDist = mRadius / float(mSteps);
 
+    vec2 pixelSize = 1.0f / textureSize(positionData, 0);
+
     //initial sample
     vec3 initialPos= texture(positionData,UV).xyz;
-    vec3 initialTan= dFdx(texture(positionData,UV).xyz);
-    vec3 initialBitan= dFdy(texture(positionData,UV).xyz);
+    vec3 initialTan= normalize(dFdx(texture(positionData,UV).xyz));
+    vec3 initialBitan= normalize(dFdy(texture(positionData,UV).xyz));
 
     float occlusion = 0.0;
-    float randomRot = GetRandomRotation(UV) * 360.0;
+    float randomRot = 0;//GetRandomRotation(UV) * 360.0;
+    //AmbientOcclusion = vec4(normalize(initialBitan),1);
     for(int i = 0; i < mDirectionNum; i++)
     {
         //getting the rotation angle
         float theta = i * angle + randomRot; 
         //apply random rotation to the direction for better results
         vec3 dir = RotateVector(initialDir, radians(theta));
+        //dir = vec3(cos(radians(theta)), sin(radians(theta)), 0);
         //for this direction compute tangent and bitangent
         vec3 tangent = initialTan * cos(radians(theta)) + initialBitan * sin(radians(theta));
         //variables to store the tangent angle and horizon angle
@@ -65,6 +69,8 @@ float HorizonOcclusion()
         tAngle += mBias;
         float hAngle = 0.0;
         float len = 0.0;
+
+        vec2 lastSample = UV;
 
         for(int j = 1; j <= mSteps; j++)
         {
@@ -76,8 +82,12 @@ float HorizonOcclusion()
             sampleUV = sampleUV * 0.5 + 0.5;
             //sample the position depth
             vec3 samplePos= texture(positionData, sampleUV).xyz; 
-            if(samplePos == initialPos)
+            
+            vec2 UVDelta = abs(sampleUV - lastSample);
+            lastSample = sampleUV;
+            if(UVDelta.x < pixelSize.x && UVDelta.y < pixelSize.y )
                 continue;
+
             //float sampleDepth = texture(depthData, sampleUV).r; 
             vec3 horizonVec = samplePos - initialPos;
             //check distance vs radius to discard
@@ -86,6 +96,7 @@ float HorizonOcclusion()
 
             //computing the current horizon angle
             float angle = atan(horizonVec.z / length(horizonVec.xy));
+
             //store if greater than the current maximum store it
             if(angle > hAngle)
             {
@@ -94,7 +105,10 @@ float HorizonOcclusion()
             }
         }
 
-        occlusion += (sin(hAngle) - sin(tAngle)) * (1.0 - pow((len / mRadius), 2)) * mAttenuation;
+        float currOcc= (sin(hAngle) - sin(tAngle));// * (1.0 - pow((len / mRadius), 2)) * mAttenuation;
+        occlusion += currOcc;
+        
+         //   return 1- currOcc;
     }
 
     occlusion = (occlusion * mScale) / mDirectionNum;
