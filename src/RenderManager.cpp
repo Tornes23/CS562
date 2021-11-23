@@ -480,7 +480,8 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass, bool gaus
 
 	glActiveTexture(GL_TEXTURE0);
 	if(first_pass)
-		glBindTexture(GL_TEXTURE_2D, gaussian ? mRenderData.mFB.GetRenderTexture() : mDeferredData.mGBuffer.mDiffuseBuffer);
+		glBindTexture(GL_TEXTURE_2D, mRenderData.mFB.GetRenderTexture());
+		//glBindTexture(GL_TEXTURE_2D, gaussian ? mRenderData.mFB.GetRenderTexture() : mDeferredData.mGBuffer.mDiffuseBuffer);
 	else
 		glBindTexture(GL_TEXTURE_2D, gaussian ? mBloomData.mBB.GetLuminenceTexture(!horizontal) : mAOData.mAOBuffer.GetAOTexture(!horizontal));
 
@@ -835,7 +836,7 @@ void LightData::Edit()
 void BloomData::Init()
 {
 	mBB.Create();
-	mbActive = true;
+	mbActive = false;
 	mLuminence = 1.0F;
 	mBlurSamples = 5;
 }
