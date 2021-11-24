@@ -47,8 +47,6 @@ vec3 BilateralBlur()
             vec3 newSample = SampleTexture(newUV);
             float distSpace = length(newUV);
             float distRange = length(newSample);
-            //float spaceWeight = sqrt2pi * exp(fracSpace * distSpace);
-            //float rangeWeight = sqrt2pi * exp(fracRange * distRange);
             float spaceWeight = ComputeWeight(i, 5);
             float rangeWeight = ComputeWeight(i, RangeSigma);
             float weight = spaceWeight * rangeWeight;
@@ -95,5 +93,4 @@ void main()
         Blur = vec4(GaussianBlur(), 1.0);
     else
         Blur = vec4(BilateralBlur(), 1.0);
-        //Blur = vec4(GaussianBlur(), 1.0);
 }
