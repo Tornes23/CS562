@@ -15,16 +15,17 @@ o Num2: Displays the Diffuse texture.
 o Num3: Displays the Normal texture.
 o Num4: Displays the Specular texture.
 o Num5: Displays the Depth texture.
+o Num6: Displays the Ambient Occluison texture.
 
 o LContol + Num1: Displays the Decal Volumes.
 o LContol + Num2: Displays the Decal Projected Areas.
 o LContol + Num3: Displays the Decal Result.
 
 2. Important parts of the code: 
-    RenderManager.h/cpp (DecalStage Function)
-    DecalBuffer.h/cpp
-    Decal shaders
+    RenderManager.h/cpp (AOStage Function & BlurTexture Function)
+    AmbientOcclusion.vert/frag
+    Blur.vert/frag
 
 3. Known issues and problems: 
-    - I think i fixed the bloom problem 
-      if possible let me know that is corrected
+    - Still unsure if Ao output is correct, looks better (i only changed the random tho)
+    - The issue with the grid was that i was trying to store the data from a RGBA16F to a regular RGBA.
