@@ -266,8 +266,6 @@ void RenderManagerClass::DecalStage()
 
 void RenderManagerClass::AOStage()
 {
-	//mAOData.mAOBuffer.UseRenderBuffer();
-	//ClearBuffer();
 	//computing the AO Texture
 	AOPass();
 	mAOData.mAOBuffer.UseRenderBuffer();
@@ -318,7 +316,6 @@ void RenderManagerClass::AOPass()
 	shader.SetFloatUniform("mRadius", mAOData.mRadius);
 	shader.SetFloatUniform("mAttenuation", mAOData.mAttenuation);
 	shader.SetFloatUniform("mScale", mAOData.mScale);
-	shader.SetFloatUniform("Seed", glm::linearRand(0.0F, 1000.0F));
 
 	//disabling depth writing
 	glDepthMask(GL_FALSE);

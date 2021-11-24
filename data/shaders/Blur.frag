@@ -14,6 +14,14 @@ uniform float RangeSigma;
 //weights for gaussian blur
 uniform float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 
+float ComputeWeight(float x, float sigma)
+{
+    
+    float sqrt2pi = 0.39894;//1/sqrt(2pi)
+    float fraction = sqrt2pi / sigma;
+    return fraction * exp(-0.5 * ((x * x) / (sigma * sigma)));
+}
+
 vec3 SampleTexture(vec2 offsetUV)
 {
     vec2 tex_offset = 1.0 / textureSize(textureData, 0); // gets size of texel
@@ -28,8 +36,8 @@ vec3 BilateralBlur()
     float totalWeight = 0.0;
     float halfKernel = 2;
 
-    float fracSpace = -1.0 / (2.0 * 5 * 5);
-    float fracRange = -1.0 / (2.0 * RangeSigma * RangeSigma);
+    float fracSpace = -0.5 * (5 * 5);
+    float fracRange = -0.5 * (RangeSigma * RangeSigma);
 
     for(float i = -halfKernel; i <= halfKernel; i++)
     {
@@ -39,8 +47,10 @@ vec3 BilateralBlur()
             vec3 newSample = SampleTexture(newUV);
             float distSpace = length(newUV);
             float distRange = length(newSample);
-            float spaceWeight = exp(fracSpace * distSpace);
-            float rangeWeight = exp(fracRange * distRange);
+            //float spaceWeight = sqrt2pi * exp(fracSpace * distSpace);
+            //float rangeWeight = sqrt2pi * exp(fracRange * distRange);
+            float spaceWeight = ComputeWeight(i, 5);
+            float rangeWeight = ComputeWeight(i, RangeSigma);
             float weight = spaceWeight * rangeWeight;
             totalWeight += weight;
             result += newSample * weight;
@@ -84,5 +94,6 @@ void main()
     if(Gaussian)
         Blur = vec4(GaussianBlur(), 1.0);
     else
-        Blur = vec4(GaussianBlur(), 1.0);
+        Blur = vec4(BilateralBlur(), 1.0);
+        //Blur = vec4(GaussianBlur(), 1.0);
 }
