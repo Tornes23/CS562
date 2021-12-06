@@ -15,7 +15,6 @@ layout(location = 0) uniform sampler2D g_diffuseTex;
 layout(location = 1) uniform sampler2D g_normalTex;
 layout(location = 2) uniform sampler2D g_SpecTex;
 layout(location = 3) uniform sampler2D g_DepthTex;
-layout(location = 4) uniform sampler2D g_PosTex;
 
 uniform Light mLight;
 uniform vec2 Size;

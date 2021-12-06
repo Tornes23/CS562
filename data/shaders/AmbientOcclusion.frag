@@ -107,7 +107,6 @@ float HorizonOcclusion()
         float currOcc= (sin(hAngle) - sin(tAngle)) * (1.0 - pow((len / mRadius), 2)) * mAttenuation;
         occlusion += currOcc;
         
-         //   return 1- currOcc;
     }
 
     occlusion = (occlusion * mScale) / mDirectionNum;

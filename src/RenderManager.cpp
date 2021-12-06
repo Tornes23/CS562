@@ -291,24 +291,30 @@ void RenderManagerClass::AOPass()
 	glm::vec2 size = Window.GetViewport();
 	mRenderData.mMode = RenderMode::AmbientOcclusion;
 	mRenderData.mFB.BindDrawBuffer();
-	//mAOData.mAOBuffer.BindDrawBuffer();
 	glBlitFramebuffer(0, 0, static_cast<GLint>(size.x), static_cast<GLint>(size.y), 0, 0,
 		static_cast<GLint>(size.x), static_cast<GLint>(size.y), GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 	mRenderData.mFB.UseRenderBuffer();
-	//mAOData.mAOBuffer.UseRenderBuffer();
 
 	//get shader program
 	ShaderProgram& shader = GetShader();
 	shader.Use();
 	//binding the required gbuffer textures
-	mDeferredData.mGBuffer.BindPositionTexture();
+	mDeferredData.mGBuffer.BindDepthTexture();
 	//binding the screen triangle
 	mRenderData.mScreenTriangle->BindVAO();
 	//set uniforms in shader
 	glm::mat4x4 p = Camera.GetProjection();
 	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
+	glm::mat4x4 invP = glm::inverse(Camera.GetProjection());
+	glm::mat4x4 invV = glm::inverse(Camera.GetCameraMat());
+	glm::mat4x4 invM2W = glm::inverse(mvp);
+
 	shader.SetMatUniform("MVP", &mvp[0][0]);
 	shader.SetMatUniform("Proj", &p[0][0]);
+
+	shader.SetMatUniform("invP", &invP[0][0]);
+	shader.SetMatUniform("invV", &invV[0][0]);
+	shader.SetMatUniform("invM", &invM2W[0][0]);
 
 	shader.SetIntUniform("mDirectionNum", mAOData.mDirectionNum);
 	shader.SetIntUniform("mSteps", mAOData.mSteps);
