@@ -11,14 +11,12 @@ struct GBuffer
 	void BindNormalTexture();
 	void BindSpecularTexture();
 	void BindDepthTexture();
-	void BindPositionTexture();
 	void BindReadBuffer();
 	GLuint mHandle;
 	
 	GLuint mNormalBuffer;
 	GLuint mDiffuseBuffer;
 	GLuint mSpecularBuffer;
-	GLuint mPositionBuffer;
 	GLuint mDepth;
 
 	glm::ivec2 mSize;

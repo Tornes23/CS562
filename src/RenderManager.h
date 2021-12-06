@@ -120,6 +120,13 @@ struct RenderData
 	float mContrast;
 };
 
+struct RayTracingData
+{
+	void Init();
+	void Edit();
+
+};
+
 class RenderManagerClass
 {
 public:
@@ -159,6 +166,8 @@ public:
 	void RenderLights();
 	void LightingStage();
 
+	void RayTracePass();
+
 	void PostProcessStage();
 	void ExtractLuminence();
 	void BlurTexture(bool horizontal = false, bool first_pass = false, bool gaussian = true);
@@ -181,6 +190,7 @@ private:
 	BloomData mBloomData;
 	DecalData mDecalsData;
 	AOData mAOData;
+	RayTracingData mRTXData;
 
 
 	RenderManagerClass() {}

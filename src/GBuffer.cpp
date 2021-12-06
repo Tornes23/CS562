@@ -12,7 +12,6 @@ void GBuffer::Create()
 
 	// Attach the different textures of the GBuffer
 	mNormalBuffer   = RenderManager.GenTexture(mSize, true);
-	mPositionBuffer = RenderManager.GenTexture(mSize, true);
 	mDiffuseBuffer  = RenderManager.GenTexture(mSize);
 	mSpecularBuffer  = RenderManager.GenTexture(mSize);
 
@@ -30,13 +29,10 @@ void GBuffer::Create()
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mDiffuseBuffer, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, mNormalBuffer, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, mSpecularBuffer, 0);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, mPositionBuffer, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepth, 0);
 
-	GLuint attachments[5] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3, GL_NONE };
-	glDrawBuffers(5, attachments);
-	//GLuint attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_NONE };
-	//glDrawBuffers(4, attachments);
+	GLuint attachments[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_NONE };
+	glDrawBuffers(4, attachments);
 
 	// unbind 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -52,7 +48,6 @@ void GBuffer::BindTextures()
 	BindNormalTexture();
 	BindSpecularTexture();
 	BindDepthTexture();
-	BindPositionTexture();
 
 }
 
@@ -82,13 +77,6 @@ void GBuffer::BindDepthTexture()
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, mDepth);
 	glUniform1i(3, 3);
-}
-
-void GBuffer::BindPositionTexture()
-{
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, mPositionBuffer);
-	glUniform1i(4, 4);
 }
 
 void GBuffer::BindReadBuffer()

@@ -3,8 +3,8 @@
 //output fragmet color
 layout(location = 0)out vec4 AmbientOcclusion;
 //the used textures
-layout(location = 1)uniform sampler2D normalData;;
-layout(location = 4)uniform sampler2D positionData;
+layout(location = 1)uniform sampler2D normalData;
+layout(location = 3)uniform sampler2D depthData;
 
 
 in vec2 UV;
@@ -17,6 +17,13 @@ uniform float mRadius;
 uniform float mAttenuation;
 uniform float mScale;
 uniform mat4 Proj;
+uniform mat4 invP;
+uniform mat4 invV;
+uniform mat4 invM;
+
+vec3 GetModelPosition(vec2 UV);
+vec3 GetWorldPosition(vec2 UV);
+vec3 GetViewPosition(vec2 UV);
 
 float GetRandomRotation(vec2 uv)
 {
@@ -48,7 +55,7 @@ float HorizonOcclusion()
     vec3 normal = normalize(texture(normalData, UV).rgb);
 
     //initial sample
-    vec3 initialPos= texture(positionData,UV).xyz;
+    vec3 initialPos= GetViewPosition(UV);
     vec3 initialTan= normalize(dFdx(initialPos));
     vec3 initialBitan= normalize(dFdy(initialPos));
 
@@ -80,7 +87,7 @@ float HorizonOcclusion()
             vec2 sampleUV = GetSample(newPos).xy;
             sampleUV = sampleUV * 0.5 + 0.5;
             //sample the position position
-            vec3 samplePos = texture(positionData, sampleUV).xyz; 
+            vec3 samplePos = GetViewPosition(sampleUV); 
             vec3 horizonVec = samplePos - initialPos;
             //check distance vs radius to discard
             if(length(horizonVec) > mRadius)
@@ -114,4 +121,31 @@ void main()
     float ao = HorizonOcclusion();
 
     AmbientOcclusion = vec4(vec3(ao), 1.0);
+}
+
+
+vec3 GetModelPosition(vec2 UV)
+{
+    //get depth value from texture
+	vec4 position = vec4(GetWorldPosition(UV), 1.0);
+	position = invM * position;
+	return position.xyz;
+}
+
+vec3 GetWorldPosition(vec2 UV)
+{
+	vec4 position = vec4(GetViewPosition(UV), 1.0);
+	position = invV * position;
+	return position.xyz;
+}
+
+vec3 GetViewPosition(vec2 UV)
+{
+    //get depth value from texture
+	float depth = texture2D(depthData, UV).r * 2.0 - 1.0;
+    vec2 xy = UV * 2.0 - 1.0;
+	vec4 position = vec4(xy, depth, 1.0);
+    position = invP * position;
+    position /= position.w;
+	return position.xyz;
 }
