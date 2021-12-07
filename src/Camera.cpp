@@ -87,3 +87,9 @@ void CameraClass::Rotate()
 glm::mat4x4 CameraClass::GetProjection() const { return mPerspective; }
 
 glm::mat4x4 CameraClass::GetCameraMat() const { return mCameraMat;}
+
+glm::vec3 CameraClass::GetViewVec() const { return mView; }
+
+float CameraClass::GetNear() const { return mNear; }
+
+float CameraClass::GetFar() const { return mFar; }

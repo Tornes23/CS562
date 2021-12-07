@@ -184,6 +184,7 @@
     <ClCompile Include="src\RenderManager.cpp" />
     <ClCompile Include="src\Resource.cpp" />
     <ClCompile Include="src\ResourceManager.cpp" />
+    <ClCompile Include="src\RTXBuffer.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\Utils.cpp" />
@@ -216,6 +217,7 @@
     <ClInclude Include="src\Light.h" />
     <ClInclude Include="src\Material.h" />
     <ClInclude Include="src\Model.h" />
+    <ClInclude Include="src\RTXBuffer.h" />
     <ClInclude Include="src\RenderManager.h" />
     <ClInclude Include="src\Resource.h" />
     <ClInclude Include="src\ResourceManager.h" />

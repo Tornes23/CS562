@@ -12,6 +12,7 @@
 #include "DecalBuffer.h"
 #include "Decal.h"
 #include "AOBuffer.h"
+#include "RTXBuffer.h"
 
 
 enum RenderMode
@@ -25,7 +26,8 @@ enum RenderMode
 	Regular,
 	Blend,
 	White,
-	AmbientOcclusion
+	AmbientOcclusion,
+	RTX
 };
 
 enum DisplayTex
@@ -124,6 +126,14 @@ struct RayTracingData
 {
 	void Init();
 	void Edit();
+
+	bool mbActive;
+	float mMaxBounces;
+	float mMaxRayDist;
+	float mStride;
+	float mMaxSteps;
+	float mBufferThickness;
+	RTXBuffer mRTXBuffer;
 
 };
 

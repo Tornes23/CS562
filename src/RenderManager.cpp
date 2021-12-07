@@ -20,6 +20,7 @@ void RenderManagerClass::Initialize()
 	mBloomData.Init();
 	mDecalsData.Init(mDeferredData.mGBuffer.mDiffuseBuffer, mDeferredData.mGBuffer.mNormalBuffer, mDeferredData.mGBuffer.mSpecularBuffer);
 	mAOData.Init();
+	mRTXData.Init();
 }
 
 void RenderManagerClass::Update()
@@ -74,6 +75,7 @@ void RenderManagerClass::Edit()
 	mBloomData.Edit();
 	mDecalsData.Edit();
 	mAOData.Edit();
+	mRTXData.Edit();
 
 	ImGui::End();
 }
@@ -130,6 +132,7 @@ void RenderManagerClass::LoadShaders(bool reload)
 	mRenderData.mShaders[RenderMode::Blend] = ShaderProgram("./data/shaders/Blend.vert", "./data/shaders/Blend.frag");
 	mRenderData.mShaders[RenderMode::White] = ShaderProgram("./data/shaders/White.vert", "./data/shaders/White.frag");
 	mRenderData.mShaders[RenderMode::AmbientOcclusion] = ShaderProgram("./data/shaders/AmbientOcclusion.vert", "./data/shaders/AmbientOcclusion.frag");
+	mRenderData.mShaders[RenderMode::RTX] = ShaderProgram("./data/shaders/RayTracing.vert", "./data/shaders/RayTracing.frag");
 }
 
 void RenderManagerClass::FreeShaders()
@@ -342,8 +345,14 @@ void RenderManagerClass::LightingStage()
 		return;
 
 	AmbientPass();
-	LightPass();
-	RenderLights();
+
+	if (mRTXData.mbActive)
+		RayTracePass();
+	else
+	{
+		LightPass();
+		RenderLights();
+	}
 }
 
 void RenderManagerClass::LightPass()
@@ -394,6 +403,56 @@ void RenderManagerClass::LightPass()
 	glDisable(GL_BLEND);
 	glDepthFunc(GL_LESS);
 	glCullFace(GL_BACK);
+	glUseProgram(0);
+	//unbinding the VAOs
+	glBindVertexArray(0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void RenderManagerClass::RayTracePass()
+{
+	mRenderData.mMode = RenderMode::RTX;
+	mRTXData.mRTXBuffer.UseRenderBuffer();
+	ClearBuffer();
+
+	//get shader program
+	ShaderProgram& shader = GetShader();
+	shader.Use();
+	//binding the screen triangle
+	mRenderData.mScreenTriangle->BindVAO();
+	//set uniforms in shader
+	glm::mat4x4 mvp = glm::scale(glm::vec3(1.0F));
+	glm::mat4x4 p = Camera.GetProjection();
+	glm::mat4x4 invP = glm::inverse(p);
+	glm::mat4x4 invV = glm::inverse(Camera.GetCameraMat());
+	glm::mat4x4 invM2W = glm::inverse(mvp);
+	glm::vec3 viewVec = Camera.GetViewVec();
+	shader.SetMatUniform("MVP", &mvp[0][0]);
+	shader.SetMatUniform("Proj", &p[0][0]);
+	shader.SetMatUniform("invP", &invP[0][0]);
+	shader.SetMatUniform("invV", &invV[0][0]);
+	shader.SetMatUniform("invM", &invM2W[0][0]);
+	shader.SetVec3Uniform("Viewvec", viewVec);
+	shader.SetVec2Uniform("Size", Window.GetViewport());
+	shader.SetFloatUniform("MaxRayBounces", mRTXData.mMaxBounces);
+	shader.SetFloatUniform("MaxRayDist", mRTXData.mMaxRayDist);
+	shader.SetFloatUniform("Stride", mRTXData.mStride);
+	shader.SetFloatUniform("MaxSteps", mRTXData.mMaxSteps);
+	shader.SetFloatUniform("ZBufferThickness", mRTXData.mBufferThickness);
+	shader.SetFloatUniform("Near", Camera.GetNear());
+	shader.SetFloatUniform("Far", Camera.GetFar());
+
+	mDeferredData.mGBuffer.BindDiffuseTexture();
+	mDeferredData.mGBuffer.BindNormalTexture();
+	mDeferredData.mGBuffer.BindDepthTexture();
+
+	glDepthMask(GL_FALSE);
+	//rendering the screen triangle
+	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
+	for (size_t i = 0; i < scene.nodes.size() - 1; i++)
+		RenderNode(*mRenderData.mScreenTriangle, mRenderData.mScreenTriangle->GetGLTFModel().nodes[scene.nodes[i]]);
+
+	glDepthMask(GL_TRUE);
 	glUseProgram(0);
 	//unbinding the VAOs
 	glBindVertexArray(0);
@@ -860,7 +919,7 @@ void DecalData::Init(GLuint diffuse, GLuint normal, GLuint specular)
 {
 	mDB.Create(diffuse, normal, specular);
 	mDecalMode = DecalData::DecalMode::Result;
-	mbActive= true;
+	mbActive = false;
 	mClipAngle = 0.1F;
 }
 
@@ -915,7 +974,7 @@ void RenderData::Edit()
 
 void AOData::Init()
 {
-	mbActive = true;
+	mbActive = false;
 	mDirectionNum = 6;
 	mSteps = 6;
 	mBias = 0.5F;
@@ -947,3 +1006,29 @@ void AOData::Edit()
 
 }
 
+void RayTracingData::Init()
+{
+	mRTXBuffer.Create();
+	mbActive = false;
+	mMaxBounces = 3.0F;
+	mMaxRayDist = 50.0F;
+	mStride = 1.0F;
+	mMaxSteps = 100.0F;
+	mBufferThickness = 0.5F;
+}
+
+void RayTracingData::Edit()
+{
+	if (ImGui::TreeNode("RayTracing"))
+	{
+		ImGui::Checkbox("Enable RTX", &mbActive);
+
+		ImGui::SliderFloat("Maximum Ray Bounces", &mMaxBounces, 1.0F, 10.0F);
+		ImGui::SliderFloat("Maximum Ray Distance", &mMaxRayDist, 1.0F, 500.0F);
+		ImGui::SliderFloat("Stride", &mStride, 1.0F, 20.0F);
+		ImGui::SliderFloat("Maximum Steps", &mMaxSteps, 1.0F, 100.0F);
+		ImGui::SliderFloat("Depth Buffer Thickness", &mBufferThickness, 0.1F, 5.0F);
+
+		ImGui::TreePop();
+	}
+}

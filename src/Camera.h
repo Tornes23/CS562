@@ -22,6 +22,9 @@ public:
 	void Rotate();
 	glm::mat4x4 GetProjection() const;
 	glm::mat4x4 GetCameraMat() const;
+	glm::vec3 GetViewVec() const;
+	float GetNear() const;
+	float GetFar() const;
 
 private:
 	glm::mat4x4 mPerspective;

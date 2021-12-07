@@ -88,6 +88,9 @@
     <Filter Include="Source Files\GFX\AOBuffer">
       <UniqueIdentifier>{bb410cfe-0434-4873-a326-2c168f0d46db}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\GFX\RTXBuffer">
+      <UniqueIdentifier>{997b71f9-627a-4dc2-8855-3d8d1339342a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">
@@ -182,6 +185,9 @@
     </ClCompile>
     <ClCompile Include="src\AOBuffer.cpp">
       <Filter>Source Files\GFX\AOBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\RTXBuffer.cpp">
+      <Filter>Source Files\GFX\RTXBuffer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -283,6 +289,9 @@
     </ClInclude>
     <ClInclude Include="src\AOBuffer.h">
       <Filter>Source Files\GFX\AOBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\RTXBuffer.h">
+      <Filter>Source Files\GFX\RTXBuffer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
