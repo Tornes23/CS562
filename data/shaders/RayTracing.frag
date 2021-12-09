@@ -30,7 +30,7 @@ vec3 GetViewPosition(vec2 UV);
 
 void main()
 {
-	vec3 rayDir = -GetViewPosition(UV);
+	vec3 rayDir = -normalize(GetViewPosition(UV));
 	for(int i = 0; i < MaxRayBounces; i++)
 	{
 		vec3 hitPoint = vec3(0,0,0);

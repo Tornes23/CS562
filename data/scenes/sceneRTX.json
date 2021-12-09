@@ -41,17 +41,17 @@
             }
         },
         {
-            "mesh": "data/gltf/serapis/serapis.gltf",
+            "mesh": "data/gltf/Sphere.gltf",
             "translate": 
             {
-                "x": 20.0,
+                "x": 0.0,
                 "y": 0.0,
                 "z": 0.0
             },
             "rotate": 
             {
                 "x": 0.0,
-                "y": -30.0,
+                "y": 0.0,
                 "z": 0.0
             },
             "scale": 

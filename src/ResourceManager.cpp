@@ -96,7 +96,7 @@ void ResourceManagerClass::LoadModel(const std::string& file)
 
 	//create the resource and Tresource to add onto the map
 	std::shared_ptr<TResource<Model>> res = std::make_shared<TResource<Model>>();
-	res->SetResource(new Model(model));
+	res->SetResource(new Model(model, filename));
 	res->SetName(filename);
 	mResources[Utils::GetTypeName<Model>()][filename] = res; //put in the map
 

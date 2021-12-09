@@ -2,9 +2,11 @@
 #include "ResourceManager.h"
 #include "Utils.h"
 
-Model::Model(tinygltf::Model* model) : mGLTF_Model(*model)
+Model::Model(tinygltf::Model* model, const std::string& name) : mGLTF_Model(*model)
 {
 	if (!model) return;
+    
+    mName = name;
 
 	glGenVertexArrays(1, &mVAO);
     BindVAO();
@@ -19,8 +21,6 @@ Model::Model(tinygltf::Model* model) : mGLTF_Model(*model)
     GetMaterials();
 
     glBindVertexArray(0);
-    //for (size_t i = 0; i < mVBOs.size(); i++) 
-    //    glDeleteBuffers(1, &mVBOs[i]);
 }
 
 Model::~Model()
@@ -97,6 +97,8 @@ void Model::BindMeshes(tinygltf::Model* model, tinygltf::Mesh& mesh)
 
 tinygltf::Model& Model::GetGLTFModel() { return mGLTF_Model; }
 
+std::string Model::GetName() { return mName; }
+
 void Model::BindVAO() { glBindVertexArray(mVAO); }
 
 void Model::SetMaterialActive(int index)
@@ -120,3 +122,5 @@ void Model::GetMaterials()
         mMaterials.push_back(ResourceManager.GetResource<Material>(mGLTF_Model.materials[i].name));
     }
 }
+
+std::vector<Material*>& Model::GetMaterialVector(){ return mMaterials; }

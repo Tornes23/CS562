@@ -27,7 +27,7 @@ enum RenderMode
 	Blend,
 	White,
 	AmbientOcclusion,
-	RTX
+	RayTracing
 };
 
 enum DisplayTex
@@ -37,7 +37,8 @@ enum DisplayTex
 	Normal,
 	Specular,
 	Depth,
-	AO
+	AO,
+	RTX
 };
 
 struct DeferredData

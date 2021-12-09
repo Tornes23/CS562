@@ -6,7 +6,12 @@
 
 struct GameObject
 {
+	GameObject();
 	void Update();
+	void Edit();
+
+	bool mbActive;
+	std::string mName;
 
 	glm::mat4x4 mM2W;
 	std::string mMesh;

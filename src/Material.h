@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 #include <memory>
 #include "Color.h"
 #include "Resource.h"
@@ -21,8 +22,10 @@ public:
 	void SetSpecularTex(std::shared_ptr<Resource>& tex);
 	void SetNormalTex(std::shared_ptr<Resource>& tex);
 	void SetActive();
+	std::string GetName();
 private:
 	//diffuse color
+	std::string mName;
 	Color mDiffuseColor;
 	std::shared_ptr<TResource<Texture>> mDiffuseTex;
 	std::shared_ptr<TResource<Texture>> mSpecularTex;

@@ -1,4 +1,6 @@
 #include <iostream>
+#include "imgui/imgui.h"
+#include "ResourceManager.h"
 #include "RenderManager.h"
 #include "Material.h"
 
@@ -26,3 +28,5 @@ void Material::SetActive()
 	if (mSpecularTex != nullptr)
 		glUniform1i(2, static_cast<int>(Texture::TextureIndex::Specular));
 }
+
+std::string Material::GetName() { return mName; }

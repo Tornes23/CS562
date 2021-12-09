@@ -244,4 +244,8 @@ namespace Utils
         
         ImGui::End();
     }
+    void SaveScene(const std::string& filename)
+    {
+        //saving the scene into the json file
+    }
 }

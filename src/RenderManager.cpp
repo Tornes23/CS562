@@ -44,6 +44,8 @@ void RenderManagerClass::Update()
 		mDeferredData.mDisplay = DisplayTex::Depth;
 	if (KeyDown(Key::Num6) && !ctrl)
 		mDeferredData.mDisplay = DisplayTex::AO;
+	if (KeyDown(Key::Num7) && !ctrl)
+		mDeferredData.mDisplay = DisplayTex::RTX;
 
 	if (KeyDown(Key::Num1) && ctrl)
 		mDecalsData.mDecalMode = DecalData::DecalMode::Volume;
@@ -132,7 +134,7 @@ void RenderManagerClass::LoadShaders(bool reload)
 	mRenderData.mShaders[RenderMode::Blend] = ShaderProgram("./data/shaders/Blend.vert", "./data/shaders/Blend.frag");
 	mRenderData.mShaders[RenderMode::White] = ShaderProgram("./data/shaders/White.vert", "./data/shaders/White.frag");
 	mRenderData.mShaders[RenderMode::AmbientOcclusion] = ShaderProgram("./data/shaders/AmbientOcclusion.vert", "./data/shaders/AmbientOcclusion.frag");
-	mRenderData.mShaders[RenderMode::RTX] = ShaderProgram("./data/shaders/RayTracing.vert", "./data/shaders/RayTracing.frag");
+	mRenderData.mShaders[RenderMode::RayTracing] = ShaderProgram("./data/shaders/RayTracing.vert", "./data/shaders/RayTracing.frag");
 }
 
 void RenderManagerClass::FreeShaders()
@@ -411,7 +413,7 @@ void RenderManagerClass::LightPass()
 
 void RenderManagerClass::RayTracePass()
 {
-	mRenderData.mMode = RenderMode::RTX;
+	mRenderData.mMode = RenderMode::RayTracing;
 	mRTXData.mRTXBuffer.UseRenderBuffer();
 	ClearBuffer();
 
@@ -685,6 +687,9 @@ void RenderManagerClass::Display()
 	case DisplayTex::AO:
 		glBindTexture(GL_TEXTURE_2D, mAOData.mAOBuffer.GetAOTexture());
 		break;
+	case DisplayTex::RTX:
+		glBindTexture(GL_TEXTURE_2D, mRTXData.mRTXBuffer.GetRTXTexture());
+		break;
 	default:
 		glBindTexture(GL_TEXTURE_2D, mBloomData.mbActive ? mRenderData.mFB.GetRenderTexture() : mRenderData.mDisplayBuffer.GetRenderTexture());
 		break;
@@ -820,9 +825,9 @@ void DeferredData::Edit()
 	//code to change the output
 	int tex = static_cast<int>(mDisplay);
 
-	const char* texture_options[6] = { "Standar", "Diffuse", "Normal", "Specular", "Depth", "Ambient Occlusion"};
+	const char* texture_options[7] = { "Standar", "Diffuse", "Normal", "Specular", "Depth", "Ambient Occlusion", "RTX"};
 
-	if (ImGui::Combo("Display Texture", &tex, texture_options, 6, 7))
+	if (ImGui::Combo("Display Texture", &tex, texture_options, 7, 8))
 	{
 		switch (tex)
 		{
@@ -843,6 +848,9 @@ void DeferredData::Edit()
 			break;
 		case 5:
 			mDisplay = DisplayTex::AO;
+			break;
+		case 6:
+			mDisplay = DisplayTex::RTX;
 			break;
 		}
 	}
@@ -961,6 +969,7 @@ void RenderData::Init()
 	mFB.Create();
 	mDisplayBuffer.Create();
 	mContrast = 1.0F - 0.99784F;
+	//mScreenTriangle = ResourceManager.GetResource<Model>("ScreenTriangle.gltf");
 }
 
 void RenderData::Edit()
