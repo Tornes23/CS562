@@ -31,6 +31,9 @@ int main(int argc, char* argv[])
 
 		InputManager.HandleEvents();
 		
+		if (KeyDown(Key::Control) && KeyDown(Key::S))
+			Utils::SaveScene(to_load.substr(0, to_load.find_last_of(".")));
+
 		ResourceManager.Update();
 		RenderManager.Update();
 		Window.Update();

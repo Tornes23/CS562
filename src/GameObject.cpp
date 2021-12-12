@@ -5,9 +5,18 @@
 #include "glm/geometric.hpp"
 #include "glm/gtx/transform.hpp"
 
-GameObject::GameObject()
+GameObject::GameObject(int i)
 {
+	mbActive = true;
+	mPos = glm::vec3(0.0F);
+	mRotation = glm::vec3(0.0F);
+	mScale = glm::vec3(1.0F);
+	mM2W = glm::mat4x4(1.0F);
 
+	mMesh = "Sphere.gltf";
+	mModel = ResourceManager.GetResource<Model>("Sphere.gltf");
+	mName = mMesh.substr(0, mMesh.find("."));
+	mName += std::to_string(i);
 }
 
 void GameObject::Update()

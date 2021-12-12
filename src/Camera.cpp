@@ -33,7 +33,7 @@ void CameraClass::Move()
 	//displacement
 	if (KeyDown(Key::W))
 		mPos += speed * mView;
-	if (KeyDown(Key::S))
+	if (KeyDown(Key::S) && !KeyDown(Key::Control))
 		mPos -= speed * mView;
 	if (KeyDown(Key::D))
 		mPos += speed * mRightVector;
@@ -53,6 +53,16 @@ void CameraClass::Update()
 	mCameraMat = glm::lookAt(mPos, mPos + mView, mUp);
 	mPerspective = glm::perspective(glm::radians(mFOV), static_cast<float>(view.x) / static_cast<float>(view.y), mNear, mFar);
 
+}
+
+void CameraClass::Save(nlohmann::json& j)
+{
+	nlohmann::json& cam = j["camera"];
+	cam["translate"] << mPos;
+	cam["rotate"] << mRotation;
+	cam["near"] << mNear;
+	cam["far"] << mFar;
+	cam["FOVy"] << mFOV;
 }
 
 void CameraClass::UpdateVectors(const glm::vec2& offset)

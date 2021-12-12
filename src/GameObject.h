@@ -6,7 +6,7 @@
 
 struct GameObject
 {
-	GameObject();
+	GameObject(int i = 0);
 	void Update();
 	void Edit();
 

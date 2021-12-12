@@ -42,9 +42,52 @@ Decal& operator>>(const nlohmann::json& j, Decal& val)
 GameObject& operator>>(const nlohmann::json& j, GameObject& val)
 {
     j["mesh"] >> val.mMesh;
-    val.mMesh = val.mMesh.substr(val.mMesh.find_last_of("/") + 1, val.mMesh.length());
     j["translate"] >> val.mPos;
     j["rotate"] >> val.mRotation;
     j["scale"] >> val.mScale;
     return val;
+}
+
+void operator<<(nlohmann::json& j, bool& val) { j = val; }
+void operator<<( nlohmann::json& j, short& val) { j = val; }
+void operator<<( nlohmann::json& j, unsigned short& val) { j = val; }
+void operator<<( nlohmann::json& j, int& val) { j = val; }
+void operator<<( nlohmann::json& j, unsigned int& val) { j = val; }
+void operator<<( nlohmann::json& j, float& val) { j = val; }
+void operator<<( nlohmann::json& j, double& val) { j = val; }
+void operator<<( nlohmann::json& j, glm::vec2& val) { j["x"] << val.x; j["y"] << val.y; }
+void operator<<( nlohmann::json& j, glm::vec3& val) { j["x"] << val.x; j["y"] << val.y; j["z"] << val.z;}
+void operator<<( nlohmann::json& j, glm::vec4& val) { j["x"] << val.x; j["y"] << val.y; j["z"] << val.z; j["w"] << val.w; }
+void operator<<(nlohmann::json& j, Color& val) { j["r"] << val.mR; j["g"] << val.mG; j["b"] << val.mB; j["a"] << val.mA;  }
+void operator<<( nlohmann::json& j, std::string& val) { j = val.c_str();  }
+void operator<<( nlohmann::json& j, Light& val) { j["position"] << val.mPos; j["color"] << val.mColor; j["radius"] << val.mRadius; }
+void operator<<( nlohmann::json& j, Decal& val)
+{
+    //std::string name;
+    //j["diffuse"] << name;
+    //name << name.substr(name.find_last_of("/") + 1, name.length());
+    ////Get resource
+    //val.mDiffuse << ResourceManager.GetResource<Texture>(name);
+    //
+    //j["normal"] << name;
+    //name << name.substr(name.find_last_of("/") + 1, name.length());
+    ////Get resource
+    //val.mNormal << ResourceManager.GetResource<Texture>(name);
+    //j["metallic"] << name;
+    //name << name.substr(name.find_last_of("/") + 1, name.length());
+    ////Get resource
+    //val.mMetallic << ResourceManager.GetResource<Texture>(name);
+    //
+    //j["translate"] << val.mPosition;
+    //j["rotate"] << val.mRotation;
+    //j["scale"] << val.mScale;
+    //
+}
+void operator<<( nlohmann::json& j, GameObject& val)
+{
+    std::string prefix = "data/gltf/";
+    j["mesh"] << val.mMesh;
+    j["translate"] << val.mPos;
+    j["rotate"] << val.mRotation;
+    j["scale"] << val.mScale;
 }

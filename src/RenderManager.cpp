@@ -61,6 +61,10 @@ void RenderManagerClass::Update()
 		
 }
 
+void RenderManagerClass::Save(nlohmann::json& j)
+{
+}
+
 void RenderManagerClass::Edit()
 {
 	//creating a window
@@ -348,13 +352,11 @@ void RenderManagerClass::LightingStage()
 
 	AmbientPass();
 
+	LightPass();
+	RenderLights();
+
 	if (mRTXData.mbActive)
 		RayTracePass();
-	else
-	{
-		LightPass();
-		RenderLights();
-	}
 }
 
 void RenderManagerClass::LightPass()

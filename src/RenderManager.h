@@ -152,7 +152,8 @@ public:
 
 	void Initialize();
 	void Update();
-	
+	void Save(nlohmann::json& j);
+
 	void Edit();
 
 	void LoadLights(const nlohmann::json& lights);

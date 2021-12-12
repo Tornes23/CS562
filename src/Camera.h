@@ -1,4 +1,5 @@
 #pragma once
+#include "json/json.hpp"
 #include "glm/mat4x4.hpp"
 #include "glm/vec3.hpp"
 #include "json/json.hpp"
@@ -18,6 +19,7 @@ public:
 	void LoadCamera(const nlohmann::json& j);
 	void Move();
 	void Update();
+	void Save(nlohmann::json& j);
 	void UpdateVectors(const glm::vec2& offset);
 	void Rotate();
 	glm::mat4x4 GetProjection() const;

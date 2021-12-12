@@ -247,5 +247,20 @@ namespace Utils
     void SaveScene(const std::string& filename)
     {
         //saving the scene into the json file
+        std::string path;
+        path += filename;
+        path += "test";
+        path += ".json";
+
+        std::ofstream outFile(path);
+        if (outFile.good() && outFile.is_open())
+        {
+            nlohmann::json j;
+            Camera.Save(j);
+            GOManager.Save(j);
+            //RenderManager.Save(j);
+            outFile << std::setw(4) << j;
+            outFile.close();
+        }
     }
 }
