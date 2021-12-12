@@ -13,8 +13,8 @@ GameObject::GameObject(int i)
 	mScale = glm::vec3(1.0F);
 	mM2W = glm::mat4x4(1.0F);
 
-	mMesh = "Sphere.gltf";
 	mModel = ResourceManager.GetResource<Model>("Sphere.gltf");
+	mMesh = "Sphere.gltf";
 	mName = mMesh.substr(0, mMesh.find("."));
 	mName += std::to_string(i);
 }
