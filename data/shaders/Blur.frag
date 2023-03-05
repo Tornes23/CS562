@@ -2,6 +2,7 @@
 
 //output fragmet color
 layout(location = 0)out vec4 Blur;
+
 //the used texture
 layout(location = 0)uniform sampler2D textureData;
 //the texture coordinates
@@ -11,6 +12,7 @@ uniform bool HorizontalPass;
 uniform bool Gaussian;
 uniform vec2 Size;
 uniform float RangeSigma;
+uniform int SpaceSigma;
 //weights for gaussian blur
 uniform float weight[5] = float[] (0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216);
 
@@ -29,6 +31,8 @@ vec3 SampleTexture(vec2 offsetUV)
     return texture(textureData, UV + uv).rgb;
 }
 
+//[bilateral] using the same texture as read and write produces artifacts 
+// the range value is not used to compute the gaussian weight (-10%);
 vec3 BilateralBlur()
 {
     vec3 texSample = SampleTexture(UV);
@@ -36,7 +40,7 @@ vec3 BilateralBlur()
     float totalWeight = 0.0;
     float halfKernel = 2;
 
-    float fracSpace = -0.5 * (5 * 5);
+    float fracSpace = -0.5 * (SpaceSigma * SpaceSigma);
     float fracRange = -0.5 * (RangeSigma * RangeSigma);
 
     for(float i = -halfKernel; i <= halfKernel; i++)
@@ -47,7 +51,7 @@ vec3 BilateralBlur()
             vec3 newSample = SampleTexture(newUV);
             float distSpace = length(newUV);
             float distRange = length(newSample);
-            float spaceWeight = ComputeWeight(i, 5);
+            float spaceWeight = ComputeWeight(i, SpaceSigma);
             float rangeWeight = ComputeWeight(i, RangeSigma);
             float weight = spaceWeight * rangeWeight;
             totalWeight += weight;

@@ -6,7 +6,7 @@ layout(location = 0)out vec4 AmbientOcclusion;
 layout(location = 1)uniform sampler2D normalData;;
 layout(location = 4)uniform sampler2D positionData;
 
-
+//[ao] initial horizon angle not properly set (-5%); 
 in vec2 UV;
 in vec3 Normal;
 

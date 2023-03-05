@@ -473,14 +473,16 @@ void RenderManagerClass::BlurTexture(bool horizontal, bool first_pass, bool gaus
 	shader.SetBoolUniform("HorizontalPass", horizontal);
 	shader.SetBoolUniform("Gaussian", gaussian);
 	shader.SetFloatUniform("RangeSigma", mAOData.mRangeSigma);
+	shader.SetIntUniform("SpaceSigma", mAOData.mSpaceSigma);
 
 	glActiveTexture(GL_TEXTURE0);
 	if(first_pass)
 		glBindTexture(GL_TEXTURE_2D, mRenderData.mFB.GetRenderTexture());
 	else
 		glBindTexture(GL_TEXTURE_2D, gaussian ? mBloomData.mBB.GetLuminenceTexture(!horizontal) : mAOData.mAOBuffer.GetAOTexture(!horizontal));
-
 	glUniform1i(0, 0);
+
+
 
 	//rendering the screen triangle
 	const tinygltf::Scene& scene = mRenderData.mScreenTriangle->GetGLTFModel().scenes[mRenderData.mScreenTriangle->GetGLTFModel().defaultScene];
@@ -854,7 +856,7 @@ void DecalData::Init(GLuint diffuse, GLuint normal, GLuint specular)
 {
 	mDB.Create(diffuse, normal, specular);
 	mDecalMode = DecalData::DecalMode::Result;
-	mbActive= true;
+	mbActive= false;
 	mClipAngle = 0.1F;
 }
 
@@ -918,6 +920,7 @@ void AOData::Init()
 	mScale = 5.0F;
 	mBlurPasses = 5;
 	mRangeSigma = 0.5F;
+	mSpaceSigma = 5;
 	mAOBuffer.Create();
 }
 
@@ -935,6 +938,7 @@ void AOData::Edit()
 		ImGui::SliderFloat("Scale", &mScale, 0.0F, 25.0F);
 		ImGui::SliderInt("Blur Passes", &mBlurPasses, 0, 100);
 		ImGui::SliderFloat("Range Sigma", &mRangeSigma, 0.0F, 100.0F);
+		ImGui::SliderInt("Space Sigma", &mSpaceSigma, 0, 20);
 
 		ImGui::TreePop();
 	}

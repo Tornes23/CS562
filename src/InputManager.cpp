@@ -72,6 +72,7 @@ void InputHandler::HandleMouseEvent(SDL_Event event)
 {
 	// Access the index with -1 beacuse they go:
 	// LEFT = 1, MIDDLE = 2, RIGHT = 3
+	
 	mMouseCurrent[event.button.button - 1] = event.button.state ? true : false;
 }
 bool InputHandler::WheelTriggered()

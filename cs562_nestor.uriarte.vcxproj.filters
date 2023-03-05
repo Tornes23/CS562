@@ -88,6 +88,18 @@
     <Filter Include="Source Files\GFX\AOBuffer">
       <UniqueIdentifier>{bb410cfe-0434-4873-a326-2c168f0d46db}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Animation">
+      <UniqueIdentifier>{60fa0e11-e0e1-4ca5-b09f-f3182cfef39e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Raytracing">
+      <UniqueIdentifier>{1dabe764-bce2-401a-a69c-58f3035e4800}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Multithreading">
+      <UniqueIdentifier>{6e23d464-5799-4d40-91cf-fbf7f3fd7285}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Component System">
+      <UniqueIdentifier>{ade7e1cb-a2be-47d3-ad0e-e40e6441efae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp">

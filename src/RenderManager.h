@@ -103,6 +103,7 @@ struct AOData
 	float mScale;
 	int mBlurPasses;
 	float mRangeSigma;
+	int mSpaceSigma;
 	AOBuffer mAOBuffer;
 
 };
